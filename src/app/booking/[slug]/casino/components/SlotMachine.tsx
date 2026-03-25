@@ -16,7 +16,7 @@ interface ReelProps {
   index: number;
 }
 
-function SingleReel({ emoji, value, label, locked, isSpinning, index }: ReelProps) {
+function SingleReel({ emoji, value, label, locked, isSpinning }: ReelProps) {
   const { theme } = useBookingStore();
   const primary = theme.primaryColor;
 
@@ -144,7 +144,6 @@ function SingleReel({ emoji, value, label, locked, isSpinning, index }: ReelProp
 
 // Jackpot celebration particles
 function JackpotParticles({ active }: { active: boolean }) {
-  const { theme } = useBookingStore();
   if (!active) return null;
 
   const particles = [
