@@ -6,7 +6,12 @@ import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 
 export default function EmployeeSelection() {
-  const { employeesUI, selectedEmployeeId, anyPerson, selectEmployee, theme } = useBookingStore();
+  const { employeesUI, eligibleEmployeeIds, selectedEmployeeId, anyPerson, selectEmployee, theme } = useBookingStore();
+
+  // Always filter by eligibleEmployeeIds (populated by selectService in the store)
+  const eligibleSet = new Set(eligibleEmployeeIds);
+  const filteredEmployees = employeesUI.filter(emp => eligibleSet.has(String(emp.id)));
+  const noEmployeesAvailable = eligibleEmployeeIds.length === 0;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -143,10 +148,18 @@ export default function EmployeeSelection() {
       </motion.div>
 
       {/* Employee list */}
-      <div className="space-y-0">
-        {renderEmployeeItem(null, true)}
-        {employeesUI.map((employee) => renderEmployeeItem(employee))}
-      </div>
+      {noEmployeesAvailable ? (
+        <motion.div variants={itemVariants} className="py-8 text-center">
+          <p className="text-white/50 text-base">
+            Za to storitev ni na voljo nobenega osebja.
+          </p>
+        </motion.div>
+      ) : (
+        <div className="space-y-0">
+          {renderEmployeeItem(null, true)}
+          {filteredEmployees.map((employee) => renderEmployeeItem(employee))}
+        </div>
+      )}
     </motion.div>
   );
 }

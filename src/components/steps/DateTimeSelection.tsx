@@ -31,6 +31,7 @@ export default function DateTimeSelection({ companySlug }: DateTimeSelectionProp
     selectedTime,
     selectedEmployeeId,
     anyPerson,
+    eligibleEmployeeIds,
     selectedService,
     selectDate,
     selectTime,
@@ -74,7 +75,8 @@ export default function DateTimeSelection({ companySlug }: DateTimeSelectionProp
           dateStr,
           selectedService.id,
           selectedEmployeeId,
-          anyPerson
+          anyPerson,
+          eligibleEmployeeIds
         );
         setTimeSlots(slots);
       } catch (error) {

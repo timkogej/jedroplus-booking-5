@@ -12,11 +12,12 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { number: 1, title: 'Specialist' },
+  { number: 1, title: 'Kategorija' },
   { number: 2, title: 'Storitev' },
-  { number: 3, title: 'Datum in ura' },
-  { number: 4, title: 'Podatki' },
-  { number: 5, title: 'Potrditev' },
+  { number: 3, title: 'Specialist' },
+  { number: 4, title: 'Datum in ura' },
+  { number: 5, title: 'Podatki' },
+  { number: 6, title: 'Potrditev' },
 ];
 
 export default function TimelineStepper() {
@@ -41,22 +42,18 @@ export default function TimelineStepper() {
   const getStepDescription = (stepNumber: BookingStep): string | undefined => {
     switch (stepNumber) {
       case 1:
+        return selectedCategory?.name;
+      case 2:
+        return selectedService?.naziv;
+      case 3:
         if (anyPerson) return 'Kdorkoli';
         return selectedEmployee?.label;
-      case 2:
-        if (selectedService) {
-          return `${selectedCategory?.name} → ${selectedService.naziv}`;
-        }
-        if (selectedCategory) {
-          return selectedCategory.name;
-        }
-        return undefined;
-      case 3:
+      case 4:
         if (selectedDate && selectedTime) {
           return `${selectedDate.toLocaleDateString('sl-SI', { month: 'short', day: 'numeric' })} ob ${selectedTime}`;
         }
         return undefined;
-      case 4:
+      case 5:
         if (customerDetails?.firstName) {
           return `${customerDetails.firstName} ${customerDetails.lastName}`;
         }

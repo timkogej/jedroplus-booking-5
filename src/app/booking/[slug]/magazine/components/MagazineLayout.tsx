@@ -35,10 +35,10 @@ const pageVariants: Variants = {
 const EDITORIAL_PANELS = [
   {
     step: 1,
-    eyebrow: 'Naši strokovnjaki',
-    headline: 'Vsak specialist prinaša edinstveno izkušnjo',
-    quote: 'Pravi strokovnjak za vsako storitev.',
-    accent: 'Specialist',
+    eyebrow: 'Naše kategorije',
+    headline: 'Vsaka storitev je zgodba zase',
+    quote: 'Izberite področje, ki vas zanima.',
+    accent: 'Kategorija',
   },
   {
     step: 2,
@@ -49,20 +49,27 @@ const EDITORIAL_PANELS = [
   },
   {
     step: 3,
+    eyebrow: 'Naši strokovnjaki',
+    headline: 'Vsak specialist prinaša edinstveno izkušnjo',
+    quote: 'Pravi strokovnjak za vsako storitev.',
+    accent: 'Specialist',
+  },
+  {
+    step: 4,
     eyebrow: 'Vaš termin',
     headline: 'Čas je dragocen — rezervirajte ga pametno',
     quote: 'Prosti termini, prilagojeni vašemu ritmu.',
     accent: 'Termin',
   },
   {
-    step: 4,
+    step: 5,
     eyebrow: 'Vaši podatki',
     headline: 'Vaša zasebnost je naša prioriteta',
     quote: 'Zaupamo si le tisto, kar je potrebno.',
     accent: 'Podatki',
   },
   {
-    step: 5,
+    step: 6,
     eyebrow: 'Potrditev',
     headline: 'Vaša rezervacija je skoraj potrjena',
     quote: 'Veselimo se vašega obiska.',
@@ -72,7 +79,7 @@ const EDITORIAL_PANELS = [
 
 function EditorialPanel() {
   const { currentStep, theme, bookingConfirmation } = useBookingStore();
-  const step = bookingConfirmation?.success ? 5 : currentStep;
+  const step = bookingConfirmation?.success ? 6 : currentStep;
   const panel = EDITORIAL_PANELS[step - 1] || EDITORIAL_PANELS[0];
 
   return (
@@ -193,7 +200,7 @@ function EditorialPanel() {
             </motion.span>
           </AnimatePresence>
           <span className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
-            0{step} / 05
+            0{step} / 06
           </span>
         </div>
       </div>
@@ -202,7 +209,7 @@ function EditorialPanel() {
 }
 
 export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
-  const { currentStep, serviceSubStep, bookingConfirmation } = useBookingStore();
+  const { currentStep, bookingConfirmation } = useBookingStore();
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -210,25 +217,23 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
     }
     switch (currentStep) {
       case 1:
-        return <MagazineEmployeeSelection />;
+        return <MagazineCategorySelection />;
       case 2:
-        return serviceSubStep === 'category' ? (
-          <MagazineCategorySelection />
-        ) : (
-          <MagazineServiceSelection />
-        );
+        return <MagazineServiceSelection />;
       case 3:
-        return <MagazineDateTimeSelection companySlug={companySlug} />;
+        return <MagazineEmployeeSelection />;
       case 4:
-        return <MagazineCustomerDetails />;
+        return <MagazineDateTimeSelection companySlug={companySlug} />;
       case 5:
+        return <MagazineCustomerDetails />;
+      case 6:
         return <MagazineConfirmation companySlug={companySlug} />;
       default:
         return null;
     }
   };
 
-  const stepKey = `${currentStep}-${serviceSubStep}-${!!bookingConfirmation?.success}`;
+  const stepKey = `${currentStep}-${!!bookingConfirmation?.success}`;
 
   return (
     <div className="min-h-screen bg-[#FAFAF9]">

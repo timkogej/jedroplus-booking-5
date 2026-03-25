@@ -124,6 +124,7 @@ export default function MagazineCustomerDetails() {
     gender: '',
     notes: '',
     gdprSendMarketing: false,
+    privacyConsent: false,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetailsType, string>>>({});
@@ -139,6 +140,7 @@ export default function MagazineCustomerDetails() {
       e.email = 'Vnesi veljaven email';
     }
     if (!formData.phone.trim()) e.phone = 'Telefon je obvezen';
+    if (!formData.privacyConsent) e.privacyConsent = 'Za oddajo rezervacije se morate strinjati s politiko zasebnosti.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -313,8 +315,74 @@ export default function MagazineCustomerDetails() {
             </div>
           </motion.div>
 
-          {/* GDPR */}
+          {/* Privacy consent - OBVEZEN */}
           <motion.div variants={itemVariants} className="mt-8 flex items-start gap-3">
+            <div
+              className="relative w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
+              onClick={() =>
+                setFormData((p) => ({
+                  ...p,
+                  privacyConsent: !p.privacyConsent,
+                }))
+              }
+            >
+              <div
+                className="w-4 h-4 border flex items-center justify-center transition-all duration-200"
+                style={{
+                  borderColor: errors.privacyConsent
+                    ? '#f87171'
+                    : formData.privacyConsent
+                    ? theme.primaryColor
+                    : 'rgba(0,0,0,0.2)',
+                  backgroundColor: formData.privacyConsent
+                    ? `${theme.primaryColor}12`
+                    : 'transparent',
+                }}
+              >
+                {formData.privacyConsent && (
+                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+                    <path
+                      d="M1 3L3 5L7 1"
+                      stroke={theme.primaryColor}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div>
+              <label
+                className="text-[#6B6B6B] text-[12px] leading-relaxed cursor-pointer"
+                onClick={() =>
+                  setFormData((p) => ({
+                    ...p,
+                    privacyConsent: !p.privacyConsent,
+                  }))
+                }
+              >
+                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                <a
+                  href="https://jedroplus.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors"
+                  style={{ color: theme.primaryColor }}
+                >
+                  Preberi politiko zasebnosti
+                </a>
+              </label>
+              {errors.privacyConsent && (
+                <p className="text-red-500 text-[11px] mt-1 border-l-2 border-red-400 pl-2">
+                  {errors.privacyConsent}
+                </p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* GDPR Marketing */}
+          <motion.div variants={itemVariants} className="mt-4 flex items-start gap-3">
             <div
               className="relative w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
               onClick={() =>
@@ -357,7 +425,7 @@ export default function MagazineCustomerDetails() {
                 }))
               }
             >
-              Želim prejemati novice in posebne ponudbe po e-pošti
+              Želim prejemati obvestila o promocijah in novostih.
             </label>
           </motion.div>
 
@@ -378,12 +446,10 @@ export default function MagazineCustomerDetails() {
                 transition={{ duration: 0.3 }}
               />
               <span
-                className="relative z-10 magazine-caps text-[10px] tracking-[0.2em] transition-colors duration-300"
+                className="relative z-10 magazine-caps text-[10px] tracking-[0.2em]"
                 style={{ color: theme.primaryColor }}
               >
-                <span className="group-hover:text-white transition-colors duration-300">
-                  Nadaljuj na potrditev
-                </span>
+                Nadaljuj na potrditev
               </span>
             </motion.button>
           </motion.div>

@@ -7,9 +7,6 @@ import { useBookingStore } from '@/store/bookingStore';
 export default function NavigationBar() {
   const {
     currentStep,
-    serviceSubStep,
-    selectedCategory,
-    selectedService,
     selectedDate,
     selectedTime,
     theme,
@@ -20,32 +17,20 @@ export default function NavigationBar() {
   // Determine if next button should be shown and enabled
   const canProceed = (): boolean => {
     switch (currentStep) {
-      case 1:
-        return true; // Employee selection auto-advances
-      case 2:
-        if (serviceSubStep === 'category') {
-          return !!selectedCategory;
-        }
-        return !!selectedService;
-      case 3:
-        return !!selectedDate && !!selectedTime;
       case 4:
-        return false; // Has its own submit button
-      case 5:
-        return false; // Final step
+        return !!selectedDate && !!selectedTime;
       default:
         return false;
     }
   };
 
   // Should we show the navigation?
-  const showNavigation = currentStep < 5;
+  const showNavigation = currentStep < 6;
 
   // Steps that auto-advance don't need next button
-  const hideNextButton =
-    currentStep === 1 ||
-    currentStep === 4 ||
-    (currentStep === 2 && serviceSubStep === 'service');
+  // Steps 1 (category), 2 (service), 3 (employee) auto-advance on click
+  // Step 5 (customer details) has its own submit button
+  const hideNextButton = currentStep === 1 || currentStep === 2 || currentStep === 3 || currentStep === 5;
 
   if (!showNavigation) return null;
 
@@ -59,11 +44,11 @@ export default function NavigationBar() {
         {/* Back button */}
         <button
           onClick={prevStep}
-          disabled={currentStep === 1 && serviceSubStep === 'category'}
+          disabled={currentStep === 1}
           className={`
             flex items-center gap-2 py-2 px-4 rounded-full transition-all duration-200
             ${
-              currentStep === 1 && serviceSubStep === 'category'
+              currentStep === 1
                 ? 'opacity-0 pointer-events-none'
                 : 'text-white/60 hover:text-white hover:bg-white/10'
             }
@@ -75,7 +60,7 @@ export default function NavigationBar() {
 
         {/* Step indicator (mobile) */}
         <div className="lg:hidden text-sm text-white/50 font-mono">
-          {currentStep}/5
+          {currentStep}/6
         </div>
 
         {/* Next button */}

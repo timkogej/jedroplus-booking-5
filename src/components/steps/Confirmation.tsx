@@ -18,6 +18,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
+    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -52,6 +53,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         serviceId: selectedService.id,
         employeeId: selectedEmployeeId,
         anyPerson,
+        eligibleEmployeeIds,
         firstName: customerDetails.firstName,
         lastName: customerDetails.lastName,
         email: customerDetails.email,
@@ -59,6 +61,9 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
+        privacyConsent: customerDetails.privacyConsent,
+        marketingConsent: customerDetails.gdprSendMarketing,
+        consentTimestamp: new Date().toISOString(),
       });
 
       if (response.success) {
@@ -450,9 +455,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         onClick={handleConfirm}
         disabled={isSubmitting}
         className="px-12 py-4 rounded-full font-medium text-lg transition-all duration-300 text-white relative overflow-hidden"
-        style={{
-          backgroundColor: theme.primaryColor,
-        }}
+        style={{ backgroundColor: theme.primaryColor }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >

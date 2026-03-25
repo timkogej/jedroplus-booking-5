@@ -24,7 +24,6 @@ interface BookingPageProps {
 export default function BookingPage({ businessSlug }: BookingPageProps) {
   const {
     currentStep,
-    serviceSubStep,
     theme,
     company,
     isLoading,
@@ -34,6 +33,7 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
     setCategories,
     setServices,
     setServicesByCategory,
+    setEmployeesByServiceId,
     setLoading,
   } = useBookingStore();
 
@@ -82,6 +82,11 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
         if (data.servicesByCategory) {
           setServicesByCategory(data.servicesByCategory);
         }
+
+        // Set employees by service
+        if (data.employeesByServiceId) {
+          setEmployeesByServiceId(data.employeesByServiceId);
+        }
       } catch (err) {
         console.error('Failed to load init data:', err);
         setError('Failed to load booking data. Please try again later.');
@@ -91,7 +96,7 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
     }
 
     loadInitData();
-  }, [businessSlug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setLoading]);
+  }, [businessSlug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
 
   // Apply theme CSS variables
   useEffect(() => {
@@ -104,18 +109,16 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <EmployeeSelection />;
+        return <CategorySelection />;
       case 2:
-        return serviceSubStep === 'category' ? (
-          <CategorySelection />
-        ) : (
-          <ServiceSelection />
-        );
+        return <ServiceSelection />;
       case 3:
-        return <DateTimeSelection companySlug={businessSlug} />;
+        return <EmployeeSelection />;
       case 4:
-        return <CustomerDetails />;
+        return <DateTimeSelection companySlug={businessSlug} />;
       case 5:
+        return <CustomerDetails />;
+      case 6:
         return <Confirmation companySlug={businessSlug} />;
       default:
         return null;
@@ -192,7 +195,7 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
           </div>
 
           <div className="hidden lg:block text-sm text-white/60 font-light tracking-wide">
-            Korak {currentStep} od 5
+            Korak {currentStep} od 6
           </div>
         </div>
       </header>
@@ -211,7 +214,7 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 lg:p-8">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={`${currentStep}-${serviceSubStep}`}
+                  key={currentStep}
                   variants={pageVariants}
                   initial="initial"
                   animate="animate"

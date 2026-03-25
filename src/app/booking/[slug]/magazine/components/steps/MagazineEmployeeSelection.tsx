@@ -14,8 +14,12 @@ const itemVariants: Variants = {
 };
 
 export default function MagazineEmployeeSelection() {
-  const { employeesUI, selectedEmployeeId, anyPerson, selectEmployee, theme } =
+  const { employeesUI, eligibleEmployeeIds, selectedEmployeeId, anyPerson, selectEmployee, theme } =
     useBookingStore();
+
+  const eligibleSet = new Set(eligibleEmployeeIds);
+  const filteredEmployees = employeesUI.filter(emp => eligibleSet.has(String(emp.id)));
+  const noEmployeesAvailable = eligibleEmployeeIds.length === 0;
 
   const renderCard = (employee: EmployeeUI | null, isAnyOption = false) => {
     const isSelected = isAnyOption ? anyPerson : selectedEmployeeId === employee?.id;
@@ -190,22 +194,32 @@ export default function MagazineEmployeeSelection() {
         </p>
       </motion.div>
 
-      {/* "Kdorkoli" option */}
-      {renderCard(null, true)}
+      {noEmployeesAvailable ? (
+        <motion.div variants={itemVariants} className="py-8">
+          <p className="magazine-body text-[#6B6B6B] text-sm italic">
+            Za to storitev ni na voljo nobenega osebja.
+          </p>
+        </motion.div>
+      ) : (
+        <>
+          {/* "Kdorkoli" option */}
+          {renderCard(null, true)}
 
-      {/* Divider */}
-      <motion.div variants={itemVariants} className="my-6 flex items-center gap-4">
-        <div className="flex-1 h-[1px] bg-black/08" />
-        <span className="magazine-caps text-[9px] tracking-[0.2em] text-black/25">
-          ali
-        </span>
-        <div className="flex-1 h-[1px] bg-black/08" />
-      </motion.div>
+          {/* Divider */}
+          <motion.div variants={itemVariants} className="my-6 flex items-center gap-4">
+            <div className="flex-1 h-[1px] bg-black/08" />
+            <span className="magazine-caps text-[9px] tracking-[0.2em] text-black/25">
+              ali
+            </span>
+            <div className="flex-1 h-[1px] bg-black/08" />
+          </motion.div>
 
-      {/* Employee list */}
-      <div>
-        {employeesUI.map((employee) => renderCard(employee))}
-      </div>
+          {/* Employee list */}
+          <div>
+            {filteredEmployees.map((employee) => renderCard(employee))}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }

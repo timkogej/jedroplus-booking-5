@@ -4,11 +4,12 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
-  { num: '01', label: 'Specialist', roman: 'I' },
+  { num: '01', label: 'Kategorija', roman: 'I' },
   { num: '02', label: 'Storitev', roman: 'II' },
-  { num: '03', label: 'Termin', roman: 'III' },
-  { num: '04', label: 'Podatki', roman: 'IV' },
-  { num: '05', label: 'Potrditev', roman: 'V' },
+  { num: '03', label: 'Specialist', roman: 'III' },
+  { num: '04', label: 'Termin', roman: 'IV' },
+  { num: '05', label: 'Podatki', roman: 'V' },
+  { num: '06', label: 'Potrditev', roman: 'VI' },
 ];
 
 export default function MagazineProgress() {
@@ -65,7 +66,7 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em]"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[idx]?.num} / 05
+            Poglavje {STEPS[idx]?.num} / 06
           </p>
         </div>
       </div>
@@ -77,7 +78,7 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em] mb-1"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[idx]?.num} / 05
+            Poglavje {STEPS[idx]?.num} / 06
           </p>
           <p className="magazine-serif text-base text-[#1A1A1A]">
             {STEPS[idx]?.label}

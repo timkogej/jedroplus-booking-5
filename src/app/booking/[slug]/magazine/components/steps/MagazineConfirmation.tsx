@@ -283,6 +283,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
+    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -318,6 +319,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         serviceId: selectedService.id,
         employeeId: selectedEmployeeId,
         anyPerson,
+        eligibleEmployeeIds,
         firstName: customerDetails.firstName,
         lastName: customerDetails.lastName,
         email: customerDetails.email,
@@ -325,6 +327,9 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
+        privacyConsent: customerDetails.privacyConsent,
+        marketingConsent: customerDetails.gdprSendMarketing,
+        consentTimestamp: new Date().toISOString(),
       });
 
       if (response.success) {

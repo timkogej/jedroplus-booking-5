@@ -20,6 +20,7 @@ export default function MagazinePage() {
     setCategories,
     setServices,
     setServicesByCategory,
+    setEmployeesByServiceId,
     setLoading,
   } = useBookingStore();
 
@@ -46,6 +47,7 @@ export default function MagazinePage() {
         if (data.serviceCategories) setCategories(data.serviceCategories);
         if (data.services) setServices(data.services);
         if (data.servicesByCategory) setServicesByCategory(data.servicesByCategory);
+        if (data.employeesByServiceId) setEmployeesByServiceId(data.employeesByServiceId);
       } catch (err) {
         console.error('Failed to load init data:', err);
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
@@ -55,7 +57,7 @@ export default function MagazinePage() {
     }
 
     loadInitData();
-  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setLoading]);
+  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
 
   // Apply theme CSS custom properties
   useEffect(() => {

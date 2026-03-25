@@ -31,6 +31,7 @@ export default function CustomerDetails() {
     gender: '',
     notes: '',
     gdprSendMarketing: false,
+    privacyConsent: false,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetailsType, string>>>({});
@@ -55,6 +56,10 @@ export default function CustomerDetails() {
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Telefonska številka je obvezna';
+    }
+
+    if (!formData.privacyConsent) {
+      newErrors.privacyConsent = 'Za oddajo rezervacije se morate strinjati s politiko zasebnosti.';
     }
 
     setErrors(newErrors);
@@ -264,6 +269,39 @@ export default function CustomerDetails() {
               />
             </motion.div>
 
+            {/* Privacy consent - OBVEZEN */}
+            <motion.div variants={itemVariants} className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="privacyConsent"
+                name="privacyConsent"
+                checked={formData.privacyConsent || false}
+                onChange={handleChange}
+                className="mt-1 w-5 h-5 rounded border-2 bg-transparent cursor-pointer"
+                style={{
+                  borderColor: errors.privacyConsent ? 'rgb(248 113 113)' : 'rgba(255,255,255,0.3)',
+                  accentColor: theme.primaryColor,
+                }}
+              />
+              <div>
+                <label htmlFor="privacyConsent" className="text-white/70 text-sm cursor-pointer">
+                  Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                  <a
+                    href="https://jedroplus.com/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-white transition-colors"
+                    style={{ color: theme.primaryColor }}
+                  >
+                    Preberi politiko zasebnosti
+                  </a>
+                </label>
+                {errors.privacyConsent && (
+                  <p className="text-red-400 text-xs mt-1">{errors.privacyConsent}</p>
+                )}
+              </div>
+            </motion.div>
+
             {/* GDPR Marketing checkbox */}
             <motion.div variants={itemVariants} className="flex items-start gap-3">
               <input
@@ -282,7 +320,7 @@ export default function CustomerDetails() {
                 htmlFor="gdprSendMarketing"
                 className="text-white/60 text-sm cursor-pointer"
               >
-                Želim prejemati novice in posebne ponudbe po e-pošti
+                Želim prejemati obvestila o promocijah in novostih.
               </label>
             </motion.div>
           </div>
@@ -298,11 +336,9 @@ export default function CustomerDetails() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = theme.primaryColor;
-                e.currentTarget.style.color = 'white';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = theme.primaryColor;
               }}
             >
               Nadaljuj na potrditev

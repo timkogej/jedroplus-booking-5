@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
-const stepNames = ['Specialist', 'Storitev', 'Datum in ura', 'Podatki', 'Potrditev'];
+const stepNames = ['Kategorija', 'Storitev', 'Specialist', 'Datum in ura', 'Podatki', 'Potrditev'];
 
 export default function MobileStepIndicator() {
   const { currentStep, theme } = useBookingStore();
@@ -12,7 +12,7 @@ export default function MobileStepIndicator() {
     <div className="lg:hidden flex flex-col items-center py-6 px-4">
       {/* Step indicator */}
       <div className="flex items-center gap-3 mb-3">
-        {[1, 2, 3, 4, 5].map((step) => {
+        {[1, 2, 3, 4, 5, 6].map((step) => {
           const isCompleted = currentStep > step;
           const isCurrent = currentStep === step;
 
@@ -29,7 +29,7 @@ export default function MobileStepIndicator() {
                 }}
                 layout
               />
-              {step < 5 && (
+              {step < 6 && (
                 <div
                   className="w-4 h-[1px] mx-1"
                   style={{
@@ -47,7 +47,7 @@ export default function MobileStepIndicator() {
         {stepNames[currentStep - 1]}
       </p>
       <p className="text-sm text-white/50 font-mono">
-        Korak {currentStep} od 5
+        Korak {currentStep} od 6
       </p>
     </div>
   );

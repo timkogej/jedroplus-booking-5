@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import {
   BookingStep,
-  ServiceSubStep,
   EmployeeUI,
   Category,
   Service,
@@ -12,9 +11,8 @@ import {
 import { DEFAULT_THEME } from '@/lib/api';
 
 interface BookingState {
-  // Current step
+  // Current step (1=category, 2=service, 3=employee, 4=date+time, 5=customer, 6=confirm)
   currentStep: BookingStep;
-  serviceSubStep: ServiceSubStep;
 
   // Theme
   theme: Theme;
@@ -27,10 +25,12 @@ interface BookingState {
   categories: Category[];
   services: Service[];
   servicesByCategory: Record<string, Service[]>;
+  employeesByServiceId: Record<string, (string | number)[]>;
 
   // Selections
   selectedEmployeeId: string | null;
   anyPerson: boolean;
+  eligibleEmployeeIds: string[];
   selectedCategory: Category | null;
   selectedService: Service | null;
   selectedDate: Date | null;
@@ -57,6 +57,7 @@ interface BookingState {
   setCategories: (categories: Category[]) => void;
   setServices: (services: Service[]) => void;
   setServicesByCategory: (data: Record<string, Service[]>) => void;
+  setEmployeesByServiceId: (data: Record<string, (string | number)[]>) => void;
 
   selectEmployee: (employeeId: string | null, isAnyPerson?: boolean) => void;
   selectCategory: (category: Category) => void;
@@ -78,15 +79,16 @@ interface BookingState {
 
 const initialState = {
   currentStep: 1 as BookingStep,
-  serviceSubStep: 'category' as ServiceSubStep,
   theme: DEFAULT_THEME,
   company: null,
   employeesUI: [],
   categories: [],
   services: [],
   servicesByCategory: {},
+  employeesByServiceId: {},
   selectedEmployeeId: null,
   anyPerson: false,
+  eligibleEmployeeIds: [],
   selectedCategory: null,
   selectedService: null,
   selectedDate: null,
@@ -112,26 +114,52 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
   setServicesByCategory: (servicesByCategory) => set({ servicesByCategory }),
 
+  setEmployeesByServiceId: (employeesByServiceId) => set({ employeesByServiceId }),
+
   selectEmployee: (employeeId, isAnyPerson = false) => {
     set({
       selectedEmployeeId: employeeId,
       anyPerson: isAnyPerson,
     });
-    // Auto-advance after selection
     get().nextStep();
   },
 
   selectCategory: (category) => {
     set({
       selectedCategory: category,
-      serviceSubStep: 'service',
       selectedService: null,
+      selectedEmployeeId: null,
+      anyPerson: false,
+      eligibleEmployeeIds: [],
     });
+    get().nextStep();
   },
 
   selectService: (service) => {
-    set({ selectedService: service });
-    // Auto-advance after service selection
+    const { employeesByServiceId, employeesUI } = get();
+    const serviceKey = String(service.id);
+
+    let eligibleIds: string[];
+    if (serviceKey in employeesByServiceId) {
+      // Explicit mapping exists — may be empty (meaning no one can do this service)
+      eligibleIds = employeesByServiceId[serviceKey].map(String);
+    } else {
+      // No mapping found — treat all employees as eligible
+      eligibleIds = employeesUI.map(emp => String(emp.id));
+    }
+
+    const eligibleSet = new Set(eligibleIds);
+    const filteredEmployees = employeesUI.filter(emp => eligibleSet.has(String(emp.id)));
+
+    // Pre-select if exactly one eligible employee
+    const autoSelectedId = filteredEmployees.length === 1 ? filteredEmployees[0].id : null;
+
+    set({
+      selectedService: service,
+      selectedEmployeeId: autoSelectedId,
+      anyPerson: false,
+      eligibleEmployeeIds: eligibleIds,
+    });
     get().nextStep();
   },
 
@@ -139,45 +167,26 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
   selectTime: (time) => {
     set({ selectedTime: time });
-    // Auto-advance after time selection
     get().nextStep();
   },
 
   setCustomerDetails: (details) => set({ customerDetails: details }),
 
   nextStep: () => {
-    const { currentStep, serviceSubStep } = get();
-
-    if (currentStep === 2 && serviceSubStep === 'category') {
-      // Stay on step 2, just switch sub-step (handled by selectCategory)
-      return;
-    }
-
-    if (currentStep < 5) {
-      set({
-        currentStep: (currentStep + 1) as BookingStep,
-        serviceSubStep: 'category',
-      });
+    const { currentStep } = get();
+    if (currentStep < 6) {
+      set({ currentStep: (currentStep + 1) as BookingStep });
     }
   },
 
   prevStep: () => {
-    const { currentStep, serviceSubStep } = get();
-
-    if (currentStep === 2 && serviceSubStep === 'service') {
-      set({ serviceSubStep: 'category' });
-      return;
-    }
-
+    const { currentStep } = get();
     if (currentStep > 1) {
-      set({
-        currentStep: (currentStep - 1) as BookingStep,
-        serviceSubStep: currentStep === 3 ? 'service' : 'category',
-      });
+      set({ currentStep: (currentStep - 1) as BookingStep });
     }
   },
 
-  goToStep: (step) => set({ currentStep: step, serviceSubStep: 'category' }),
+  goToStep: (step) => set({ currentStep: step }),
 
   setLoading: (loading) => set({ isLoading: loading }),
 

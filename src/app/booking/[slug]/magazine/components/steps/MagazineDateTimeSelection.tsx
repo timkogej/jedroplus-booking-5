@@ -38,6 +38,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
     selectedTime,
     selectedEmployeeId,
     anyPerson,
+    eligibleEmployeeIds,
     selectedService,
     selectDate,
     selectTime,
@@ -69,7 +70,8 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
       format(selectedDate, 'yyyy-MM-dd'),
       selectedService.id,
       selectedEmployeeId,
-      anyPerson
+      anyPerson,
+      eligibleEmployeeIds
     )
       .then(setTimeSlots)
       .catch(() => setTimeSlots([]))
