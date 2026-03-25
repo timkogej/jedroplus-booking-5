@@ -32,7 +32,6 @@ interface ConfettiPiece {
 
 function JackpotConfetti({ active }: { active: boolean }) {
   const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
-  const { theme } = useBookingStore();
 
   useEffect(() => {
     if (!active) return;
