@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
@@ -15,123 +15,82 @@ interface FormErrors {
 }
 
 const GENDERS = [
-  { value: 'male', label: 'Gospod', suit: '♠' },
-  { value: 'female', label: 'Gospa', suit: '♥' },
-  { value: 'other', label: 'Drugo', suit: '♦' },
+  { value: 'male',   label: 'Gospod', suit: '♠' },
+  { value: 'female', label: 'Gospa',  suit: '♥' },
+  { value: 'other',  label: 'Drugo',  suit: '♦' },
 ];
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: 'easeOut' as const },
+  },
 };
 
-function NeonLabel({ children }: { children: React.ReactNode }) {
-  const { theme } = useBookingStore();
+// Gold underline label
+function MCLabel({ children }: { children: React.ReactNode }) {
   return (
     <label
-      className="block text-[9px] font-bold tracking-[0.3em] uppercase mb-1.5"
-      style={{ fontFamily: 'var(--font-orbitron)', color: `${theme.primaryColor}80` }}
+      className="block mb-1.5"
+      style={{
+        fontFamily: 'var(--font-oswald)',
+        fontSize: '0.6rem',
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: '#a89060',
+      }}
     >
       {children}
     </label>
   );
 }
 
-function NeonInput({
+// Gold underline input
+function MCInput({
   value,
   onChange,
   placeholder,
   type = 'text',
   hasError,
-  icon,
 }: {
   value: string;
   onChange: (v: string) => void;
-  placeholder: string;
+  placeholder?: string;
   type?: string;
   hasError?: boolean;
-  icon?: string;
 }) {
-  const { theme } = useBookingStore();
   const [focused, setFocused] = useState(false);
-  const primary = theme.primaryColor;
 
   return (
-    <div className="relative">
-      {icon && (
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">
-          {icon}
-        </span>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        className={`w-full rounded-lg py-2.5 text-sm transition-all casino-input ${hasError ? 'error' : ''}`}
-        style={{
-          fontFamily: 'var(--font-inter)',
-          paddingLeft: icon ? '2.25rem' : '0.875rem',
-          paddingRight: '0.875rem',
-          backgroundColor: '#0D1117',
-          border: `1px solid ${hasError ? '#FF3366' : focused ? primary : 'rgba(139,92,246,0.3)'}`,
-          color: 'white',
-          boxShadow: focused
-            ? `0 0 0 1px ${primary}, 0 0 10px ${primary}40`
-            : hasError
-            ? '0 0 8px rgba(255,51,102,0.4)'
-            : 'none',
-          outline: 'none',
-        }}
-      />
-    </div>
-  );
-}
-
-function NeonTextarea({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-}) {
-  const { theme } = useBookingStore();
-  const [focused, setFocused] = useState(false);
-  const primary = theme.primaryColor;
-
-  return (
-    <textarea
+    <input
+      type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      rows={3}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      className="w-full rounded-lg p-3 text-sm transition-all casino-input resize-none"
+      className={`mc-input ${hasError ? 'error' : ''}`}
       style={{
-        fontFamily: 'var(--font-inter)',
-        backgroundColor: '#0D1117',
-        border: `1px solid ${focused ? primary : 'rgba(139,92,246,0.3)'}`,
-        color: 'white',
-        boxShadow: focused ? `0 0 0 1px ${primary}, 0 0 10px ${primary}40` : 'none',
-        outline: 'none',
+        borderBottomColor: hasError
+          ? '#c0392b'
+          : focused
+          ? '#c9a84c'
+          : 'rgba(201, 168, 76, 0.3)',
       }}
     />
   );
 }
 
+// Booking summary sidebar strip
 function BookingSummary() {
   const {
-    theme,
     selectedService,
     selectedDate,
     selectedTime,
@@ -140,105 +99,78 @@ function BookingSummary() {
     employeesUI,
   } = useBookingStore();
 
-  const primary = theme.primaryColor;
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
-
   if (!selectedService) return null;
+
+  const rows = [
+    { label: 'Storitev',    value: selectedService.naziv },
+    { label: 'Specialist',  value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label ?? '—' },
+    { label: 'Datum',       value: selectedDate ? format(selectedDate, 'd. MMM yyyy', { locale: sl }) : '—' },
+    { label: 'Čas',         value: selectedTime ?? '—' },
+    { label: 'Trajanje',    value: `${selectedService.trajanjeMin} min` },
+  ];
 
   return (
     <div
-      className="rounded-xl p-4"
-      style={{ backgroundColor: '#16213E', border: `1px solid ${primary}25` }}
+      className="rounded-lg overflow-hidden mb-6"
+      style={{
+        background: 'rgba(8, 30, 15, 0.75)',
+        border: '1px solid rgba(201, 168, 76, 0.2)',
+      }}
     >
-      <p
-        className="text-[9px] tracking-[0.3em] uppercase font-bold mb-4"
-        style={{ fontFamily: 'var(--font-orbitron)', color: `${primary}70` }}
+      {/* Header */}
+      <div
+        className="px-4 py-2.5"
+        style={{
+          background: 'rgba(13, 59, 30, 0.5)',
+          borderBottom: '1px solid rgba(201,168,76,0.12)',
+        }}
       >
-        ⭐ YOUR JACKPOT
-      </p>
-
-      <div className="space-y-2.5">
-        {(selectedEmployee || anyPerson) && (
-          <div className="flex justify-between items-center">
-            <span
-              className="text-[10px] tracking-wider uppercase"
-              style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              👤 Mojster
-            </span>
-            <span
-              className="text-xs font-bold text-white"
-              style={{ fontFamily: 'var(--font-inter)' }}
-            >
-              {selectedEmployee ? selectedEmployee.label : 'Kdorkoli prost'}
-            </span>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
-          <span
-            className="text-[10px] tracking-wider uppercase"
-            style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,255,255,0.35)' }}
-          >
-            🎰 Storitev
-          </span>
-          <span
-            className="text-xs font-bold text-white text-right max-w-[160px] leading-tight"
-            style={{ fontFamily: 'var(--font-inter)' }}
-          >
-            {selectedService.naziv}
-          </span>
-        </div>
-
-        {selectedDate && (
-          <div className="flex justify-between items-center">
-            <span
-              className="text-[10px] tracking-wider uppercase"
-              style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              📅 Datum
-            </span>
-            <span
-              className="text-xs font-bold text-white"
-              style={{ fontFamily: 'var(--font-inter)' }}
-            >
-              {format(selectedDate, 'd. MMM yyyy', { locale: sl })}
-            </span>
-          </div>
-        )}
-
-        {selectedTime && (
-          <div className="flex justify-between items-center">
-            <span
-              className="text-[10px] tracking-wider uppercase"
-              style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,255,255,0.35)' }}
-            >
-              ⏰ Ura
-            </span>
-            <span
-              className="text-xs font-bold"
-              style={{ fontFamily: 'var(--font-orbitron)', color: primary }}
-            >
-              {selectedTime}
-            </span>
-          </div>
-        )}
+        <p
+          style={{
+            fontFamily: 'var(--font-oswald)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: '#a89060',
+          }}
+        >
+          ◆ Vaša Rezervacija
+        </p>
       </div>
 
-      {/* Divider */}
-      <div className="casino-divider-gold my-3" />
+      <div className="px-4 py-3 space-y-0">
+        {rows.map((row, i) => (
+          <div key={i} className="mc-summary-row">
+            <span className="mc-summary-label">{row.label}</span>
+            <span className="mc-summary-value text-sm">{row.value}</span>
+          </div>
+        ))}
+      </div>
 
       {/* Total */}
-      <div className="flex justify-between items-center">
+      <div
+        className="px-4 py-3 flex items-center justify-between"
+        style={{ borderTop: '1px solid rgba(201,168,76,0.15)' }}
+      >
         <span
-          className="text-[10px] tracking-[0.25em] uppercase font-bold"
-          style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,215,0,0.7)' }}
+          style={{
+            fontFamily: 'var(--font-oswald)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: '#a89060',
+          }}
         >
-          💰 TOTAL
+          Skupaj
         </span>
         <span
-          className="text-xl font-black casino-neon-gold"
-          style={{ fontFamily: 'var(--font-orbitron)' }}
+          style={{
+            fontFamily: 'var(--font-playfair)',
+            fontSize: '1.3rem',
+            fontWeight: 700,
+            color: '#e8c96d',
+          }}
         >
           €{selectedService.cena}
         </span>
@@ -248,38 +180,37 @@ function BookingSummary() {
 }
 
 export default function CasinoCustomerDetails() {
-  const { setCustomerDetails, nextStep, theme } = useBookingStore();
-  const primary = theme.primaryColor;
+  const { setCustomerDetails, nextStep } = useBookingStore();
 
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [gender, setGender] = useState('');
-  const [notes, setNotes] = useState('');
+  const [lastName,  setLastName]  = useState('');
+  const [email,     setEmail]     = useState('');
+  const [phone,     setPhone]     = useState('');
+  const [gender,    setGender]    = useState('');
+  const [notes,     setNotes]     = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-    if (!firstName.trim()) newErrors.firstName = 'Ime je obvezno';
-    if (!lastName.trim()) newErrors.lastName = 'Priimek je obvezen';
-    if (!email.trim()) newErrors.email = 'Email je obvezen';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email ni veljaven';
-    if (!phone.trim()) newErrors.phone = 'Telefon je obvezen';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e: FormErrors = {};
+    if (!firstName.trim()) e.firstName = 'Ime je obvezno';
+    if (!lastName.trim())  e.lastName  = 'Priimek je obvezen';
+    if (!email.trim())     e.email     = 'Email je obvezen';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
+    if (!phone.trim())     e.phone     = 'Telefon je obvezen';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = () => {
     if (!validate()) return;
     const details: CustomerDetails = {
       firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      gender: gender || undefined,
-      notes: notes.trim() || undefined,
+      lastName:  lastName.trim(),
+      email:     email.trim(),
+      phone:     phone.trim(),
+      gender:    gender || undefined,
+      notes:     notes.trim() || undefined,
       gdprSendMarketing: gdprMarketing,
     };
     setCustomerDetails(details);
@@ -288,59 +219,65 @@ export default function CasinoCustomerDetails() {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
-      {/* Summary */}
-      <motion.div variants={itemVariants} className="mb-5">
+      {/* Booking summary */}
+      <motion.div variants={itemVariants}>
         <BookingSummary />
       </motion.div>
 
       {/* Form card */}
       <motion.div
         variants={itemVariants}
-        className="rounded-xl p-5 space-y-4"
-        style={{ backgroundColor: '#1A1A2E', border: `1px solid ${primary}20` }}
+        className="rounded-lg p-5"
+        style={{
+          background: 'rgba(10, 40, 20, 0.82)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(201, 168, 76, 0.2)',
+        }}
       >
+        {/* Section label */}
+        <p
+          className="mb-5"
+          style={{
+            fontFamily: 'var(--font-oswald)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: '#a89060',
+          }}
+        >
+          ◆ Registracija Igralca
+        </p>
+
         {/* Name row */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <NeonLabel>Ime</NeonLabel>
-            <NeonInput
-              value={firstName}
-              onChange={setFirstName}
-              placeholder="Janez"
-              hasError={!!errors.firstName}
-            />
+            <MCLabel>Ime</MCLabel>
+            <MCInput value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} />
             <AnimatePresence>
               {errors.firstName && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="text-[10px] mt-1 font-bold tracking-wider"
-                  style={{ color: '#FF3366', fontFamily: 'var(--font-orbitron)' }}
+                  className="mc-error mt-1"
                 >
-                  ⚠ {errors.firstName}
+                  {errors.firstName}
                 </motion.p>
               )}
             </AnimatePresence>
           </div>
           <div>
-            <NeonLabel>Priimek</NeonLabel>
-            <NeonInput
-              value={lastName}
-              onChange={setLastName}
-              placeholder="Novak"
-              hasError={!!errors.lastName}
-            />
+            <MCLabel>Priimek</MCLabel>
+            <MCInput value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} />
             <AnimatePresence>
               {errors.lastName && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="text-[10px] mt-1 font-bold tracking-wider"
-                  style={{ color: '#FF3366', fontFamily: 'var(--font-orbitron)' }}
+                  className="mc-error mt-1"
                 >
-                  ⚠ {errors.lastName}
+                  {errors.lastName}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -348,76 +285,64 @@ export default function CasinoCustomerDetails() {
         </div>
 
         {/* Email */}
-        <div>
-          <NeonLabel>Email</NeonLabel>
-          <NeonInput
-            value={email}
-            onChange={setEmail}
-            placeholder="janez@email.com"
-            type="email"
-            hasError={!!errors.email}
-            icon="📧"
-          />
+        <div className="mb-5">
+          <MCLabel>Email</MCLabel>
+          <MCInput value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
           <AnimatePresence>
             {errors.email && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="text-[10px] mt-1 font-bold tracking-wider"
-                style={{ color: '#FF3366', fontFamily: 'var(--font-orbitron)' }}
+                className="mc-error mt-1"
               >
-                ⚠ {errors.email}
+                {errors.email}
               </motion.p>
             )}
           </AnimatePresence>
         </div>
 
         {/* Phone */}
-        <div>
-          <NeonLabel>Telefon</NeonLabel>
-          <NeonInput
-            value={phone}
-            onChange={setPhone}
-            placeholder="041 123 456"
-            type="tel"
-            hasError={!!errors.phone}
-            icon="📱"
-          />
+        <div className="mb-5">
+          <MCLabel>Telefon</MCLabel>
+          <MCInput value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} />
           <AnimatePresence>
             {errors.phone && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="text-[10px] mt-1 font-bold tracking-wider"
-                style={{ color: '#FF3366', fontFamily: 'var(--font-orbitron)' }}
+                className="mc-error mt-1"
               >
-                ⚠ {errors.phone}
+                {errors.phone}
               </motion.p>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Gender pills */}
-        <div>
-          <NeonLabel>VIP Status (opcijsko)</NeonLabel>
-          <div className="flex gap-2">
+        {/* Nagovor / Gender */}
+        <div className="mb-5">
+          <MCLabel>Nagovor (opcijsko)</MCLabel>
+          <div className="flex gap-2 mt-1">
             {GENDERS.map((g) => {
               const isSelected = gender === g.value;
               return (
                 <motion.button
                   key={g.value}
+                  type="button"
                   onClick={() => setGender(isSelected ? '' : g.value)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex-1 py-2 rounded-lg text-xs font-bold tracking-wider transition-all"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 py-2 rounded-lg transition-all"
                   style={{
-                    fontFamily: 'var(--font-orbitron)',
-                    backgroundColor: isSelected ? primary : `${primary}10`,
-                    border: `1px solid ${isSelected ? primary : `${primary}30`}`,
-                    color: isSelected ? 'white' : `${primary}80`,
-                    boxShadow: isSelected ? `0 0 10px ${primary}50` : 'none',
+                    fontFamily: 'var(--font-oswald)',
+                    fontSize: '0.65rem',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    background: isSelected ? 'rgba(201,168,76,0.15)' : 'rgba(13,59,30,0.5)',
+                    border: isSelected ? '1px solid rgba(201,168,76,0.6)' : '1px solid rgba(201,168,76,0.15)',
+                    color: isSelected ? '#c9a84c' : '#a89060',
+                    transition: 'all 0.25s ease',
                   }}
                 >
                   {g.suit} {g.label}
@@ -428,48 +353,54 @@ export default function CasinoCustomerDetails() {
         </div>
 
         {/* Notes */}
-        <div>
-          <NeonLabel>Posebne želje (opcijsko)</NeonLabel>
-          <NeonTextarea
+        <div className="mb-5">
+          <MCLabel>Posebne želje (opcijsko)</MCLabel>
+          <textarea
             value={notes}
-            onChange={setNotes}
+            onChange={(e) => setNotes(e.target.value)}
             placeholder="Posebne želje ali opombe..."
+            rows={3}
+            className="mc-textarea mt-1"
           />
         </div>
 
         {/* GDPR checkbox */}
-        <label className="flex items-center gap-3 cursor-pointer group">
+        <label className="flex items-start gap-3 cursor-pointer">
           <div
-            className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 transition-all"
+            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
             style={{
-              backgroundColor: gdprMarketing ? primary : 'transparent',
-              border: `2px solid ${gdprMarketing ? primary : 'rgba(255,255,255,0.2)'}`,
-              boxShadow: gdprMarketing ? `0 0 8px ${primary}60` : 'none',
+              background: gdprMarketing ? '#c9a84c' : 'transparent',
+              border: `1.5px solid ${gdprMarketing ? '#c9a84c' : 'rgba(201,168,76,0.3)'}`,
+              transition: 'all 0.25s ease',
             }}
             onClick={() => setGdprMarketing(!gdprMarketing)}
           >
-            {gdprMarketing && <span className="text-white text-xs">✓</span>}
+            {gdprMarketing && (
+              <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
+            )}
           </div>
           <span
-            className="text-xs"
-            style={{ fontFamily: 'var(--font-inter)', color: 'rgba(255,255,255,0.5)' }}
+            className="italic"
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '0.88rem',
+              color: 'rgba(232,217,184,0.55)',
+              lineHeight: 1.5,
+            }}
           >
-            🎁 Pošljite mi ekskluzivne ponudbe
+            Želim prejemati ekskluzivne ponudbe in novosti
           </span>
         </label>
       </motion.div>
 
-      {/* Submit button */}
-      <motion.div variants={itemVariants} className="mt-5">
-        <motion.button
+      {/* CTA */}
+      <motion.div variants={itemVariants} className="mt-6 flex justify-center">
+        <button
           onClick={handleSubmit}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          className="w-full py-4 rounded-xl font-black text-sm tracking-[0.15em] uppercase casino-btn-primary"
-          style={{ fontFamily: 'var(--font-orbitron)' }}
+          className="mc-btn-gold w-full max-w-sm py-4"
         >
-          🎰 PROCEED TO JACKPOT 🎰
-        </motion.button>
+          Nadaljuj na Potrditev
+        </button>
       </motion.div>
     </motion.div>
   );

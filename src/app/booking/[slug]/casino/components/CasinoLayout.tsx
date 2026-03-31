@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import SlotMachine from './SlotMachine';
+import BookingSummaryCard from './SlotMachine';
 import CasinoCategorySelection from './steps/CasinoCategorySelection';
 import CasinoServiceSelection from './steps/CasinoServiceSelection';
 import CasinoEmployeeSelection from './steps/CasinoEmployeeSelection';
@@ -14,127 +14,198 @@ interface CasinoLayoutProps {
   companySlug: string;
 }
 
-// Step titles for the casino theme
-const STEP_TITLES: Record<number, { title: string; subtitle: string }> = {
-  1: { title: '🎲 IZBERI IGRO', subtitle: 'Choose Your Game Type' },
-  2: { title: '💰 POSTAVI STAVO', subtitle: 'Place Your Bet' },
-  3: { title: '🃏 IZBERI MOJSTRA', subtitle: 'Pick Your Dealer' },
-  4: { title: '⏰ ZAVRTITE KOLO', subtitle: 'Spin The Wheel' },
-  5: { title: '🎫 REGISTRACIJA', subtitle: 'Player Registration' },
-  6: { title: '🎰 JACKPOT', subtitle: 'Confirm Your Win' },
+const STEP_INFO: Record<number, { title: string; subtitle: string }> = {
+  1: { title: 'Izberi Kategorijo',       subtitle: 'Choose your experience' },
+  2: { title: 'Postavi Stavo',           subtitle: 'Place your bet' },
+  3: { title: 'Izberi Specialista',      subtitle: 'Pick your specialist' },
+  4: { title: 'Rezerviraj Termin',       subtitle: 'Claim your slot' },
+  5: { title: 'Registracija',            subtitle: 'Player registration' },
+  6: { title: 'Potrditev',               subtitle: 'Confirm your seat' },
 };
 
 const pageVariants = {
-  initial: { opacity: 0, y: 20, filter: 'blur(4px)' },
+  initial: { opacity: 0, y: 18, filter: 'blur(3px)' },
   animate: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+    transition: {
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
+    },
   },
   exit: {
     opacity: 0,
-    y: -12,
+    y: -10,
     filter: 'blur(2px)',
-    transition: { duration: 0.25 },
+    transition: { duration: 0.28 },
   },
 };
 
-// Progress dots at top
+// ── Step indicator — elegant dots ──────────────────────────────
 function StepIndicator({ current }: { current: number }) {
-  const { theme } = useBookingStore();
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
-      {[1, 2, 3, 4, 5, 6].map((step) => (
-        <div
-          key={step}
-          className="rounded-full transition-all duration-300"
-          style={{
-            width: step === current ? 24 : 8,
-            height: 8,
-            backgroundColor: step <= current ? theme.primaryColor : 'rgba(255,255,255,0.15)',
-            boxShadow: step === current ? `0 0 8px ${theme.primaryColor}` : 'none',
-          }}
-        />
-      ))}
+    <div className="flex items-center justify-center gap-1.5 mb-8">
+      {[1, 2, 3, 4, 5, 6].map((step) => {
+        const isDone = step < current;
+        const isActive = step === current;
+        return (
+          <div key={step} className="relative flex items-center justify-center">
+            <div
+              className="rounded-full transition-all duration-500"
+              style={{
+                width: isActive ? 28 : isDone ? 8 : 6,
+                height: isDone || isActive ? 8 : 6,
+                background: isDone
+                  ? '#c9a84c'
+                  : isActive
+                  ? 'linear-gradient(90deg, #a07830, #e8c96d)'
+                  : 'rgba(201, 168, 76, 0.18)',
+                boxShadow: isActive ? '0 0 8px rgba(201, 168, 76, 0.5)' : 'none',
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-// Header with company name as neon sign
-function CasinoHeader() {
-  const { theme, company } = useBookingStore();
-  const primary = theme.primaryColor;
+// ── Header ─────────────────────────────────────────────────────
+function MCHeader() {
+  const { company } = useBookingStore();
 
   return (
-    <header className="text-center py-6 px-4 border-b" style={{ borderColor: `${primary}20` }}>
-      {/* Top sparkle row */}
-      <div className="flex items-center justify-center gap-3 mb-3">
-        <div className="casino-divider flex-1 max-w-24" />
-        <span className="text-base" style={{ color: `${primary}80` }}>✦</span>
-        <div className="casino-divider flex-1 max-w-24" />
+    <header className="text-center pt-8 pb-6 px-4">
+      {/* Top decorative line */}
+      <div className="flex items-center gap-3 justify-center mb-5">
+        <span style={{ color: 'rgba(201,168,76,0.5)', fontSize: '0.6rem', letterSpacing: '0.3em' }}>◆</span>
+        <div className="w-20 mc-divider" />
+        <span style={{ color: '#c9a84c', fontSize: '0.8rem' }}>◆</span>
+        <div className="w-20 mc-divider" />
+        <span style={{ color: 'rgba(201,168,76,0.5)', fontSize: '0.6rem', letterSpacing: '0.3em' }}>◆</span>
       </div>
 
-      {/* Company name */}
       <motion.h1
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-        className="text-2xl md:text-3xl font-black tracking-[0.15em] uppercase mb-1 casino-neon-text"
-        style={{ fontFamily: 'var(--font-orbitron)' }}
+        transition={{ delay: 0.1, duration: 0.6 }}
+        className="font-black uppercase tracking-[0.14em] mb-1"
+        style={{
+          fontFamily: 'var(--font-playfair)',
+          fontSize: 'clamp(1.4rem, 4vw, 2rem)',
+          color: '#c9a84c',
+        }}
       >
-        {company?.naziv ?? 'BOOKING'}
+        {company?.naziv ?? 'Booking'}
       </motion.h1>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-        className="text-xs tracking-[0.4em] uppercase"
-        style={{
-          fontFamily: 'var(--font-orbitron)',
-          color: `${primary}60`,
-        }}
+        transition={{ delay: 0.3 }}
+        className="text-[10px] tracking-[0.45em] uppercase"
+        style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201,168,76,0.35)' }}
       >
-        « BOOKING CASINO »
+        ♠ &nbsp; Booking Casino &nbsp; ♠
       </motion.p>
 
-      {/* Bottom sparkle row */}
-      <div className="flex items-center justify-center gap-3 mt-3">
-        <div className="casino-divider flex-1 max-w-24" />
-        <span className="text-base" style={{ color: `${primary}80` }}>✦</span>
-        <div className="casino-divider flex-1 max-w-24" />
+      {/* Bottom decorative line */}
+      <div className="flex items-center gap-3 justify-center mt-5">
+        <div className="flex-1 max-w-32 mc-divider" />
+        <span style={{ color: 'rgba(201,168,76,0.45)', fontSize: '0.65rem' }}>◆</span>
+        <div className="flex-1 max-w-32 mc-divider" />
       </div>
     </header>
   );
 }
 
-// Nav back button
+// ── Back button ────────────────────────────────────────────────
 function BackButton({ onClick }: { onClick: () => void }) {
-  const { theme } = useBookingStore();
   return (
     <motion.button
       onClick={onClick}
       whileHover={{ x: -3 }}
       whileTap={{ scale: 0.95 }}
-      className="flex items-center gap-2 text-sm tracking-widest uppercase mb-6 transition-colors"
+      className="flex items-center gap-2 mb-6 transition-colors"
       style={{
-        fontFamily: 'var(--font-orbitron)',
-        color: `${theme.primaryColor}70`,
-        fontSize: '10px',
+        fontFamily: 'var(--font-oswald)',
+        fontSize: '0.65rem',
+        letterSpacing: '0.2em',
+        textTransform: 'uppercase',
+        color: 'rgba(201, 168, 76, 0.45)',
       }}
     >
-      ← NAZAJ
+      ← Nazaj
     </motion.button>
+  );
+}
+
+// ── Roulette decoration (fixed, top-right) ─────────────────────
+function RouletteDecoration() {
+  return (
+    <div
+      className="fixed pointer-events-none z-0 mc-roulette"
+      style={{
+        top: '-80px',
+        right: '-80px',
+        width: '380px',
+        height: '380px',
+        border: '1.5px solid rgba(201, 168, 76, 0.12)',
+        borderRadius: '50%',
+        boxShadow: `
+          inset 0 0 0 16px transparent,
+          inset 0 0 0 17px rgba(201, 168, 76, 0.07),
+          inset 0 0 0 48px transparent,
+          inset 0 0 0 49px rgba(201, 168, 76, 0.05),
+          inset 0 0 0 80px transparent,
+          inset 0 0 0 81px rgba(201, 168, 76, 0.03)
+        `,
+      }}
+    />
+  );
+}
+
+// ── Floating card suits ────────────────────────────────────────
+function CardSuitsDecoration() {
+  const suits = [
+    { symbol: '♣', top: '8%',  left: '3%',  rotate: '-12deg' },
+    { symbol: '♥', bottom: '18%', left: '5%', rotate: '8deg'  },
+    { symbol: '♠', top: '28%', right: '2%', rotate: '18deg'  },
+  ];
+
+  return (
+    <>
+      {suits.map((suit, i) => (
+        <div
+          key={i}
+          className="fixed pointer-events-none z-0 select-none"
+          style={{
+            top: suit.top,
+            bottom: (suit as { bottom?: string }).bottom,
+            left: suit.left,
+            right: (suit as { right?: string }).right,
+            fontSize: '160px',
+            color: 'rgba(201, 168, 76, 0.025)',
+            fontFamily: 'Georgia, serif',
+            transform: `rotate(${suit.rotate})`,
+            lineHeight: 1,
+          }}
+        >
+          {suit.symbol}
+        </div>
+      ))}
+    </>
   );
 }
 
 export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
   const { currentStep, prevStep, bookingConfirmation, selectedService, theme } = useBookingStore();
-  const primary = theme.primaryColor;
 
-  const stepInfo = STEP_TITLES[currentStep] ?? STEP_TITLES[1];
+  const stepInfo = STEP_INFO[currentStep] ?? STEP_INFO[1];
   const stepKey = `step-${currentStep}-${!!bookingConfirmation?.success}`;
+  const canGoBack = currentStep > 1 && !bookingConfirmation?.success;
+  const isSuccess = !!bookingConfirmation?.success;
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -151,35 +222,35 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
     }
   };
 
-  const canGoBack = currentStep > 1 && !bookingConfirmation?.success;
-  const isSuccess = !!bookingConfirmation?.success;
-
   return (
-    <div
-      className="min-h-screen casino-bg-pattern"
-      style={{ backgroundColor: '#0F0F1A', color: 'white' }}
-    >
-      {/* ── Header ── */}
-      <CasinoHeader />
+    <div className="min-h-screen mc-bg relative overflow-x-hidden" style={{ color: '#f5edd6' }}>
+      {/* Decorative elements */}
+      <RouletteDecoration />
+      <CardSuitsDecoration />
 
-      {/* ── Main content ── */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      {/* Header */}
+      <div className="relative z-10">
+        <MCHeader />
+      </div>
+
+      {/* Main */}
+      <main className="relative z-10 max-w-2xl mx-auto px-4 pb-16">
         {/* Step indicator */}
         {!isSuccess && <StepIndicator current={currentStep} />}
 
-        {/* Slot machine display */}
+        {/* Booking summary card */}
         {!isSuccess && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mb-6"
+            className="mb-7"
           >
-            <SlotMachine />
+            <BookingSummaryCard />
           </motion.div>
         )}
 
-        {/* Step title */}
+        {/* Step header */}
         {!isSuccess && (
           <AnimatePresence mode="wait">
             <motion.div
@@ -188,51 +259,75 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.3 }}
-              className="mb-5"
+              className="mb-6"
             >
               {canGoBack && <BackButton onClick={prevStep} />}
 
-              <div className="flex items-center gap-3 mb-1">
-                <div className="casino-divider flex-1" />
-              </div>
-
+              {/* Step heading */}
               <h2
-                className="text-lg font-bold tracking-[0.12em] uppercase mb-1"
-                style={{ fontFamily: 'var(--font-orbitron)', color: primary }}
+                className="font-bold mb-0.5"
+                style={{
+                  fontFamily: 'var(--font-playfair)',
+                  fontSize: 'clamp(1.4rem, 4vw, 1.9rem)',
+                  color: '#f5edd6',
+                }}
               >
                 {stepInfo.title}
               </h2>
               <p
-                className="text-xs tracking-[0.2em] uppercase"
-                style={{ fontFamily: 'var(--font-inter)', color: 'rgba(255,255,255,0.35)' }}
+                className="italic mb-4"
+                style={{
+                  fontFamily: 'var(--font-playfair)',
+                  fontSize: '0.9rem',
+                  color: '#c9a84c',
+                  fontStyle: 'italic',
+                }}
               >
-                {stepInfo.subtitle}
+                — {stepInfo.subtitle}
               </p>
 
-              {/* Price badge if service selected */}
+              {/* Service price badge if applicable */}
               {selectedService && currentStep > 2 && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border"
+                  className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full"
                   style={{
-                    borderColor: '#FFD700',
-                    backgroundColor: 'rgba(255,215,0,0.08)',
+                    border: '1px solid rgba(201, 168, 76, 0.35)',
+                    background: 'rgba(201, 168, 76, 0.06)',
                   }}
                 >
-                  <span className="text-xs font-bold casino-neon-gold tracking-wider"
-                    style={{ fontFamily: 'var(--font-orbitron)' }}>
-                    JACKPOT: €{selectedService.cena}
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-oswald)',
+                      fontSize: '0.65rem',
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      color: '#a89060',
+                    }}
+                  >
+                    {selectedService.naziv}
+                  </span>
+                  <span style={{ color: 'rgba(201,168,76,0.4)', fontSize: '0.5rem' }}>◆</span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-playfair)',
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      color: '#e8c96d',
+                    }}
+                  >
+                    €{selectedService.cena}
                   </span>
                 </motion.div>
               )}
 
-              <div className="casino-divider mt-4" />
+              <div className="mc-divider mt-4" />
             </motion.div>
           </AnimatePresence>
         )}
 
-        {/* ── Step content ── */}
+        {/* Step content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={stepKey}
@@ -246,14 +341,21 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
         </AnimatePresence>
       </main>
 
-      {/* ── Footer ── */}
-      <footer
-        className="border-t py-4 px-4 text-center mt-12"
-        style={{ borderColor: `${primary}15` }}
-      >
+      {/* Footer */}
+      <footer className="relative z-10 text-center py-6 px-4">
+        <div className="flex items-center gap-3 justify-center mb-3">
+          <div className="w-16 mc-divider" />
+          <span style={{ color: 'rgba(201,168,76,0.2)', fontSize: '0.55rem' }}>◆</span>
+          <div className="w-16 mc-divider" />
+        </div>
         <p
-          className="text-[9px] tracking-[0.3em] uppercase"
-          style={{ fontFamily: 'var(--font-orbitron)', color: 'rgba(255,255,255,0.15)' }}
+          style={{
+            fontFamily: 'var(--font-oswald)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.3em',
+            textTransform: 'uppercase',
+            color: 'rgba(201,168,76,0.15)',
+          }}
         >
           © {new Date().getFullYear()} · Jedro+ · Rezervacijski Sistem
         </p>

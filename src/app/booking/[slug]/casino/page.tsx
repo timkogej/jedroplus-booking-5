@@ -7,115 +7,121 @@ import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
 import CasinoLayout from './components/CasinoLayout';
 
-const LOAD_SYMBOLS = ['🎰', '🃏', '🍒', '7️⃣', '⭐', '🍀'];
-
-function CasinoLoadingScreen({ primaryColor }: { primaryColor: string }) {
+function MonteCarloLoadingScreen({ primaryColor }: { primaryColor: string }) {
   return (
-    <div
-      className="min-h-screen flex items-center justify-center casino-bg-pattern"
-      style={{ backgroundColor: '#0F0F1A' }}
-    >
+    <div className="min-h-screen mc-bg flex items-center justify-center px-6">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="text-center px-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: 'easeOut' as const }}
+        className="text-center max-w-xs"
       >
-        {/* Floating symbols */}
-        <div className="flex gap-5 justify-center mb-10">
-          {LOAD_SYMBOLS.map((sym, i) => (
-            <motion.span
-              key={i}
-              className="text-3xl select-none"
-              animate={{
-                y: [0, -18, 0],
-                opacity: [0.4, 1, 0.4],
-              }}
-              transition={{
-                duration: 1.4,
-                repeat: Infinity,
-                delay: i * 0.18,
-                ease: 'easeInOut',
-              }}
-            >
-              {sym}
-            </motion.span>
-          ))}
+        {/* Roulette ring */}
+        <div className="relative w-24 h-24 mx-auto mb-10">
+          <div
+            className="absolute inset-0 rounded-full mc-roulette"
+            style={{
+              border: '1px solid rgba(201, 168, 76, 0.3)',
+              boxShadow: `
+                inset 0 0 0 8px transparent,
+                inset 0 0 0 9px rgba(201, 168, 76, 0.15),
+                inset 0 0 0 20px transparent,
+                inset 0 0 0 21px rgba(201, 168, 76, 0.1)
+              `,
+            }}
+          />
+          <div
+            className="absolute inset-4 rounded-full flex items-center justify-center"
+            style={{
+              background: 'rgba(13, 59, 30, 0.8)',
+              border: '1px solid rgba(201, 168, 76, 0.2)',
+            }}
+          >
+            <span style={{ color: '#c9a84c', fontSize: '1.5rem', fontFamily: 'Georgia, serif' }}>◆</span>
+          </div>
         </div>
 
-        {/* Neon title */}
         <h1
-          className="text-2xl font-bold tracking-[0.3em] mb-10 uppercase"
-          style={{
-            fontFamily: 'var(--font-orbitron)',
-            color: primaryColor,
-            textShadow: `0 0 10px ${primaryColor}, 0 0 20px ${primaryColor}, 0 0 40px ${primaryColor}`,
-          }}
+          className="text-2xl font-black tracking-[0.18em] uppercase mb-3"
+          style={{ fontFamily: 'var(--font-playfair)', color: '#c9a84c' }}
         >
-          🎰 CASINO LOADING 🎰
+          Monte Carlo
         </h1>
+        <p
+          className="text-xs tracking-[0.35em] uppercase mb-8"
+          style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201, 168, 76, 0.45)' }}
+        >
+          Booking Suite
+        </p>
 
-        {/* Progress bar */}
-        <div className="w-72 h-3 bg-white/10 rounded-full overflow-hidden mx-auto mb-5 border border-white/10">
+        {/* Gold progress bar */}
+        <div
+          className="w-56 h-px mx-auto overflow-hidden"
+          style={{ background: 'rgba(201, 168, 76, 0.15)' }}
+        >
           <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: `linear-gradient(90deg, ${primaryColor}, #FFD700)`,
-              boxShadow: `0 0 10px ${primaryColor}`,
-            }}
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 1.6, ease: 'easeInOut' }}
+            className="h-full"
+            style={{ background: 'linear-gradient(90deg, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }}
+            initial={{ x: '-100%' }}
+            animate={{ x: '100%' }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }}
           />
         </div>
 
         <p
-          className="text-sm tracking-[0.25em] uppercase"
-          style={{
-            fontFamily: 'var(--font-inter)',
-            color: 'rgba(255,255,255,0.4)',
-          }}
+          className="mt-6 text-xs tracking-[0.2em] uppercase"
+          style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201, 168, 76, 0.25)' }}
         >
-          Entering the floor...
+          Preparing your table&hellip;
         </p>
       </motion.div>
     </div>
   );
 }
 
-function CasinoErrorScreen({ error, primaryColor }: { error: string; primaryColor: string }) {
+function MonteCarloErrorScreen({ error, primaryColor }: { error: string; primaryColor: string }) {
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-6 casino-bg-pattern"
-      style={{ backgroundColor: '#0F0F1A' }}
-    >
+    <div className="min-h-screen mc-bg flex items-center justify-center px-6">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
         className="text-center max-w-sm"
       >
-        <div className="text-6xl mb-8 casino-float" style={{ display: 'inline-block' }}>
-          🎰
-        </div>
-        <h1
-          className="text-2xl font-bold tracking-[0.2em] mb-4 uppercase"
+        {/* Diamond icon */}
+        <div
+          className="w-16 h-16 mx-auto mb-8 rounded-full flex items-center justify-center"
           style={{
-            fontFamily: 'var(--font-orbitron)',
-            color: primaryColor,
+            background: 'rgba(13, 59, 30, 0.8)',
+            border: '1px solid rgba(201, 168, 76, 0.3)',
           }}
         >
-          GAME OVER
+          <span style={{ color: '#c9a84c', fontSize: '1.5rem', fontFamily: 'Georgia, serif' }}>◆</span>
+        </div>
+
+        <h1
+          className="text-2xl font-bold tracking-[0.1em] italic mb-3"
+          style={{ fontFamily: 'var(--font-playfair)', color: '#f5edd6' }}
+        >
+          Table Unavailable
         </h1>
+
+        <div className="flex items-center gap-3 mb-4 justify-center">
+          <div className="flex-1 h-px max-w-16" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.4))' }} />
+          <span style={{ color: '#c9a84c', fontSize: '0.7rem' }}>◆</span>
+          <div className="flex-1 h-px max-w-16" style={{ background: 'linear-gradient(to left, transparent, rgba(201,168,76,0.4))' }} />
+        </div>
+
         <p
-          className="mb-8 text-sm"
-          style={{ fontFamily: 'var(--font-inter)', color: 'rgba(255,255,255,0.5)' }}
+          className="text-sm italic mb-8"
+          style={{ fontFamily: 'var(--font-cormorant)', color: 'rgba(232, 217, 184, 0.7)', lineHeight: 1.6 }}
         >
           {error}
         </p>
+
         <button
           onClick={() => window.location.reload()}
-          className="casino-btn-outline px-8 py-3 rounded-lg text-sm tracking-[0.15em] uppercase font-bold"
-          style={{ fontFamily: 'var(--font-orbitron)' }}
+          className="mc-btn-secondary"
         >
           Try Again
         </button>
@@ -169,7 +175,6 @@ export default function CasinoPage() {
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
       } finally {
         setLoading(false);
-        // Small delay so the loading animation has a moment to show
         setTimeout(() => setHasLoaded(true), 400);
       }
     }
@@ -177,20 +182,16 @@ export default function CasinoPage() {
     loadInitData();
   }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
 
-  // Apply theme CSS custom properties for casino neon glow
   useEffect(() => {
-    document.documentElement.style.setProperty('--casino-primary', theme.primaryColor);
-    document.documentElement.style.setProperty('--casino-secondary', theme.secondaryColor);
-    document.documentElement.style.setProperty('--casino-bg-from', theme.bgFrom);
-    document.documentElement.style.setProperty('--casino-bg-to', theme.bgTo);
+    document.documentElement.style.setProperty('--mc-primary', theme.primaryColor);
   }, [theme]);
 
   if (!hasLoaded) {
-    return <CasinoLoadingScreen primaryColor={theme.primaryColor} />;
+    return <MonteCarloLoadingScreen primaryColor={theme.primaryColor} />;
   }
 
   if (error) {
-    return <CasinoErrorScreen error={error} primaryColor={theme.primaryColor} />;
+    return <MonteCarloErrorScreen error={error} primaryColor={theme.primaryColor} />;
   }
 
   return <CasinoLayout companySlug={slug} />;
