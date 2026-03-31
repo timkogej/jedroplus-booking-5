@@ -200,7 +200,7 @@ function CardSuitsDecoration() {
 }
 
 export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
-  const { currentStep, prevStep, bookingConfirmation, selectedService, theme } = useBookingStore();
+  const { currentStep, prevStep, bookingConfirmation, selectedService } = useBookingStore();
 
   const stepInfo = STEP_INFO[currentStep] ?? STEP_INFO[1];
   const stepKey = `step-${currentStep}-${!!bookingConfirmation?.success}`;
