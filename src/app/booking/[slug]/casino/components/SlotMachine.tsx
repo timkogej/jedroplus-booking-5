@@ -11,7 +11,6 @@ export default function BookingSummaryCard() {
     selectedEmployeeId,
     anyPerson,
     selectedTime,
-    selectedDate,
     employeesUI,
     currentStep,
   } = useBookingStore();

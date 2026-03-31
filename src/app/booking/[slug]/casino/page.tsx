@@ -7,7 +7,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
 import CasinoLayout from './components/CasinoLayout';
 
-function MonteCarloLoadingScreen({ primaryColor }: { primaryColor: string }) {
+function MonteCarloLoadingScreen() {
   return (
     <div className="min-h-screen mc-bg flex items-center justify-center px-6">
       <motion.div
@@ -79,7 +79,7 @@ function MonteCarloLoadingScreen({ primaryColor }: { primaryColor: string }) {
   );
 }
 
-function MonteCarloErrorScreen({ error, primaryColor }: { error: string; primaryColor: string }) {
+function MonteCarloErrorScreen({ error }: { error: string }) {
   return (
     <div className="min-h-screen mc-bg flex items-center justify-center px-6">
       <motion.div
@@ -187,11 +187,11 @@ export default function CasinoPage() {
   }, [theme]);
 
   if (!hasLoaded) {
-    return <MonteCarloLoadingScreen primaryColor={theme.primaryColor} />;
+    return <MonteCarloLoadingScreen />;
   }
 
   if (error) {
-    return <MonteCarloErrorScreen error={error} primaryColor={theme.primaryColor} />;
+    return <MonteCarloErrorScreen error={error} />;
   }
 
   return <CasinoLayout companySlug={slug} />;
