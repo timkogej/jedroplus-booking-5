@@ -1,0 +1,353 @@
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { useBookingStore } from '@/store/bookingStore';
+import { CustomerDetails } from '@/types';
+import { SeasonalTheme } from '../decorations/SeasonDetector';
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+}
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.32, ease: 'easeOut' as const },
+  },
+};
+
+function SeasonalLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <label
+      className="block mb-1.5 text-xs font-semibold tracking-wide"
+      style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}
+    >
+      {children}
+      {required && <span className="text-red-400 ml-0.5">*</span>}
+    </label>
+  );
+}
+
+function SeasonalInput({
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  hasError,
+  primaryColor,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  hasError?: boolean;
+  primaryColor: string;
+}) {
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      className={`seasonal-input ${hasError ? 'error' : ''}`}
+      style={{
+        borderColor: hasError ? '#EF4444' : focused ? primaryColor : 'var(--b2)',
+        boxShadow: focused && !hasError ? `0 0 0 3px ${primaryColor}18` : undefined,
+        outline: 'none',
+      }}
+    />
+  );
+}
+
+interface Props {
+  seasonalTheme: SeasonalTheme;
+}
+
+export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
+  const { setCustomerDetails, nextStep, theme } = useBookingStore();
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState('');
+  const [notes, setNotes] = useState('');
+  const [gdprMarketing, setGdprMarketing] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const validate = (): boolean => {
+    const e: FormErrors = {};
+    if (!firstName.trim()) e.firstName = 'Ime je obvezno';
+    if (!lastName.trim()) e.lastName = 'Priimek je obvezen';
+    if (!email.trim()) e.email = 'Email je obvezen';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
+    if (!phone.trim()) e.phone = 'Telefon je obvezen';
+    if (!gender) e.gender = 'Izberite nagovor';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    const details: CustomerDetails = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      gender: gender || undefined,
+      notes: notes.trim() || undefined,
+      gdprSendMarketing: gdprMarketing,
+      privacyConsent,
+    };
+    setCustomerDetails(details);
+    nextStep();
+  };
+
+  const isFormComplete = firstName && lastName && email && phone && gender;
+
+  const errorText = (msg?: string) =>
+    msg ? (
+      <motion.p
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        className="text-xs mt-1"
+        style={{ color: '#EF4444', fontFamily: 'var(--font-quicksand)' }}
+      >
+        {msg}
+      </motion.p>
+    ) : null;
+
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible">
+      <motion.div variants={itemVariants} className="mb-8">
+        <h2
+          className="text-3xl font-bold mb-2"
+          style={{
+            color: 'var(--t-primary)',
+            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
+          }}
+        >
+          Vaši{' '}
+          <span
+            className="seasonal-gradient-text"
+            style={{
+              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
+            }}
+          >
+            podatki
+          </span>
+        </h2>
+        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
+          Izpolnite podatke za rezervacijo
+        </p>
+      </motion.div>
+
+      {/* Form card */}
+      <motion.div
+        variants={itemVariants}
+        className="rounded-2xl p-6 seasonal-surface mb-4"
+        style={{
+          backgroundColor: 'var(--s2)',
+          border: '1px solid var(--b2)',
+        }}
+      >
+        {/* Name row */}
+        <div className="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <SeasonalLabel required>Ime</SeasonalLabel>
+            <SeasonalInput
+              value={firstName}
+              onChange={setFirstName}
+              placeholder="Janez"
+              hasError={!!errors.firstName}
+              primaryColor={theme.primaryColor}
+            />
+            <AnimatePresence>{errorText(errors.firstName)}</AnimatePresence>
+          </div>
+          <div>
+            <SeasonalLabel required>Priimek</SeasonalLabel>
+            <SeasonalInput
+              value={lastName}
+              onChange={setLastName}
+              placeholder="Novak"
+              hasError={!!errors.lastName}
+              primaryColor={theme.primaryColor}
+            />
+            <AnimatePresence>{errorText(errors.lastName)}</AnimatePresence>
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="mb-5">
+          <SeasonalLabel required>Email</SeasonalLabel>
+          <SeasonalInput
+            value={email}
+            onChange={setEmail}
+            placeholder="janez@email.com"
+            type="email"
+            hasError={!!errors.email}
+            primaryColor={theme.primaryColor}
+          />
+          <AnimatePresence>{errorText(errors.email)}</AnimatePresence>
+        </div>
+
+        {/* Phone */}
+        <div className="mb-5">
+          <SeasonalLabel required>Telefon</SeasonalLabel>
+          <SeasonalInput
+            value={phone}
+            onChange={setPhone}
+            placeholder="041 123 456"
+            type="tel"
+            hasError={!!errors.phone}
+            primaryColor={theme.primaryColor}
+          />
+          <AnimatePresence>{errorText(errors.phone)}</AnimatePresence>
+        </div>
+
+        {/* Gender */}
+        <div className="mb-5">
+          <SeasonalLabel required>Nagovor</SeasonalLabel>
+          <div className="flex gap-2 mt-1">
+            {[
+              { value: 'male', label: 'Gospod' },
+              { value: 'female', label: 'Gospa' },
+              { value: 'other', label: 'Nevtralno' },
+            ].map((opt) => {
+              const isSelected = gender === opt.value;
+              return (
+                <motion.button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGender(isSelected ? '' : opt.value)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                  style={{
+                    fontFamily: 'var(--font-quicksand)',
+                    backgroundColor: isSelected ? `${theme.primaryColor}20` : 'var(--s1)',
+                    border: `1px solid ${isSelected ? theme.primaryColor : errors.gender ? '#EF4444' : 'var(--b2)'}`,
+                    color: isSelected ? theme.primaryColor : 'var(--t-muted)',
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {opt.label}
+                </motion.button>
+              );
+            })}
+          </div>
+          <AnimatePresence>{errorText(errors.gender)}</AnimatePresence>
+        </div>
+
+        {/* Notes */}
+        <div className="mb-6">
+          <SeasonalLabel>Opombe</SeasonalLabel>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Posebne želje ali opombe..."
+            rows={3}
+            className="seasonal-textarea"
+          />
+        </div>
+
+        {/* Checkboxes */}
+        <div className="space-y-3">
+          {[
+            {
+              checked: gdprMarketing,
+              onChange: () => setGdprMarketing(!gdprMarketing),
+              label: 'Želim prejemati obvestila o ponudbah in novostih',
+            },
+            {
+              checked: privacyConsent,
+              onChange: () => setPrivacyConsent(!privacyConsent),
+              label: 'Strinjam se s pogoji uporabe in politiko zasebnosti',
+            },
+          ].map(({ checked, onChange, label }, i) => (
+            <label key={i} className="flex items-start gap-3 cursor-pointer">
+              <motion.div
+                className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{
+                  backgroundColor: checked ? theme.primaryColor : 'var(--s1)',
+                  border: `1.5px solid ${checked ? theme.primaryColor : 'var(--b2)'}`,
+                }}
+                onClick={onChange}
+                whileTap={{ scale: 0.9 }}
+              >
+                {checked && (
+                  <motion.svg
+                    className="w-3 h-3 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </motion.svg>
+                )}
+              </motion.div>
+              <span
+                className="text-sm leading-relaxed"
+                style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}
+              >
+                {label}
+              </span>
+            </label>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Submit */}
+      <motion.div variants={itemVariants}>
+        <motion.button
+          onClick={handleSubmit}
+          disabled={!isFormComplete}
+          className="w-full py-4 rounded-2xl font-semibold text-white relative overflow-hidden"
+          style={{
+            backgroundColor: isFormComplete ? theme.primaryColor : 'var(--s3)',
+            color: isFormComplete ? '#ffffff' : 'var(--t-disabled)',
+            fontFamily: 'var(--font-quicksand)',
+            fontSize: '0.975rem',
+            cursor: isFormComplete ? 'pointer' : 'not-allowed',
+            boxShadow: isFormComplete ? `0 8px 28px ${theme.primaryColor}40` : 'none',
+          }}
+          whileHover={isFormComplete ? { scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}50` } : {}}
+          whileTap={isFormComplete ? { scale: 0.98 } : {}}
+        >
+          {isFormComplete && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)',
+                backgroundSize: '200% 100%',
+              }}
+              animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
+              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2 }}
+            />
+          )}
+          Nadaljuj
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+}

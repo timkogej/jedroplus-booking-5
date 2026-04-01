@@ -1,0 +1,140 @@
+/* ── Modern Booking Variant ─────────────────────────── */
+
+/* Hide scrollbar but keep scroll functionality */
+.modern-scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.modern-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom thin scrollbar for desktop slot list */
+.modern-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.modern-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Calendar day button */
+.modern-cal-day {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-inter);
+  border: 1.5px solid transparent;
+}
+
+.modern-cal-day:disabled {
+  cursor: default;
+}
+
+/* Input base */
+.modern-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--b2);
+  font-family: var(--font-inter);
+  font-size: 0.9rem;
+  color: var(--t-primary);
+  background: var(--s1);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.modern-input::placeholder {
+  color: var(--t-disabled);
+}
+
+.modern-input:focus {
+  background: var(--s2);
+}
+
+.modern-input.error {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Textarea */
+.modern-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--b2);
+  font-family: var(--font-inter);
+  font-size: 0.9rem;
+  color: var(--t-primary);
+  background: var(--s1);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  min-height: 80px;
+}
+
+.modern-textarea::placeholder {
+  color: var(--t-disabled);
+}
+
+.modern-textarea:focus {
+  background: var(--s2);
+}
+
+/* Summary rows */
+.modern-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--b1);
+}
+
+.modern-summary-row:last-child {
+  border-bottom: none;
+}
+
+.modern-summary-label {
+  font-family: var(--font-inter);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-faint);
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+.modern-summary-value {
+  font-family: var(--font-inter);
+  font-size: 0.875rem;
+  color: var(--t-soft);
+  text-align: right;
+}
+
+/* Gradient text utility */
+.modern-gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism card base */
+.modern-glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

@@ -1,0 +1,116 @@
+/* ── Seasonal Booking Variant ─────────────────────────── */
+
+/* Hide scrollbar */
+.seasonal-scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.seasonal-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Calendar day button */
+.seasonal-cal-day {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-quicksand);
+  border: 1.5px solid transparent;
+}
+.seasonal-cal-day:disabled {
+  cursor: default;
+}
+
+/* Input */
+.seasonal-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--b2);
+  font-family: var(--font-quicksand);
+  font-size: 0.9rem;
+  color: var(--t-primary);
+  background: var(--s1);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.seasonal-input::placeholder {
+  color: var(--t-disabled);
+}
+.seasonal-input:focus {
+  background: var(--s2h);
+}
+.seasonal-input.error {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+/* Textarea */
+.seasonal-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--b2);
+  font-family: var(--font-quicksand);
+  font-size: 0.9rem;
+  color: var(--t-primary);
+  background: var(--s1);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  min-height: 80px;
+}
+.seasonal-textarea::placeholder {
+  color: var(--t-disabled);
+}
+.seasonal-textarea:focus {
+  background: var(--s2h);
+}
+
+/* Summary rows */
+.seasonal-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--b1);
+}
+.seasonal-summary-row:last-child {
+  border-bottom: none;
+}
+.seasonal-summary-label {
+  font-family: var(--font-quicksand);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t-faint);
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+.seasonal-summary-value {
+  font-family: var(--font-quicksand);
+  font-size: 0.875rem;
+  color: var(--t-soft);
+  text-align: right;
+}
+
+/* Gradient text */
+.seasonal-gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Solid surface — no blur, no glass */
+.seasonal-surface {
+  background-color: var(--s2);
+  border: 1px solid var(--b2);
+}

@@ -1,0 +1,110 @@
+/* ── Elegant Booking Variant ─────────────────────────── */
+
+/* Calendar day button */
+.elegant-cal-day {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-inter);
+  border: 1px solid transparent;
+}
+
+.elegant-cal-day:disabled {
+  cursor: default;
+}
+
+/* Custom scrollbar */
+.elegant-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.elegant-scroll::-webkit-scrollbar-track {
+  background: #F9FAFB;
+}
+.elegant-scroll::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 2px;
+}
+
+/* Input base */
+.elegant-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #E5E7EB;
+  font-family: var(--font-inter);
+  font-size: 0.9rem;
+  color: #1F2937;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.elegant-input::placeholder {
+  color: #9CA3AF;
+}
+
+.elegant-input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.elegant-input.error {
+  border-color: #EF4444;
+}
+
+/* Textarea */
+.elegant-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #E5E7EB;
+  font-family: var(--font-inter);
+  font-size: 0.9rem;
+  color: #1F2937;
+  background: white;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+  min-height: 80px;
+}
+
+.elegant-textarea::placeholder {
+  color: #9CA3AF;
+}
+
+/* Summary row */
+.elegant-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.elegant-summary-row:last-child {
+  border-bottom: none;
+}
+
+.elegant-summary-label {
+  font-family: var(--font-inter);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+.elegant-summary-value {
+  font-family: var(--font-inter);
+  font-size: 0.9rem;
+  color: #1F2937;
+  text-align: right;
+}
