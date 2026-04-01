@@ -50,7 +50,7 @@ function CategoryIcon({ selected }: { selected: boolean }) {
 }
 
 function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c: Category) => void }) {
-  const { theme, servicesByCategory, selectedCategory } = useBookingStore();
+  const { servicesByCategory, selectedCategory } = useBookingStore();
   const isSelected = selectedCategory?.id === category.id;
   const serviceCount = servicesByCategory[category.id]?.length ?? category.service_count ?? 0;
 

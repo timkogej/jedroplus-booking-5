@@ -7,7 +7,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function EasterElements({ primaryColor }: Props) {
+export default function EasterElements({ primaryColor: _primaryColor }: Props) {
   const elements = useMemo(
     () => [
       { emoji: '🥚', left: 10, top: 80, size: 25 },

@@ -8,7 +8,7 @@ interface Props {
   count?: number;
 }
 
-export default function FallingSnowflakes({ primaryColor, count = 20 }: Props) {
+export default function FallingSnowflakes({ primaryColor: _primaryColor, count = 20 }: Props) {
   const snowflakes = useMemo(
     () =>
       Array.from({ length: count }).map((_, i) => ({

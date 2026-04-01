@@ -2,8 +2,6 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
-import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { getCurrentSeasonalTheme, getSeasonEmoji } from './decorations/SeasonDetector';
 import SeasonalDecorations from './decorations/SeasonalDecorations';
@@ -46,14 +44,6 @@ export default function SeasonalLayout({ companySlug }: Props) {
     prevStep,
     company,
     bookingConfirmation,
-    selectedCategory,
-    selectedService,
-    selectedDate,
-    selectedTime,
-    selectedEmployeeId,
-    anyPerson,
-    employeesUI,
-    customerDetails,
   } = useBookingStore();
 
   const seasonalTheme = useMemo(() => getCurrentSeasonalTheme(), []);

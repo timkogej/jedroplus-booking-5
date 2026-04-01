@@ -7,7 +7,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function NewYearElements({ primaryColor }: Props) {
+export default function NewYearElements({ primaryColor: _primaryColor }: Props) {
   const [fireworks, setFireworks] = useState<Array<{ id: number; x: number; y: number }>>([]);
 
   useEffect(() => {

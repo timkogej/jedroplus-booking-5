@@ -8,7 +8,7 @@ interface Props {
   count?: number;
 }
 
-export default function FallingLeaves({ primaryColor, count = 15 }: Props) {
+export default function FallingLeaves({ primaryColor: _primaryColor, count = 15 }: Props) {
   const leaves = useMemo(
     () =>
       Array.from({ length: count }).map((_, i) => ({

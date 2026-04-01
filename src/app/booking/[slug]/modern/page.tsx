@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
+import type { Theme } from '@/types';
 import ModernLayout from './components/ModernLayout';
 
 function ModernLoadingScreen() {
@@ -107,7 +108,6 @@ export default function ModernPage() {
   const slug = params.slug as string;
 
   const {
-    theme,
     setTheme,
     setCompany,
     setEmployeesUI,
@@ -135,7 +135,7 @@ export default function ModernPage() {
       try {
         const data = await fetchInitData(slug);
 
-        if (data.theme) setTheme(data.theme as typeof theme);
+        if (data.theme) setTheme(data.theme as Theme);
         if (data.company) setCompany(data.company);
         if (data.employees_ui) setEmployeesUI(data.employees_ui);
         if (data.serviceCategories) setCategories(data.serviceCategories);
