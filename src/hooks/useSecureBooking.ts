@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { validateBookingForm, isHoneypotFilled, sanitizeInput } from "@/lib/validations/booking";
 
-export function useSecureBooking({ companyId, onSuccess, onError }: { companyId: string; onSuccess?: () => void; onError?: (e: string) => void }) {
+export function useSecureBooking({ onSuccess, onError }: { companyId: string; onSuccess?: () => void; onError?: (e: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);

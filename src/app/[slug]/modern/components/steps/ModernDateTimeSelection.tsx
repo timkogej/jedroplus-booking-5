@@ -103,7 +103,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
       .then(setTimeSlots)
       .catch(() => setTimeSlots([]))
       .finally(() => setLoadingSlots(false));
-  }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService]);
+  }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService, eligibleEmployeeIds]);
 
   const today = startOfDay(new Date());
   const isPrevDisabled = isBefore(endOfMonth(subMonths(currentMonth, 1)), today);

@@ -7,7 +7,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function ChristmasOrnaments(_props: Props) {
+export default function ChristmasOrnaments({}: Props) {
   const ornaments = useMemo(
     () => [
       { emoji: '🎄', left: 5, top: 10, size: 40 },
