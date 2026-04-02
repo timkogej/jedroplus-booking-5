@@ -23,11 +23,6 @@ export default function SeasonalDecorations({ seasonalTheme, primaryColor, reduc
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* Seasonal overlay */}
-      {config.overlayColor && (
-        <div className="absolute inset-0" style={{ backgroundColor: config.overlayColor }} />
-      )}
-
       {config.snowflakes && <FallingSnowflakes primaryColor={primaryColor} count={count} />}
       {config.ornaments && <ChristmasOrnaments primaryColor={primaryColor} />}
       {config.fireworks && <NewYearElements primaryColor={primaryColor} />}
