@@ -8,7 +8,7 @@ interface Props {
   count?: number;
 }
 
-export default function FloatingHearts({ primaryColor: _primaryColor, count = 15 }: Props) {
+export default function FloatingHearts({ count = 15 }: Props) {
   const hearts = useMemo(
     () =>
       Array.from({ length: count }).map((_, i) => ({

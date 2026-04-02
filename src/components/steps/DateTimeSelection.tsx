@@ -88,7 +88,7 @@ export default function DateTimeSelection({ companySlug }: DateTimeSelectionProp
     }
 
     loadTimeSlots();
-  }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService]);
+  }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService, eligibleEmployeeIds]);
 
   const navigateMonth = (delta: number) => {
     setDirection(delta);

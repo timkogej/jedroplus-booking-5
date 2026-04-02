@@ -6,7 +6,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function SummerElements({ primaryColor: _primaryColor }: Props) {
+export default function SummerElements((_props: Props)) {
   return (
     <>
       {/* Sun in corner */}

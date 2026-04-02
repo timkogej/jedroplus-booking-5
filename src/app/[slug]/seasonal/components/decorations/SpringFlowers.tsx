@@ -7,7 +7,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function SpringFlowers({ primaryColor: _primaryColor }: Props) {
+export default function SpringFlowers((_props: Props)) {
   const flowers = useMemo(
     () => [
       { emoji: '🌸', left: 5, top: 20, size: 30 },

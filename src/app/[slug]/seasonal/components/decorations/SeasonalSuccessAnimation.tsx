@@ -9,7 +9,7 @@ interface Props {
   primaryColor: string;
 }
 
-export default function SeasonalSuccessAnimation({ isActive, seasonalTheme, primaryColor: _primaryColor }: Props) {
+export default function SeasonalSuccessAnimation({ isActive, seasonalTheme }: Props) {
   const { season, holiday } = seasonalTheme;
 
   const getParticles = (): string[] => {

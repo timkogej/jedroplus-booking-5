@@ -18,7 +18,7 @@ export function useSecureBooking({ companyId, onSuccess, onError }: { companyId:
     try { setIsSuccess(true); onSuccess?.(); return true; }
     catch (err) { setError("Napaka. Poskusite znova."); onError?.(err instanceof Error ? err.message : "Error"); return false; }
     finally { setIsSubmitting(false); }
-  }, [companyId, onSuccess, onError]);
+  }, [onSuccess, onError]);
 
   return { isSubmitting, isSuccess, error, fieldErrors, submitBooking, resetState: () => { setIsSubmitting(false); setIsSuccess(false); setError(null); setFieldErrors({}); }, sanitize: sanitizeInput };
 }
