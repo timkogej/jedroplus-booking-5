@@ -1,5 +1,57 @@
 /* ── Modern Booking Variant ─────────────────────────── */
 
+/* Background orb animations — CSS only, compositor thread, no React re-renders */
+@keyframes modernOrbFloat1 {
+  0%, 100% { transform: translate(-5%, -5%); }
+  33%       { transform: translate(8%, 6%); }
+  66%       { transform: translate(2%, 10%); }
+}
+
+@keyframes modernOrbFloat2 {
+  0%, 100% { transform: translate(3%, 5%); }
+  33%       { transform: translate(-6%, -3%); }
+  66%       { transform: translate(-2%, -8%); }
+}
+
+.modern-orb-1 {
+  border-radius: 50% !important;
+  will-change: transform;
+  animation: modernOrbFloat1 22s ease-in-out infinite;
+}
+
+.modern-orb-2 {
+  border-radius: 50% !important;
+  will-change: transform;
+  animation: modernOrbFloat2 28s ease-in-out infinite;
+}
+
+/* Loading screen — gradient spinner arc (conic + mask = thin arc only) */
+.modern-loading-arc {
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 60%,
+    #7C3AED 75%,
+    #3B82F6 88%,
+    #06B6D4 100%
+  );
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1.5px));
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1.5px));
+}
+
+/* Slot loading shimmer */
+@keyframes modernShimmer {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+.modern-slot-shimmer {
+  animation: modernShimmer 1.4s ease-in-out infinite;
+}
+
 /* Hide scrollbar but keep scroll functionality */
 .modern-scrollbar-hide {
   -ms-overflow-style: none;

@@ -1,20 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import {
-  format,
-  addMonths,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameDay,
-  isToday,
-  isBefore,
-  startOfDay,
-  getDay,
-} from 'date-fns';
+import { format, isSameDay, isToday, isBefore, startOfDay } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchTimeSlots } from '@/lib/api';
@@ -23,37 +11,26 @@ interface Props {
   companySlug?: string;
 }
 
-const WEEK_DAYS = ['Po', 'To', 'Sr', 'Če', 'Pe', 'So', 'Ne'];
-
-const slideVariants: Variants = {
-  enter: (d: number) => ({ x: d > 0 ? 24 : -24, opacity: 0 }),
-  center: {
-    x: 0,
-    opacity: 1,
-    transition: { duration: 0.22, ease: 'easeOut' as const },
-  },
-  exit: (d: number) => ({
-    x: d < 0 ? 24 : -24,
-    opacity: 0,
-    transition: { duration: 0.18 },
-  }),
-};
-
 const slotVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 420, damping: 24 } },
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 400, damping: 26 },
+  },
 };
 
-// Generate next 30 days for mobile swiper
-function generateMobileDates(): Date[] {
-  const dates: Date[] = [];
-  const today = new Date();
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-    dates.push(date);
-  }
-  return dates;
+const DAYS_TO_SHOW = 60;
+const CARD_W = 76; // px — card width
+const CARD_GAP = 8; // px — gap between cards
+
+function generateDates(count: number): Date[] {
+  const today = startOfDay(new Date());
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d;
+  });
 }
 
 export default function ModernDateTimeSelection({ companySlug }: Props) {
@@ -69,23 +46,14 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
     selectTime,
   } = useBookingStore();
 
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [direction, setDirection] = useState(0);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const mobileDates = useMemo(() => generateMobileDates(), []);
+  const dates = useMemo(() => generateDates(DAYS_TO_SHOW), []);
+  const today = useMemo(() => startOfDay(new Date()), []);
 
-  const calendarDays = useMemo(() => {
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(currentMonth);
-    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    const startDow = getDay(monthStart);
-    const pad = startDow === 0 ? 6 : startDow - 1;
-    return [...Array(pad).fill(null), ...days] as (Date | null)[];
-  }, [currentMonth]);
-
+  // Fetch time slots when date changes
   useEffect(() => {
     if (!selectedDate || !companySlug || !selectedService) {
       setTimeSlots([]);
@@ -98,28 +66,50 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
       selectedService.id,
       selectedEmployeeId,
       anyPerson,
-      eligibleEmployeeIds
+      eligibleEmployeeIds,
     )
       .then(setTimeSlots)
       .catch(() => setTimeSlots([]))
       .finally(() => setLoadingSlots(false));
   }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService, eligibleEmployeeIds]);
 
-  const today = startOfDay(new Date());
-  const isPrevDisabled = isBefore(endOfMonth(subMonths(currentMonth, 1)), today);
+  // Scroll selected date into view on initial render
+  useEffect(() => {
+    if (selectedDate && scrollRef.current) {
+      const idx = dates.findIndex((d) => isSameDay(d, selectedDate));
+      if (idx >= 0) {
+        const offset = idx * (CARD_W + CARD_GAP) - scrollRef.current.offsetWidth / 2 + CARD_W / 2;
+        scrollRef.current.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+      }
+    }
+  }, []); // only on mount
 
-  const navigateMonth = (delta: number) => {
-    setDirection(delta);
-    setCurrentMonth(delta > 0 ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1));
-  };
+  const scrollBy = useCallback((direction: number) => {
+    scrollRef.current?.scrollBy({ left: direction * (CARD_W + CARD_GAP) * 5, behavior: 'smooth' });
+  }, []);
+
+  const handleDateSelect = useCallback(
+    (date: Date) => {
+      selectDate(date);
+      // Keep the selected card roughly centered
+      if (scrollRef.current) {
+        const idx = dates.findIndex((d) => isSameDay(d, date));
+        if (idx >= 0) {
+          const offset = idx * (CARD_W + CARD_GAP) - scrollRef.current.offsetWidth / 2 + CARD_W / 2;
+          scrollRef.current.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+        }
+      }
+    },
+    [dates, selectDate],
+  );
 
   return (
     <div>
       {/* Heading */}
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.22 }}
         className="mb-8"
       >
         <h2
@@ -141,231 +131,134 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
         </p>
       </motion.div>
 
-      {/* ── MOBILE: Horizontal date swiper ── */}
-      <div className="md:hidden mb-6">
-        <div className="relative">
-          {/* Fade edges */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
-            style={{ background: `linear-gradient(to right, ${theme.bgFrom}cc, transparent)` }}
-          />
-          <div
-            className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
-            style={{ background: `linear-gradient(to left, ${theme.bgTo}cc, transparent)` }}
-          />
-
-          <div
-            ref={scrollRef}
-            className="flex gap-2.5 overflow-x-auto px-4 py-2 modern-scrollbar-hide"
-            style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' as const }}
+      {/* ── Horizontal date strip ── */}
+      <motion.div
+        className="mb-6"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, delay: 0.06 }}
+      >
+        <div className="relative flex items-center gap-2">
+          {/* Left arrow */}
+          <button
+            onClick={() => scrollBy(-1)}
+            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            style={{
+              backgroundColor: 'var(--s2)',
+              border: '1px solid var(--b2)',
+              color: 'var(--t-muted)',
+            }}
+            aria-label="Prejšnji teden"
           >
-            {mobileDates.map((date, index) => {
-              const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
-              const isTodayDate = isToday(date);
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
 
-              return (
-                <motion.button
-                  key={index}
-                  onClick={() => selectDate(date)}
-                  className="flex-shrink-0 w-[72px] py-3.5 rounded-2xl text-center"
-                  style={{
-                    scrollSnapAlign: 'center',
-                    backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
-                    border: isTodayDate && !isSelected
-                      ? `2px solid ${theme.primaryColor}60`
-                      : '2px solid transparent',
-                    boxShadow: isSelected ? `0 6px 20px ${theme.primaryColor}40` : 'none',
-                  }}
-                  whileTap={{ scale: 0.94 }}
-                >
-                  <p
-                    className="text-xs font-medium mb-0.5"
-                    style={{
-                      color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--t-faint)',
-                      fontFamily: 'var(--font-inter)',
-                    }}
-                  >
-                    {format(date, 'EEE', { locale: sl }).toUpperCase().slice(0, 3)}
-                  </p>
-                  <p
-                    className="text-xl font-bold my-0.5"
-                    style={{
-                      color: isSelected ? '#ffffff' : 'var(--t-primary)',
-                      fontFamily: 'var(--font-dm-sans)',
-                    }}
-                  >
-                    {date.getDate()}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{
-                      color: isSelected ? 'rgba(255,255,255,0.7)' : 'var(--t-faint)',
-                      fontFamily: 'var(--font-inter)',
-                    }}
-                  >
-                    {format(date, 'MMM', { locale: sl })}
-                  </p>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+          {/* Scrollable date row */}
+          <div className="relative flex-1 overflow-hidden">
+            {/* Fade edges */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+              style={{ background: `linear-gradient(to right, ${theme.bgFrom}ee, transparent)` }}
+            />
+            <div
+              className="absolute right-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
+              style={{ background: `linear-gradient(to left, ${theme.bgTo}ee, transparent)` }}
+            />
 
-      {/* ── DESKTOP: Calendar grid ── */}
-      <div className="hidden md:block mb-6">
-        <motion.div
-          className="rounded-2xl p-5 modern-glass"
-          style={{
-            backgroundColor: 'var(--s2)',
-            border: '1px solid var(--b2)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-          }}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35 }}
-        >
-          {/* Month navigation */}
-          <div className="flex items-center justify-between mb-5">
-            <motion.button
-              onClick={() => !isPrevDisabled && navigateMonth(-1)}
-              disabled={isPrevDisabled}
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-              style={{
-                backgroundColor: isPrevDisabled ? 'transparent' : 'var(--s2)',
-                border: '1px solid var(--b2)',
-                color: isPrevDisabled ? 'var(--t-disabled)' : 'var(--t-muted)',
-                cursor: isPrevDisabled ? 'not-allowed' : 'pointer',
-              }}
-              whileHover={!isPrevDisabled ? { scale: 1.08 } : {}}
-              whileTap={!isPrevDisabled ? { scale: 0.92 } : {}}
+            <div
+              ref={scrollRef}
+              className="flex gap-2 overflow-x-auto py-1 modern-scrollbar-hide"
+              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' as const }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </motion.button>
-
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.h3
-                key={format(currentMonth, 'yyyy-MM')}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="capitalize font-semibold"
-                style={{
-                  color: 'var(--t-primary)',
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '0.95rem',
-                }}
-              >
-                {format(currentMonth, 'LLLL yyyy', { locale: sl })}
-              </motion.h3>
-            </AnimatePresence>
-
-            <motion.button
-              onClick={() => navigateMonth(1)}
-              className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-              style={{
-                backgroundColor: 'var(--s2)',
-                border: '1px solid var(--b2)',
-                color: 'var(--t-muted)',
-                cursor: 'pointer',
-              }}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </motion.button>
-          </div>
-
-          {/* Day headers */}
-          <div className="grid grid-cols-7 mb-2">
-            {WEEK_DAYS.map((d) => (
-              <div
-                key={d}
-                className="text-center text-xs font-medium py-1"
-                style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)', letterSpacing: '0.04em' }}
-              >
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar days */}
-          <AnimatePresence mode="wait" custom={direction}>
-            <motion.div
-              key={format(currentMonth, 'yyyy-MM')}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="grid grid-cols-7 gap-0.5"
-            >
-              {calendarDays.map((day, i) => {
-                if (!day) return <div key={`e-${i}`} className="aspect-square" />;
-
-                const isDisabled = isBefore(day, today);
-                const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-                const isTodayDate = isToday(day);
-                const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+              {dates.map((date, i) => {
+                const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
+                const isTodayDate = isToday(date);
+                const isPast = isBefore(date, today);
 
                 return (
-                  <motion.button
-                    key={day.toISOString()}
-                    onClick={() => !isDisabled && selectDate(day)}
-                    disabled={isDisabled}
-                    className="modern-cal-day"
+                  <button
+                    key={i}
+                    onClick={() => !isPast && handleDateSelect(date)}
+                    disabled={isPast}
+                    className="flex-shrink-0 flex flex-col items-center py-3 rounded-2xl transition-all duration-150"
                     style={{
-                      color: isDisabled
-                        ? 'var(--t-disabled)'
-                        : isSelected
-                        ? '#ffffff'
-                        : isWeekend
-                        ? 'var(--t-soft)'
-                        : 'var(--t-primary)',
-                      backgroundColor: isSelected ? theme.primaryColor : 'transparent',
-                      boxShadow: isSelected ? `0 3px 10px ${theme.primaryColor}45` : 'none',
-                      borderColor: isTodayDate && !isSelected ? `${theme.primaryColor}70` : 'transparent',
-                      fontWeight: isTodayDate ? 600 : 400,
-                      cursor: isDisabled ? 'not-allowed' : 'pointer',
-                      fontFamily: 'var(--font-inter)',
+                      width: CARD_W,
+                      scrollSnapAlign: 'center',
+                      backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
+                      border: isTodayDate && !isSelected
+                        ? `2px solid ${theme.primaryColor}70`
+                        : '2px solid transparent',
+                      boxShadow: isSelected ? `0 6px 20px ${theme.primaryColor}40` : 'none',
+                      opacity: isPast ? 0.35 : 1,
+                      cursor: isPast ? 'not-allowed' : 'pointer',
+                      transform: isSelected ? 'scale(1.05)' : 'scale(1)',
                     }}
-                    whileHover={
-                      !isDisabled && !isSelected
-                        ? { backgroundColor: `${theme.primaryColor}18`, scale: 1.08 }
-                        : {}
-                    }
-                    whileTap={!isDisabled ? { scale: 0.92 } : {}}
                   >
-                    {format(day, 'd')}
-                    {isTodayDate && !isSelected && (
-                      <span
-                        className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                        style={{ backgroundColor: theme.primaryColor }}
-                      />
-                    )}
-                  </motion.button>
+                    <span
+                      className="text-xs font-medium mb-0.5"
+                      style={{
+                        color: isSelected ? 'rgba(255,255,255,0.75)' : 'var(--t-faint)',
+                        fontFamily: 'var(--font-inter)',
+                        fontSize: '0.65rem',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {format(date, 'EEE', { locale: sl }).toUpperCase().slice(0, 3)}
+                    </span>
+                    <span
+                      className="font-bold leading-none my-0.5"
+                      style={{
+                        color: isSelected ? '#ffffff' : 'var(--t-primary)',
+                        fontFamily: 'var(--font-dm-sans)',
+                        fontSize: '1.3rem',
+                      }}
+                    >
+                      {date.getDate()}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{
+                        color: isSelected ? 'rgba(255,255,255,0.75)' : 'var(--t-faint)',
+                        fontFamily: 'var(--font-inter)',
+                        fontSize: '0.68rem',
+                      }}
+                    >
+                      {format(date, 'MMM', { locale: sl })}
+                    </span>
+                  </button>
                 );
               })}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
-      </div>
+            </div>
+          </div>
 
-      {/* Time slots */}
+          {/* Right arrow */}
+          <button
+            onClick={() => scrollBy(1)}
+            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            style={{
+              backgroundColor: 'var(--s2)',
+              border: '1px solid var(--b2)',
+              color: 'var(--t-muted)',
+            }}
+            aria-label="Naslednji teden"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </motion.div>
+
+      {/* ── Time slots ── */}
       <AnimatePresence>
         {selectedDate && (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
           >
             <h3
               className="font-semibold mb-4 text-sm"
@@ -379,13 +272,11 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
 
             {loadingSlots ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                {[...Array(8)].map((_, i) => (
-                  <motion.div
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
                     key={i}
-                    className="h-11 rounded-xl"
-                    style={{ backgroundColor: 'var(--s2)' }}
-                    animate={{ opacity: [0.4, 0.8, 0.4] }}
-                    transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.08 }}
+                    className="h-11 rounded-xl modern-slot-shimmer"
+                    style={{ backgroundColor: 'var(--s2)', animationDelay: `${i * 0.07}s` }}
                   />
                 ))}
               </div>
@@ -394,29 +285,23 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                 className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
                 initial="hidden"
                 animate="visible"
-                variants={{
-                  visible: { transition: { staggerChildren: 0.04 } },
-                }}
+                variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
               >
                 {timeSlots.map((slot) => {
                   const isSelected = selectedTime === slot;
-
                   return (
                     <motion.button
                       key={slot}
                       onClick={() => selectTime(slot)}
                       variants={slotVariants}
-                      className="py-3 px-2 rounded-xl text-center font-medium text-sm transition-colors"
+                      className="py-3 px-2 rounded-xl text-center font-medium text-sm"
                       style={{
                         backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
                         color: isSelected ? '#ffffff' : 'var(--t-primary)',
                         border: `1px solid ${isSelected ? theme.primaryColor : 'var(--b2)'}`,
                         boxShadow: isSelected ? `0 4px 14px ${theme.primaryColor}40` : 'none',
                         fontFamily: 'var(--font-inter)',
-                      }}
-                      whileHover={{
-                        scale: 1.04,
-                        backgroundColor: isSelected ? theme.primaryColor : 'var(--s2h)',
+                        transition: 'background-color 0.15s, color 0.15s, box-shadow 0.15s',
                       }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -439,7 +324,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Selection confirmation strip */}
+      {/* ── Selected slot confirmation strip ── */}
       <AnimatePresence>
         {selectedDate && selectedTime && (
           <motion.div
@@ -448,10 +333,10 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
               backgroundColor: `${theme.primaryColor}15`,
               border: `1px solid ${theme.primaryColor}30`,
             }}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
           >
             <motion.div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"

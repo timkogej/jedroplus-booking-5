@@ -11,6 +11,7 @@ interface FormErrors {
   email?: string;
   phone?: string;
   gender?: string;
+  privacyConsent?: string;
 }
 
 const containerVariants: Variants = {
@@ -95,6 +96,7 @@ export default function ModernCustomerDetails() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
     if (!phone.trim()) e.phone = 'Telefon je obvezen';
     if (!gender) e.gender = 'Izberite nagovor';
+    if (!privacyConsent) e.privacyConsent = 'Strinjanje s pogoji je obvezno';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -115,7 +117,7 @@ export default function ModernCustomerDetails() {
     nextStep();
   };
 
-  const isFormComplete = firstName && lastName && email && phone && gender;
+  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent;
 
   const errorText = (msg?: string) =>
     msg ? (
@@ -265,29 +267,62 @@ export default function ModernCustomerDetails() {
 
         {/* Checkboxes */}
         <div className="space-y-3">
-          {[
-            {
-              checked: gdprMarketing,
-              onChange: () => setGdprMarketing(!gdprMarketing),
-              label: 'Želim prejemati obvestila o ponudbah in novostih',
-            },
-            {
-              checked: privacyConsent,
-              onChange: () => setPrivacyConsent(!privacyConsent),
-              label: 'Strinjam se s pogoji uporabe in politiko zasebnosti',
-            },
-          ].map(({ checked, onChange, label }, i) => (
-            <label key={i} className="flex items-start gap-3 cursor-pointer">
+          {/* Marketing — optional */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <motion.div
+              className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+              style={{
+                backgroundColor: gdprMarketing ? theme.primaryColor : 'var(--s1)',
+                border: `1.5px solid ${gdprMarketing ? theme.primaryColor : 'var(--b2)'}`,
+              }}
+              onClick={() => setGdprMarketing(!gdprMarketing)}
+              whileTap={{ scale: 0.9 }}
+            >
+              {gdprMarketing && (
+                <motion.svg
+                  className="w-3 h-3 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </motion.svg>
+              )}
+            </motion.div>
+            <span
+              className="text-sm leading-relaxed"
+              style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
+            >
+              Želim prejemati obvestila o ponudbah in novostih
+            </span>
+          </label>
+
+          {/* Privacy consent — required */}
+          <div>
+            <label className="flex items-start gap-3 cursor-pointer">
               <motion.div
                 className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                 style={{
-                  backgroundColor: checked ? theme.primaryColor : 'var(--s1)',
-                  border: `1.5px solid ${checked ? theme.primaryColor : 'var(--b2)'}`,
+                  backgroundColor: privacyConsent ? theme.primaryColor : 'var(--s1)',
+                  border: `1.5px solid ${
+                    errors.privacyConsent
+                      ? '#EF4444'
+                      : privacyConsent
+                      ? theme.primaryColor
+                      : 'var(--b2)'
+                  }`,
+                  boxShadow: errors.privacyConsent ? '0 0 0 3px rgba(239,68,68,0.12)' : 'none',
                 }}
-                onClick={onChange}
+                onClick={() => {
+                  setPrivacyConsent(!privacyConsent);
+                  if (errors.privacyConsent) setErrors((prev) => ({ ...prev, privacyConsent: undefined }));
+                }}
                 whileTap={{ scale: 0.9 }}
               >
-                {checked && (
+                {privacyConsent && (
                   <motion.svg
                     className="w-3 h-3 text-white"
                     fill="none"
@@ -305,10 +340,12 @@ export default function ModernCustomerDetails() {
                 className="text-sm leading-relaxed"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
               >
-                {label}
+                Strinjam se s pogoji uporabe in politiko zasebnosti
+                <span className="text-red-400 ml-0.5">*</span>
               </span>
             </label>
-          ))}
+            <AnimatePresence>{errorText(errors.privacyConsent)}</AnimatePresence>
+          </div>
         </div>
       </motion.div>
 

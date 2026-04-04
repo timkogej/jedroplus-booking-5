@@ -93,19 +93,19 @@ function computeCssVars(theme: Theme): CssVars {
 }
 
 const pageVariants: Variants = {
-  initial: { opacity: 0, y: 20 },
+  initial: { opacity: 0, y: 12 },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.22,
       ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
     },
   },
   exit: {
     opacity: 0,
-    y: -16,
-    transition: { duration: 0.25 },
+    y: -8,
+    transition: { duration: 0.15 },
   },
 };
 
@@ -151,29 +151,25 @@ export default function ModernLayout({ companySlug }: Props) {
         fontFamily: 'var(--font-inter)',
       }}
     >
-      {/* Animated background orbs */}
+      {/* Animated background orbs — CSS animations for smooth, glitch-free rendering */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full blur-3xl"
+        <div
+          className="modern-orb-1 absolute w-[600px] h-[600px] blur-3xl"
           style={{
             backgroundColor: theme.primaryColor,
             opacity: 0.25,
             top: '-20%',
             left: '-10%',
           }}
-          animate={{ x: ['-5%', '8%', '-5%'], y: ['-5%', '10%', '-5%'] }}
-          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' as const }}
         />
-        <motion.div
-          className="absolute w-[450px] h-[450px] rounded-full blur-3xl"
+        <div
+          className="modern-orb-2 absolute w-[450px] h-[450px] blur-3xl"
           style={{
             backgroundColor: theme.secondaryColor,
             opacity: 0.18,
             bottom: '-15%',
             right: '-5%',
           }}
-          animate={{ x: ['3%', '-6%', '3%'], y: ['5%', '-8%', '5%'] }}
-          transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' as const }}
         />
       </div>
 

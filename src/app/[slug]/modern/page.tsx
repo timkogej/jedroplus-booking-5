@@ -9,45 +9,28 @@ import type { Theme } from '@/types';
 import ModernLayout from './components/ModernLayout';
 
 function ModernLoadingScreen() {
-  const { theme } = useBookingStore();
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center gap-6"
       >
-        <div className="relative w-16 h-16 mx-auto mb-6">
+        {/* Thin gradient spinner */}
+        <div className="relative w-12 h-12">
+          {/* Static faint ring */}
           <div
             className="absolute inset-0 rounded-full"
-            style={{ border: '2px solid rgba(255,255,255,0.15)' }}
+            style={{ border: '1.5px solid rgba(0,0,0,0.06)' }}
           />
+          {/* Spinning gradient arc */}
           <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ border: '2px solid transparent', borderTopColor: 'rgba(255,255,255,0.8)' }}
+            className="absolute inset-0 rounded-full modern-loading-arc"
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' as const }}
           />
         </div>
-        <p
-          className="font-dm-sans text-lg font-medium"
-          style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-dm-sans)' }}
-        >
-          Pripravljamo rezervacijo
-        </p>
-        <p
-          className="mt-1 text-sm"
-          style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-inter)' }}
-        >
-          Prosimo počakajte&hellip;
-        </p>
       </motion.div>
     </div>
   );
