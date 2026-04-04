@@ -163,7 +163,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     get().nextStep();
   },
 
-  selectDate: (date) => set({ selectedDate: date }),
+  selectDate: (date) => set({ selectedDate: date, selectedTime: null }),
 
   selectTime: (time) => {
     set({ selectedTime: time });

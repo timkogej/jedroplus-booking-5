@@ -9,55 +9,57 @@ import type { Theme } from '@/types';
 import ClassicLayout from './components/ClassicLayout';
 
 function ClassicLoadingScreen() {
-  const { theme } = useBookingStore();
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-6"
-      style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
-      }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: 'easeOut' as const }}
-        className="text-center"
+        className="flex flex-col items-center"
       >
-        {/* Spinning ring */}
-        <div className="relative w-16 h-16 mx-auto mb-8">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ border: '2px solid rgba(255,255,255,0.15)' }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              border: '2px solid transparent',
-              borderTopColor: 'rgba(255,255,255,0.8)',
-            }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
-          />
-        </div>
+        {/* Gradient spinning ring */}
+        <motion.div
+          className="mb-8 flex-shrink-0"
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: 'conic-gradient(from 0deg, #7C3AED, #3B82F6, #14B8A6, transparent 75%)',
+            padding: 3,
+          }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' as const }}
+        >
+          <div style={{ width: '100%', height: '100%', borderRadius: '50%', backgroundColor: '#ffffff' }} />
+        </motion.div>
 
         <h1
-          className="text-2xl font-bold mb-2"
-          style={{
-            fontFamily: 'var(--font-nunito)',
-            color: 'rgba(255,255,255,0.95)',
-          }}
+          className="text-xl font-bold text-gray-900 mb-2"
+          style={{ fontFamily: 'var(--font-nunito)' }}
         >
           Pripravljamo rezervacijo
         </h1>
         <p
-          style={{
-            fontFamily: 'var(--font-nunito-sans)',
-            fontSize: '0.9rem',
-            color: 'rgba(255,255,255,0.6)',
-          }}
+          className="text-sm text-gray-400 mb-10"
+          style={{ fontFamily: 'var(--font-nunito-sans)' }}
         >
           Prosimo počakajte&hellip;
+        </p>
+
+        <p
+          className="text-xs text-gray-400"
+          style={{ fontFamily: 'var(--font-nunito-sans)' }}
+        >
+          Powered by{' '}
+          <a
+            href="https://jedroplus.si"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold hover:underline"
+            style={{ color: '#7C3AED' }}
+          >
+            Jedro+
+          </a>
         </p>
       </motion.div>
     </div>

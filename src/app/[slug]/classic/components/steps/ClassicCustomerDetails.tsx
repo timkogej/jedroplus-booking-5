@@ -13,6 +13,8 @@ interface FormErrors {
   lastName?: string;
   email?: string;
   phone?: string;
+  gender?: string;
+  privacyConsent?: string;
 }
 
 const GENDERS = [
@@ -37,6 +39,7 @@ const itemVariants: Variants = {
 
 function ClassicInput({
   label,
+  required,
   value,
   onChange,
   placeholder,
@@ -45,6 +48,7 @@ function ClassicInput({
   primaryColor,
 }: {
   label: string;
+  required?: boolean;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -61,6 +65,7 @@ function ClassicInput({
         style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
       >
         {label}
+        {required && <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>}
       </label>
       <input
         type={type}
@@ -169,6 +174,7 @@ export default function ClassicCustomerDetails() {
   const [gender, setGender] = useState('');
   const [notes, setNotes] = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
@@ -178,6 +184,8 @@ export default function ClassicCustomerDetails() {
     if (!email.trim()) e.email = 'Email je obvezen';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
     if (!phone.trim()) e.phone = 'Telefon je obvezen';
+    if (!gender) e.gender = 'Izberite nagovor';
+    if (!privacyConsent) e.privacyConsent = 'Strinjanje s pogoji je obvezno';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -192,10 +200,24 @@ export default function ClassicCustomerDetails() {
       gender: gender || undefined,
       notes: notes.trim() || undefined,
       gdprSendMarketing: gdprMarketing,
+      privacyConsent,
     };
     setCustomerDetails(details);
     nextStep();
   };
+
+  const errorText = (msg?: string) =>
+    msg ? (
+      <motion.p
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        className="text-xs mt-1"
+        style={{ fontFamily: 'var(--font-nunito-sans)', color: '#EF4444' }}
+      >
+        {msg}
+      </motion.p>
+    ) : null;
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
@@ -236,7 +258,8 @@ export default function ClassicCustomerDetails() {
         {/* Name row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <ClassicInput
-            label="Ime *"
+            label="Ime"
+            required
             value={firstName}
             onChange={setFirstName}
             placeholder="Janez"
@@ -244,7 +267,8 @@ export default function ClassicCustomerDetails() {
             primaryColor={theme.primaryColor}
           />
           <ClassicInput
-            label="Priimek *"
+            label="Priimek"
+            required
             value={lastName}
             onChange={setLastName}
             placeholder="Novak"
@@ -256,7 +280,8 @@ export default function ClassicCustomerDetails() {
         {/* Email */}
         <div className="mb-4">
           <ClassicInput
-            label="Email *"
+            label="Email"
+            required
             value={email}
             onChange={setEmail}
             placeholder="janez@email.com"
@@ -269,7 +294,8 @@ export default function ClassicCustomerDetails() {
         {/* Phone */}
         <div className="mb-4">
           <ClassicInput
-            label="Telefon *"
+            label="Telefon"
+            required
             value={phone}
             onChange={setPhone}
             placeholder="041 123 456"
@@ -285,7 +311,8 @@ export default function ClassicCustomerDetails() {
             className="block text-xs font-semibold uppercase tracking-wide mb-2"
             style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
           >
-            Nagovor (opcijsko)
+            Nagovor
+            <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>
           </label>
           <div className="flex gap-2">
             {GENDERS.map((g) => {
@@ -294,13 +321,18 @@ export default function ClassicCustomerDetails() {
                 <motion.button
                   key={g.value}
                   type="button"
-                  onClick={() => setGender(isSelected ? '' : g.value)}
+                  onClick={() => {
+                    setGender(isSelected ? '' : g.value);
+                    if (errors.gender) setErrors((prev) => ({ ...prev, gender: undefined }));
+                  }}
                   className="flex-1 py-2 rounded-xl text-sm font-medium transition-all"
                   style={{
                     fontFamily: 'var(--font-nunito-sans)',
                     backgroundColor: isSelected ? `${theme.primaryColor}15` : '#F9FAFB',
                     border: isSelected
                       ? `2px solid ${theme.primaryColor}`
+                      : errors.gender
+                      ? '2px solid #EF4444'
                       : '2px solid #E5E7EB',
                     color: isSelected ? theme.primaryColor : '#6B7280',
                   }}
@@ -312,6 +344,7 @@ export default function ClassicCustomerDetails() {
               );
             })}
           </div>
+          <AnimatePresence>{errorText(errors.gender)}</AnimatePresence>
         </div>
 
         {/* Notes */}
@@ -345,27 +378,67 @@ export default function ClassicCustomerDetails() {
           />
         </div>
 
-        {/* GDPR */}
-        <label className="flex items-start gap-3 cursor-pointer">
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-            style={{
-              backgroundColor: gdprMarketing ? theme.primaryColor : 'transparent',
-              border: `2px solid ${gdprMarketing ? theme.primaryColor : '#D1D5DB'}`,
-            }}
-            onClick={() => setGdprMarketing(!gdprMarketing)}
-          >
-            {gdprMarketing && (
-              <span style={{ color: '#ffffff', fontSize: '0.65rem', fontWeight: 700 }}>✓</span>
-            )}
+        {/* Checkboxes */}
+        <div className="space-y-3">
+          {/* Marketing — optional */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <div
+              className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+              style={{
+                backgroundColor: gdprMarketing ? theme.primaryColor : 'transparent',
+                border: `2px solid ${gdprMarketing ? theme.primaryColor : '#D1D5DB'}`,
+              }}
+              onClick={() => setGdprMarketing(!gdprMarketing)}
+            >
+              {gdprMarketing && (
+                <span style={{ color: '#ffffff', fontSize: '0.65rem', fontWeight: 700 }}>✓</span>
+              )}
+            </div>
+            <span
+              className="text-sm leading-relaxed"
+              style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
+            >
+              Želim prejemati ekskluzivne ponudbe in novosti
+            </span>
+          </label>
+
+          {/* Privacy consent — required */}
+          <div>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <div
+                className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                style={{
+                  backgroundColor: privacyConsent ? theme.primaryColor : 'transparent',
+                  border: `2px solid ${
+                    errors.privacyConsent
+                      ? '#EF4444'
+                      : privacyConsent
+                      ? theme.primaryColor
+                      : '#D1D5DB'
+                  }`,
+                  boxShadow: errors.privacyConsent ? '0 0 0 3px rgba(239,68,68,0.12)' : 'none',
+                }}
+                onClick={() => {
+                  setPrivacyConsent(!privacyConsent);
+                  if (errors.privacyConsent)
+                    setErrors((prev) => ({ ...prev, privacyConsent: undefined }));
+                }}
+              >
+                {privacyConsent && (
+                  <span style={{ color: '#ffffff', fontSize: '0.65rem', fontWeight: 700 }}>✓</span>
+                )}
+              </div>
+              <span
+                className="text-sm leading-relaxed"
+                style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
+              >
+                Strinjam se s pogoji uporabe in politiko zasebnosti
+                <span style={{ color: '#EF4444', marginLeft: 2 }}>*</span>
+              </span>
+            </label>
+            <AnimatePresence>{errorText(errors.privacyConsent)}</AnimatePresence>
           </div>
-          <span
-            className="text-sm leading-relaxed"
-            style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
-          >
-            Želim prejemati ekskluzivne ponudbe in novosti
-          </span>
-        </label>
+        </div>
       </motion.div>
 
       {/* Submit button */}

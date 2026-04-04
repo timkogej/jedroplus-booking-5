@@ -183,7 +183,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
           <div className="flex-1 min-w-0">
             <div
               ref={scrollRef}
-              className="flex gap-2 overflow-x-auto py-3 modern-scrollbar-hide"
+              className="flex gap-2 overflow-x-auto py-3 px-2 modern-scrollbar-hide"
               style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' as const }}
             >
               {dates.map((date, i) => {
