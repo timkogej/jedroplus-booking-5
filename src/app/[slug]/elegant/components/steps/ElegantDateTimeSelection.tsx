@@ -184,7 +184,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
 
             {/* Horizontal date pills */}
             <div className="elegant-date-strip flex gap-1.5 overflow-x-auto pb-1">
-              {calendarDays.map((day, i) => {
+              {calendarDays.map((day) => {
                 if (!day) return null;
                 const isDisabled = isBefore(day, today);
                 const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
