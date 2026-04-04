@@ -340,7 +340,16 @@ export default function ModernCustomerDetails() {
                 className="text-sm leading-relaxed"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
               >
-                Strinjam se s pogoji uporabe in politiko zasebnosti
+                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                <a
+                  href="https://jedroplus.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors"
+                  style={{ color: theme.primaryColor }}
+                >
+                  Preberi politiko zasebnosti
+                </a>
                 <span className="text-red-400 ml-0.5">*</span>
               </span>
             </label>

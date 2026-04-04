@@ -78,6 +78,27 @@
   color: #9CA3AF;
 }
 
+/* Mobile date strip */
+.elegant-date-strip {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.elegant-date-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.elegant-date-pill {
+  width: 42px;
+  height: 58px;
+  border-radius: 12px;
+  scroll-snap-align: start;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
 /* Summary row */
 .elegant-summary-row {
   display: flex;

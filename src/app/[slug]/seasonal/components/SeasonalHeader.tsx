@@ -70,7 +70,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
           </div>
 
           <h1
-            className="truncate font-semibold text-sm md:text-base"
+            className="truncate font-semibold text-xs md:text-sm"
             style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)' }}
           >
             {company?.naziv ?? 'Booking'}

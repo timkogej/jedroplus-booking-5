@@ -11,6 +11,7 @@ interface FormErrors {
   email?: string;
   phone?: string;
   gender?: string;
+  privacyConsent?: string;
 }
 
 const containerVariants: Variants = {
@@ -105,6 +106,7 @@ export default function ElegantCustomerDetails() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
     if (!phone.trim()) e.phone = 'Telefon je obvezen';
     if (!gender) e.gender = 'Izberite nagovor';
+    if (!privacyConsent) e.privacyConsent = 'Strinjanje s pogoji je obvezno';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -125,7 +127,7 @@ export default function ElegantCustomerDetails() {
     nextStep();
   };
 
-  const isFormComplete = firstName && lastName && email && phone && gender;
+  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent;
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
@@ -373,30 +375,66 @@ export default function ElegantCustomerDetails() {
           </label>
 
           {/* Privacy consent */}
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div
-              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-              style={{
-                backgroundColor: privacyConsent ? theme.primaryColor : 'white',
-                border: `2px solid ${privacyConsent ? theme.primaryColor : '#D1D5DB'}`,
-              }}
-              onClick={() => setPrivacyConsent(!privacyConsent)}
-            >
-              {privacyConsent && (
-                <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+          <div>
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div
+                className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                style={{
+                  backgroundColor: privacyConsent ? theme.primaryColor : 'white',
+                  border: `2px solid ${
+                    privacyConsent
+                      ? theme.primaryColor
+                      : errors.privacyConsent
+                      ? '#EF4444'
+                      : '#D1D5DB'
+                  }`,
+                }}
+                onClick={() => setPrivacyConsent(!privacyConsent)}
+              >
+                {privacyConsent && (
+                  <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+                )}
+              </div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-inter)',
+                  fontSize: '0.85rem',
+                  color: '#6B7280',
+                  lineHeight: 1.5,
+                }}
+              >
+                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                <a
+                  href="https://jedroplus.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline transition-colors"
+                  style={{ color: theme.primaryColor }}
+                >
+                  Preberi politiko zasebnosti
+                </a>
+                <span className="text-red-400 ml-0.5">*</span>
+              </span>
+            </label>
+            <AnimatePresence>
+              {errors.privacyConsent && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: '0.75rem',
+                    color: '#EF4444',
+                    marginTop: '0.25rem',
+                    marginLeft: '2rem',
+                  }}
+                >
+                  {errors.privacyConsent}
+                </motion.p>
               )}
-            </div>
-            <span
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: '0.85rem',
-                color: '#6B7280',
-                lineHeight: 1.5,
-              }}
-            >
-              Strinjam se s pogoji uporabe in politiko zasebnosti
-            </span>
-          </label>
+            </AnimatePresence>
+          </div>
         </div>
       </motion.div>
 

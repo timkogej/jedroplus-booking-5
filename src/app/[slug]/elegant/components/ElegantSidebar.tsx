@@ -35,7 +35,9 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
                 style={{
-                  backgroundColor: isDone ? theme.primaryColor : 'transparent',
+                  background: isDone
+                    ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                    : 'transparent',
                   border: isDone
                     ? 'none'
                     : isActive

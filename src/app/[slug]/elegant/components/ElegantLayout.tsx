@@ -192,8 +192,12 @@ export default function ElegantLayout({ companySlug }: Props) {
                     style={{
                       width: s === currentStep ? 18 : 6,
                       height: 6,
-                      backgroundColor:
-                        s <= currentStep ? theme.primaryColor : '#E5E7EB',
+                      background:
+                        s === currentStep
+                          ? `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                          : s < currentStep
+                          ? theme.primaryColor
+                          : '#E5E7EB',
                     }}
                   />
                 ))}

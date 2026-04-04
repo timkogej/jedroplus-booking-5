@@ -74,7 +74,6 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     anyPerson,
     employeesUI,
     customerDetails,
-    reset,
   } = useBookingStore();
 
   const [copied, setCopied] = useState(false);
@@ -287,7 +286,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
           </div>
 
           <button
-            onClick={reset}
+            onClick={() => window.location.reload()}
             className="w-full py-4 rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-nunito)',

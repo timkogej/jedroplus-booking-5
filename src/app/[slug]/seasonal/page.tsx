@@ -9,46 +9,44 @@ import type { Theme } from '@/types';
 import SeasonalLayout from './components/SeasonalLayout';
 
 function SeasonalLoadingScreen() {
-  const { theme } = useBookingStore();
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
-      }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="text-center"
+        className="text-center flex-1 flex flex-col items-center justify-center"
       >
-        <div className="relative w-16 h-16 mx-auto mb-6">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ border: '2px solid rgba(255,255,255,0.15)' }}
-          />
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ border: '2px solid transparent', borderTopColor: 'rgba(255,255,255,0.8)' }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
-          />
-        </div>
+        <motion.div
+          className="w-16 h-16 mx-auto mb-6 rounded-full"
+          style={{
+            background: 'conic-gradient(from 0deg, #8B5CF6, #3B82F6, #06B6D4, transparent 80%)',
+            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), white 0)',
+            mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), white 0)',
+          }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
+        />
         <p
-          className="text-lg font-medium"
-          style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-quicksand)' }}
+          className="text-lg font-medium text-gray-700"
+          style={{ fontFamily: 'var(--font-quicksand)' }}
         >
           Pripravljamo rezervacijo
         </p>
         <p
-          className="mt-1 text-sm"
-          style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-quicksand)' }}
+          className="mt-1 text-sm text-gray-400"
+          style={{ fontFamily: 'var(--font-quicksand)' }}
         >
           Prosimo počakajte&hellip;
         </p>
       </motion.div>
+
+      <p
+        className="pb-8 text-xs text-gray-300"
+        style={{ fontFamily: 'var(--font-quicksand)' }}
+      >
+        Powered by Jedro+
+      </p>
     </div>
   );
 }

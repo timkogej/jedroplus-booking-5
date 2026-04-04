@@ -137,151 +137,261 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
       {/* Two-column layout on desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Calendar */}
-        <motion.div
-          variants={itemVariants}
-          className="rounded-xl border overflow-hidden"
-          style={{
-            borderColor: '#E5E7EB',
-            backgroundColor: 'white',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          }}
-        >
-          {/* Month navigation */}
-          <div
-            className="flex items-center justify-between px-4 py-3 border-b"
-            style={{ borderBottomColor: '#F3F4F6' }}
-          >
-            <button
-              onClick={() => !isPrevDisabled && navigateMonth(-1)}
-              disabled={isPrevDisabled}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{
-                backgroundColor: isPrevDisabled ? 'transparent' : '#F9FAFB',
-                color: isPrevDisabled ? '#D1D5DB' : '#6B7280',
-                cursor: isPrevDisabled ? 'not-allowed' : 'pointer',
-                border: '1px solid',
-                borderColor: isPrevDisabled ? '#F3F4F6' : '#E5E7EB',
-                fontSize: '1rem',
-              }}
-            >
-              ‹
-            </button>
-
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.h3
-                key={format(currentMonth, 'yyyy-MM')}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
+        <motion.div variants={itemVariants}>
+          {/* ── Mobile: elegant horizontal date strip ──────── */}
+          <div className="md:hidden">
+            {/* Compact month nav */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={() => !isPrevDisabled && navigateMonth(-1)}
+                disabled={isPrevDisabled}
+                className="w-7 h-7 rounded-full flex items-center justify-center"
+                style={{
+                  color: isPrevDisabled ? '#D1D5DB' : '#9CA3AF',
+                  backgroundColor: isPrevDisabled ? 'transparent' : '#F9FAFB',
+                  border: `1px solid ${isPrevDisabled ? 'transparent' : '#E5E7EB'}`,
+                  fontSize: '1rem',
+                  cursor: isPrevDisabled ? 'not-allowed' : 'pointer',
+                }}
+              >
+                ‹
+              </button>
+              <span
                 className="capitalize"
                 style={{
                   fontFamily: 'var(--font-inter)',
-                  fontSize: '0.9rem',
+                  fontSize: '0.85rem',
                   fontWeight: 500,
-                  color: '#1F2937',
+                  color: '#374151',
                 }}
               >
                 {format(currentMonth, 'LLLL yyyy', { locale: sl })}
-              </motion.h3>
-            </AnimatePresence>
-
-            <button
-              onClick={() => navigateMonth(1)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{
-                backgroundColor: '#F9FAFB',
-                color: '#6B7280',
-                cursor: 'pointer',
-                border: '1px solid #E5E7EB',
-                fontSize: '1rem',
-              }}
-            >
-              ›
-            </button>
-          </div>
-
-          <div className="p-3">
-            {/* Weekday headers */}
-            <div className="grid grid-cols-7 mb-1">
-              {WEEK_DAYS.map((d) => (
-                <div
-                  key={d}
-                  className="text-center py-1"
-                  style={{
-                    fontFamily: 'var(--font-inter)',
-                    fontSize: '0.7rem',
-                    fontWeight: 500,
-                    color: '#9CA3AF',
-                    letterSpacing: '0.03em',
-                  }}
-                >
-                  {d}
-                </div>
-              ))}
+              </span>
+              <button
+                onClick={() => navigateMonth(1)}
+                className="w-7 h-7 rounded-full flex items-center justify-center"
+                style={{
+                  color: '#9CA3AF',
+                  backgroundColor: '#F9FAFB',
+                  border: '1px solid #E5E7EB',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                }}
+              >
+                ›
+              </button>
             </div>
 
-            {/* Calendar days */}
-            <AnimatePresence mode="wait" custom={direction}>
-              <motion.div
-                key={format(currentMonth, 'yyyy-MM')}
-                custom={direction}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="grid grid-cols-7 gap-0.5"
-              >
-                {calendarDays.map((day, i) => {
-                  if (!day) return <div key={`e-${i}`} className="aspect-square" />;
+            {/* Horizontal date pills */}
+            <div className="elegant-date-strip flex gap-1.5 overflow-x-auto pb-1">
+              {calendarDays.map((day, i) => {
+                if (!day) return null;
+                const isDisabled = isBefore(day, today);
+                const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                const isTodayDate = isToday(day);
+                const dow = getDay(day);
+                const weekdayAbbr = WEEK_DAYS[dow === 0 ? 6 : dow - 1];
 
-                  const isDisabled = isBefore(day, today);
-                  const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-                  const isTodayDate = isToday(day);
-                  const isWeekend = getDay(day) === 0 || getDay(day) === 6;
-
-                  return (
-                    <motion.button
-                      key={day.toISOString()}
-                      onClick={() => !isDisabled && selectDate(day)}
-                      disabled={isDisabled}
-                      className="elegant-cal-day"
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => !isDisabled && selectDate(day)}
+                    disabled={isDisabled}
+                    className="elegant-date-pill flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
+                    style={{
+                      backgroundColor: isSelected
+                        ? theme.primaryColor
+                        : isTodayDate
+                        ? `${theme.primaryColor}08`
+                        : 'white',
+                      border: `1px solid ${
+                        isSelected
+                          ? theme.primaryColor
+                          : isTodayDate
+                          ? `${theme.primaryColor}30`
+                          : '#EFEFEF'
+                      }`,
+                      color: isDisabled ? '#D1D5DB' : isSelected ? 'white' : '#374151',
+                      boxShadow: isSelected
+                        ? `0 2px 8px ${theme.primaryColor}30`
+                        : '0 1px 2px rgba(0,0,0,0.04)',
+                      opacity: isDisabled ? 0.45 : 1,
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <span
                       style={{
-                        color: isDisabled
-                          ? '#D1D5DB'
-                          : isSelected
-                          ? 'white'
-                          : isWeekend
-                          ? '#6B7280'
-                          : '#374151',
-                        backgroundColor: isSelected ? theme.primaryColor : 'transparent',
-                        boxShadow: isSelected ? `0 2px 8px ${theme.primaryColor}40` : 'none',
-                        borderColor:
-                          isTodayDate && !isSelected ? theme.primaryColor : 'transparent',
-                        borderWidth: '2px',
-                        fontWeight: isTodayDate ? 500 : 400,
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        fontFamily: 'var(--font-inter)',
+                        fontSize: '0.55rem',
+                        letterSpacing: '0.02em',
+                        color: isSelected ? 'rgba(255,255,255,0.7)' : '#9CA3AF',
+                        lineHeight: 1,
                       }}
-                      whileHover={
-                        !isDisabled && !isSelected
-                          ? { backgroundColor: `${theme.primaryColor}12`, scale: 1.05 }
-                          : {}
-                      }
-                      whileTap={!isDisabled ? { scale: 0.94 } : {}}
+                    >
+                      {weekdayAbbr}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-inter)',
+                        fontSize: '0.9rem',
+                        fontWeight: isSelected || isTodayDate ? 600 : 400,
+                        lineHeight: 1,
+                      }}
                     >
                       {format(day, 'd')}
-                      {isTodayDate && !isSelected && (
-                        <span
-                          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                          style={{ backgroundColor: theme.primaryColor }}
-                        />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </motion.div>
-            </AnimatePresence>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Desktop: full calendar card ────────────────── */}
+          <div
+            className="hidden md:block rounded-xl border overflow-hidden"
+            style={{
+              borderColor: '#E5E7EB',
+              backgroundColor: 'white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+            }}
+          >
+            {/* Month navigation */}
+            <div
+              className="flex items-center justify-between px-4 py-3 border-b"
+              style={{ borderBottomColor: '#F3F4F6' }}
+            >
+              <button
+                onClick={() => !isPrevDisabled && navigateMonth(-1)}
+                disabled={isPrevDisabled}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: isPrevDisabled ? 'transparent' : '#F9FAFB',
+                  color: isPrevDisabled ? '#D1D5DB' : '#6B7280',
+                  cursor: isPrevDisabled ? 'not-allowed' : 'pointer',
+                  border: '1px solid',
+                  borderColor: isPrevDisabled ? '#F3F4F6' : '#E5E7EB',
+                  fontSize: '1rem',
+                }}
+              >
+                ‹
+              </button>
+
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.h3
+                  key={format(currentMonth, 'yyyy-MM')}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="capitalize"
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: '#1F2937',
+                  }}
+                >
+                  {format(currentMonth, 'LLLL yyyy', { locale: sl })}
+                </motion.h3>
+              </AnimatePresence>
+
+              <button
+                onClick={() => navigateMonth(1)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                style={{
+                  backgroundColor: '#F9FAFB',
+                  color: '#6B7280',
+                  cursor: 'pointer',
+                  border: '1px solid #E5E7EB',
+                  fontSize: '1rem',
+                }}
+              >
+                ›
+              </button>
+            </div>
+
+            <div className="p-3">
+              {/* Weekday headers */}
+              <div className="grid grid-cols-7 mb-1">
+                {WEEK_DAYS.map((d) => (
+                  <div
+                    key={d}
+                    className="text-center py-1"
+                    style={{
+                      fontFamily: 'var(--font-inter)',
+                      fontSize: '0.7rem',
+                      fontWeight: 500,
+                      color: '#9CA3AF',
+                      letterSpacing: '0.03em',
+                    }}
+                  >
+                    {d}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar days */}
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={format(currentMonth, 'yyyy-MM')}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="grid grid-cols-7 gap-0.5"
+                >
+                  {calendarDays.map((day, i) => {
+                    if (!day) return <div key={`e-${i}`} className="aspect-square" />;
+
+                    const isDisabled = isBefore(day, today);
+                    const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                    const isTodayDate = isToday(day);
+                    const isWeekend = getDay(day) === 0 || getDay(day) === 6;
+
+                    return (
+                      <motion.button
+                        key={day.toISOString()}
+                        onClick={() => !isDisabled && selectDate(day)}
+                        disabled={isDisabled}
+                        className="elegant-cal-day"
+                        style={{
+                          color: isDisabled
+                            ? '#D1D5DB'
+                            : isSelected
+                            ? 'white'
+                            : isWeekend
+                            ? '#6B7280'
+                            : '#374151',
+                          backgroundColor: isSelected ? theme.primaryColor : 'transparent',
+                          boxShadow: isSelected ? `0 2px 8px ${theme.primaryColor}40` : 'none',
+                          borderColor:
+                            isTodayDate && !isSelected ? theme.primaryColor : 'transparent',
+                          borderWidth: '2px',
+                          fontWeight: isTodayDate ? 500 : 400,
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        }}
+                        whileHover={
+                          !isDisabled && !isSelected
+                            ? { backgroundColor: `${theme.primaryColor}12`, scale: 1.05 }
+                            : {}
+                        }
+                        whileTap={!isDisabled ? { scale: 0.94 } : {}}
+                      >
+                        {format(day, 'd')}
+                        {isTodayDate && !isSelected && (
+                          <span
+                            className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                            style={{ backgroundColor: theme.primaryColor }}
+                          />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </motion.div>
 
@@ -343,15 +453,15 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 <div
                   className="px-2 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: `${theme.primaryColor}10`,
-                    border: `1px solid ${theme.primaryColor}30`,
+                    backgroundColor: `${theme.secondaryColor ?? theme.primaryColor}12`,
+                    border: `1px solid ${theme.secondaryColor ?? theme.primaryColor}30`,
                   }}
                 >
                   <span
                     style={{
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.7rem',
-                      color: theme.primaryColor,
+                      color: theme.secondaryColor ?? theme.primaryColor,
                     }}
                   >
                     {timeSlots.length}

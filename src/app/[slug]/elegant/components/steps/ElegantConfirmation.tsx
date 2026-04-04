@@ -38,7 +38,6 @@ function SuccessView() {
     anyPerson,
     employeesUI,
     customerDetails,
-    reset,
     theme,
   } = useBookingStore();
 
@@ -227,7 +226,7 @@ function SuccessView() {
         </div>
 
         <button
-          onClick={reset}
+          onClick={() => window.location.reload()}
           className="w-full py-4 rounded-xl text-white font-medium text-sm transition-opacity hover:opacity-90"
           style={{
             backgroundColor: theme.primaryColor,

@@ -56,6 +56,30 @@ function ElegantLoadingScreen() {
         >
           Prosimo počakajte&hellip;
         </p>
+
+        <p
+          className="mt-10"
+          style={{
+            fontFamily: 'var(--font-inter)',
+            fontSize: '0.72rem',
+            color: '#D1D5DB',
+          }}
+        >
+          Powered by{' '}
+          <a
+            href="https://jedroplus.si"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: theme.primaryColor,
+              opacity: 0.75,
+              textDecoration: 'none',
+              fontWeight: 500,
+            }}
+          >
+            Jedro+
+          </a>
+        </p>
       </motion.div>
     </div>
   );
