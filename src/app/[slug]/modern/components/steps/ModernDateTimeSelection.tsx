@@ -12,7 +12,7 @@ interface Props {
 }
 
 const slotVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0, scale: 0.92 },
   visible: {
     opacity: 1,
     scale: 1,
@@ -21,8 +21,8 @@ const slotVariants: Variants = {
 };
 
 const DAYS_TO_SHOW = 60;
-const CARD_W = 76; // px — card width
-const CARD_GAP = 8; // px — gap between cards
+const CARD_W = 72;  // px
+const CARD_GAP = 8; // px
 
 function generateDates(count: number): Date[] {
   const today = startOfDay(new Date());
@@ -53,7 +53,6 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
   const dates = useMemo(() => generateDates(DAYS_TO_SHOW), []);
   const today = useMemo(() => startOfDay(new Date()), []);
 
-  // Fetch time slots when date changes
   useEffect(() => {
     if (!selectedDate || !companySlug || !selectedService) {
       setTimeSlots([]);
@@ -73,7 +72,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
       .finally(() => setLoadingSlots(false));
   }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService, eligibleEmployeeIds]);
 
-  // Scroll selected date into view on initial render
+  // Center the selected date on mount
   useEffect(() => {
     if (selectedDate && scrollRef.current) {
       const idx = dates.findIndex((d) => isSameDay(d, selectedDate));
@@ -91,7 +90,6 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
   const handleDateSelect = useCallback(
     (date: Date) => {
       selectDate(date);
-      // Keep the selected card roughly centered
       if (scrollRef.current) {
         const idx = dates.findIndex((d) => isSameDay(d, date));
         if (idx >= 0) {
@@ -102,6 +100,29 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
     },
     [dates, selectDate],
   );
+
+  const renderSlot = (slot: string) => {
+    const isSelected = selectedTime === slot;
+    return (
+      <motion.button
+        key={slot}
+        onClick={() => selectTime(slot)}
+        variants={slotVariants}
+        className="py-3 px-3 rounded-xl text-center font-medium text-sm"
+        style={{
+          backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
+          color: isSelected ? '#ffffff' : 'var(--t-primary)',
+          border: `1px solid ${isSelected ? theme.primaryColor : 'var(--b2)'}`,
+          boxShadow: isSelected ? `0 4px 14px ${theme.primaryColor}40` : 'none',
+          fontFamily: 'var(--font-inter)',
+          transition: 'background-color 0.15s, color 0.15s, box-shadow 0.15s',
+        }}
+        whileTap={{ scale: 0.95 }}
+      >
+        {slot}
+      </motion.button>
+    );
+  };
 
   return (
     <div>
@@ -133,43 +154,36 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
 
       {/* ── Horizontal date strip ── */}
       <motion.div
-        className="mb-6"
+        className="mb-8"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, delay: 0.06 }}
       >
-        <div className="relative flex items-center gap-2">
+        {/* Wrapper: NO overflow-hidden so card shadows + scale aren't clipped */}
+        <div className="flex items-center gap-2">
+
           {/* Left arrow */}
           <button
             onClick={() => scrollBy(-1)}
-            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
             style={{
               backgroundColor: 'var(--s2)',
               border: '1px solid var(--b2)',
               color: 'var(--t-muted)',
+              transition: 'background-color 0.15s',
             }}
-            aria-label="Prejšnji teden"
+            aria-label="Pomakni nazaj"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          {/* Scrollable date row */}
-          <div className="relative flex-1 overflow-hidden">
-            {/* Fade edges */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
-              style={{ background: `linear-gradient(to right, ${theme.bgFrom}ee, transparent)` }}
-            />
-            <div
-              className="absolute right-0 top-0 bottom-0 w-6 z-10 pointer-events-none"
-              style={{ background: `linear-gradient(to left, ${theme.bgTo}ee, transparent)` }}
-            />
-
+          {/* Scrollable row — py-3 gives shadow breathing room above+below */}
+          <div className="flex-1 min-w-0">
             <div
               ref={scrollRef}
-              className="flex gap-2 overflow-x-auto py-1 modern-scrollbar-hide"
+              className="flex gap-2 overflow-x-auto py-3 modern-scrollbar-hide"
               style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' as const }}
             >
               {dates.map((date, i) => {
@@ -182,47 +196,52 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                     key={i}
                     onClick={() => !isPast && handleDateSelect(date)}
                     disabled={isPast}
-                    className="flex-shrink-0 flex flex-col items-center py-3 rounded-2xl transition-all duration-150"
+                    className="flex-shrink-0 flex flex-col items-center py-3 rounded-2xl"
                     style={{
                       width: CARD_W,
                       scrollSnapAlign: 'center',
                       backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
                       border: isTodayDate && !isSelected
-                        ? `2px solid ${theme.primaryColor}70`
+                        ? `2px solid ${theme.primaryColor}60`
                         : '2px solid transparent',
-                      boxShadow: isSelected ? `0 6px 20px ${theme.primaryColor}40` : 'none',
-                      opacity: isPast ? 0.35 : 1,
+                      boxShadow: isSelected
+                        ? `0 6px 22px ${theme.primaryColor}45`
+                        : 'none',
+                      opacity: isPast ? 0.3 : 1,
                       cursor: isPast ? 'not-allowed' : 'pointer',
-                      transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                      transform: isSelected ? 'scale(1.06)' : 'scale(1)',
+                      transition: 'background-color 0.18s, transform 0.18s, box-shadow 0.18s',
                     }}
                   >
                     <span
-                      className="text-xs font-medium mb-0.5"
                       style={{
-                        color: isSelected ? 'rgba(255,255,255,0.75)' : 'var(--t-faint)',
+                        color: isSelected ? 'rgba(255,255,255,0.72)' : 'var(--t-faint)',
                         fontFamily: 'var(--font-inter)',
-                        fontSize: '0.65rem',
-                        letterSpacing: '0.05em',
+                        fontSize: '0.62rem',
+                        fontWeight: 500,
+                        letterSpacing: '0.06em',
+                        marginBottom: 2,
                       }}
                     >
                       {format(date, 'EEE', { locale: sl }).toUpperCase().slice(0, 3)}
                     </span>
                     <span
-                      className="font-bold leading-none my-0.5"
                       style={{
                         color: isSelected ? '#ffffff' : 'var(--t-primary)',
                         fontFamily: 'var(--font-dm-sans)',
-                        fontSize: '1.3rem',
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        marginBottom: 3,
                       }}
                     >
                       {date.getDate()}
                     </span>
                     <span
-                      className="text-xs"
                       style={{
-                        color: isSelected ? 'rgba(255,255,255,0.75)' : 'var(--t-faint)',
+                        color: isSelected ? 'rgba(255,255,255,0.72)' : 'var(--t-faint)',
                         fontFamily: 'var(--font-inter)',
-                        fontSize: '0.68rem',
+                        fontSize: '0.64rem',
                       }}
                     >
                       {format(date, 'MMM', { locale: sl })}
@@ -236,13 +255,14 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
           {/* Right arrow */}
           <button
             onClick={() => scrollBy(1)}
-            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
             style={{
               backgroundColor: 'var(--s2)',
               border: '1px solid var(--b2)',
               color: 'var(--t-muted)',
+              transition: 'background-color 0.15s',
             }}
-            aria-label="Naslednji teden"
+            aria-label="Pomakni naprej"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -271,45 +291,75 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
             </h3>
 
             {loadingSlots ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-11 rounded-xl modern-slot-shimmer"
-                    style={{ backgroundColor: 'var(--s2)', animationDelay: `${i * 0.07}s` }}
-                  />
-                ))}
-              </div>
+              <>
+                {/* Mobile shimmer: single column */}
+                <div className="sm:hidden flex flex-col items-center gap-2.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-11 rounded-xl modern-slot-shimmer w-full max-w-[220px]"
+                      style={{ backgroundColor: 'var(--s2)', animationDelay: `${i * 0.07}s` }}
+                    />
+                  ))}
+                </div>
+                {/* Desktop shimmer: grid */}
+                <div className="hidden sm:grid sm:grid-cols-4 md:grid-cols-5 gap-2">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-11 rounded-xl modern-slot-shimmer"
+                      style={{ backgroundColor: 'var(--s2)', animationDelay: `${i * 0.07}s` }}
+                    />
+                  ))}
+                </div>
+              </>
             ) : timeSlots.length > 0 ? (
-              <motion.div
-                className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
-                initial="hidden"
-                animate="visible"
-                variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
-              >
-                {timeSlots.map((slot) => {
-                  const isSelected = selectedTime === slot;
-                  return (
-                    <motion.button
-                      key={slot}
-                      onClick={() => selectTime(slot)}
-                      variants={slotVariants}
-                      className="py-3 px-2 rounded-xl text-center font-medium text-sm"
-                      style={{
-                        backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
-                        color: isSelected ? '#ffffff' : 'var(--t-primary)',
-                        border: `1px solid ${isSelected ? theme.primaryColor : 'var(--b2)'}`,
-                        boxShadow: isSelected ? `0 4px 14px ${theme.primaryColor}40` : 'none',
-                        fontFamily: 'var(--font-inter)',
-                        transition: 'background-color 0.15s, color 0.15s, box-shadow 0.15s',
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {slot}
-                    </motion.button>
-                  );
-                })}
-              </motion.div>
+              <>
+                {/* ── MOBILE: 1 column, centered, scrollable ── */}
+                <div className="sm:hidden">
+                  <motion.div
+                    className="flex flex-col items-center gap-2.5 overflow-y-auto modern-scroll"
+                    style={{ maxHeight: '18rem', paddingRight: 4 }}
+                    initial="hidden"
+                    animate="visible"
+                    variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
+                  >
+                    {timeSlots.map((slot) => {
+                      const isSelected = selectedTime === slot;
+                      return (
+                        <motion.button
+                          key={slot}
+                          onClick={() => selectTime(slot)}
+                          variants={slotVariants}
+                          className="w-full rounded-xl font-medium text-sm py-3.5 text-center"
+                          style={{
+                            maxWidth: 220,
+                            backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
+                            color: isSelected ? '#ffffff' : 'var(--t-primary)',
+                            border: `1px solid ${isSelected ? theme.primaryColor : 'var(--b2)'}`,
+                            boxShadow: isSelected ? `0 4px 14px ${theme.primaryColor}40` : 'none',
+                            fontFamily: 'var(--font-inter)',
+                            transition: 'background-color 0.15s, color 0.15s, box-shadow 0.15s',
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {slot}
+                        </motion.button>
+                      );
+                    })}
+                  </motion.div>
+                </div>
+
+                {/* ── TABLET+: grid ── */}
+                <motion.div
+                  className="hidden sm:grid sm:grid-cols-4 md:grid-cols-5 gap-2"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{ visible: { transition: { staggerChildren: 0.03 } } }}
+                >
+                  {timeSlots.map(renderSlot)}
+                </motion.div>
+              </>
             ) : (
               <motion.p
                 initial={{ opacity: 0 }}
@@ -324,7 +374,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
         )}
       </AnimatePresence>
 
-      {/* ── Selected slot confirmation strip ── */}
+      {/* ── Confirmation strip ── */}
       <AnimatePresence>
         {selectedDate && selectedTime && (
           <motion.div

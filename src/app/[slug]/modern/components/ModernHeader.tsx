@@ -47,34 +47,14 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
           >
             {company?.naziv ?? 'Rezervacije'}
           </h1>
-          {company?.panoga && (
-            <p
-              className="mt-2 uppercase tracking-widest"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: '0.65rem',
-                letterSpacing: '0.28em',
-                color: 'var(--t-faint)',
-              }}
-            >
-              {company.panoga}
-              {' · '}
-              {new Date().getFullYear()}
-            </p>
-          )}
-          {!company?.panoga && (
-            <p
-              className="mt-2 uppercase tracking-widest"
-              style={{
-                fontFamily: 'var(--font-inter)',
-                fontSize: '0.65rem',
-                letterSpacing: '0.28em',
-                color: 'var(--t-faint)',
-              }}
-            >
-              Spletna rezervacija · {new Date().getFullYear()}
-            </p>
-          )}
+          <p
+            className="mt-1.5 text-sm"
+            style={{ fontFamily: 'var(--font-inter)', color: 'var(--t-faint)' }}
+          >
+            {company?.panoga ?? 'Spletna rezervacija'}
+            {' · '}
+            {new Date().getFullYear()}
+          </p>
         </motion.div>
 
         {/* ── Progress steps ── */}

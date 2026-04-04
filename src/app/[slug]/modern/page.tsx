@@ -10,28 +10,41 @@ import ModernLayout from './components/ModernLayout';
 
 function ModernLoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-0">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="flex flex-col items-center gap-6"
+        className="flex flex-col items-center"
+        style={{ flex: 1, justifyContent: 'center' }}
       >
-        {/* Thin gradient spinner */}
-        <div className="relative w-12 h-12">
-          {/* Static faint ring */}
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ border: '1.5px solid rgba(0,0,0,0.06)' }}
-          />
-          {/* Spinning gradient arc */}
-          <motion.div
-            className="absolute inset-0 rounded-full modern-loading-arc"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' as const }}
-          />
-        </div>
+        {/* Spinning gradient arc — no background ring, just the arc */}
+        <motion.div
+          className="modern-loading-arc"
+          style={{ width: 44, height: 44 }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' as const }}
+        />
       </motion.div>
+
+      {/* Powered by */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="pb-8 text-xs"
+        style={{ color: 'rgba(0,0,0,0.3)', fontFamily: 'var(--font-inter)' }}
+      >
+        Powered by{' '}
+        <a
+          href="https://jedroplus.si"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'rgba(0,0,0,0.45)', textDecoration: 'none', fontWeight: 500 }}
+        >
+          Jedro+
+        </a>
+      </motion.p>
     </div>
   );
 }
