@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import { Outfit, Libre_Baskerville, JetBrains_Mono } from "next/font/google";
+import { Outfit, Libre_Baskerville, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import "./globals.css";
+
+const nunitoSans = Nunito_Sans({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  display: "swap",
+  weight: ["300", "400", "600", "700", "800"],
+});
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -34,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${outfit.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${nunitoSans.variable} ${outfit.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         {children}
       </body>
