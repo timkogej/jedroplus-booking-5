@@ -52,7 +52,6 @@ export default function ElegantLayout({ companySlug }: Props) {
     company,
     theme,
     bookingConfirmation,
-    selectedCategory,
     selectedService,
     selectedDate,
     selectedTime,
