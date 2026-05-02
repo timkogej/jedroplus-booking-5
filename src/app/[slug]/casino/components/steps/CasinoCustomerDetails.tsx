@@ -6,12 +6,14 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
+import { useSecureBooking } from '@/hooks/useSecureBooking';
 
 interface FormErrors {
   firstName?: string;
   lastName?: string;
   email?: string;
   phone?: string;
+  privacyConsent?: string;
 }
 
 const GENDERS = [
@@ -189,7 +191,13 @@ export default function CasinoCustomerDetails() {
   const [gender,    setGender]    = useState('');
   const [notes,     setNotes]     = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [website, setWebsite] = useState(''); // honeypot
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const { isSubmitting, fieldErrors, submitBooking, sanitize } = useSecureBooking({
+    companyId: 'casino',
+  });
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -198,23 +206,35 @@ export default function CasinoCustomerDetails() {
     if (!email.trim())     e.email     = 'Email je obvezen';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
     if (!phone.trim())     e.phone     = 'Telefon je obvezen';
+    if (!privacyConsent)   e.privacyConsent = 'Strinjanje z obdelavo podatkov je obvezno';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    const details: CustomerDetails = {
-      firstName: firstName.trim(),
-      lastName:  lastName.trim(),
-      email:     email.trim(),
-      phone:     phone.trim(),
-      gender:    gender || undefined,
-      notes:     notes.trim() || undefined,
-      gdprSendMarketing: gdprMarketing,
+    const formData = {
+      ime:     sanitize(firstName.trim()),
+      priimek: sanitize(lastName.trim()),
+      email:   email.trim(),
+      telefon: phone.trim(),
+      opombe:  notes.trim() || undefined,
+      website, // honeypot
     };
-    setCustomerDetails(details);
-    nextStep();
+    const success = await submitBooking(formData);
+    if (success) {
+      const details: CustomerDetails = {
+        firstName: formData.ime,
+        lastName:  formData.priimek,
+        email:     formData.email,
+        phone:     formData.telefon,
+        gender:    gender || undefined,
+        notes:     notes.trim() || undefined,
+        gdprSendMarketing: gdprMarketing,
+      };
+      setCustomerDetails(details);
+      nextStep();
+    }
   };
 
   return (
@@ -289,14 +309,14 @@ export default function CasinoCustomerDetails() {
           <MCLabel>Email</MCLabel>
           <MCInput value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
           <AnimatePresence>
-            {errors.email && (
+            {(errors.email || fieldErrors.email) && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 className="mc-error mt-1"
               >
-                {errors.email}
+                {errors.email || fieldErrors.email}
               </motion.p>
             )}
           </AnimatePresence>
@@ -364,7 +384,70 @@ export default function CasinoCustomerDetails() {
           />
         </div>
 
-        {/* GDPR checkbox */}
+        {/* Honeypot — skrito pred boti */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          aria-hidden="true"
+          style={{ display: 'none' }}
+          autoComplete="off"
+        />
+
+        {/* Privacy consent — OBVEZNO */}
+        <div className="mb-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <div
+              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+              style={{
+                background: privacyConsent ? '#c9a84c' : 'transparent',
+                border: `1.5px solid ${errors.privacyConsent ? '#c0392b' : privacyConsent ? '#c9a84c' : 'rgba(201,168,76,0.3)'}`,
+                transition: 'all 0.25s ease',
+              }}
+              onClick={() => setPrivacyConsent(!privacyConsent)}
+            >
+              {privacyConsent && (
+                <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
+              )}
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-cormorant)',
+                fontSize: '0.88rem',
+                color: errors.privacyConsent ? '#c0392b' : 'rgba(232,217,184,0.75)',
+                lineHeight: 1.5,
+              }}
+            >
+              Strinjam se z obdelavo osebnih podatkov v skladu z{' '}
+              <a
+                href="https://jedroplus.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#c9a84c', textDecoration: 'underline' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                politiko zasebnosti
+              </a>
+              {' '}*
+            </span>
+          </label>
+          <AnimatePresence>
+            {errors.privacyConsent && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mc-error mt-1 ml-7"
+              >
+                {errors.privacyConsent}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* GDPR checkbox — opcijsko */}
         <label className="flex items-start gap-3 cursor-pointer">
           <div
             className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
@@ -397,9 +480,11 @@ export default function CasinoCustomerDetails() {
       <motion.div variants={itemVariants} className="mt-6 flex justify-center">
         <button
           onClick={handleSubmit}
+          disabled={!privacyConsent || isSubmitting}
           className="mc-btn-gold w-full max-w-sm py-4"
+          style={{ opacity: (!privacyConsent || isSubmitting) ? 0.5 : 1, cursor: (!privacyConsent || isSubmitting) ? 'not-allowed' : 'pointer' }}
         >
-          Nadaljuj na Potrditev
+          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj na Potrditev'}
         </button>
       </motion.div>
     </motion.div>

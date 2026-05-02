@@ -26,7 +26,7 @@ This is **NOT a single-layout app**—it's a **multi-variant architecture**:
 - **Auto-advance pattern**: `selectEmployee()`, `selectService()`, `selectTime()` call `nextStep()` automatically (reduces clicks)
 
 ### API Integration
-- **Base**: `https://tikej.app.n8n.cloud/webhook/booking`
+- **Base**: `https://n8n.jedroplus.com/webhook/booking`
 - **Endpoints** (in `src/lib/api.ts`):
   1. `GET ?action=init&companySlug=X` → business data, employees, categories, services, theme
   2. `POST action=slots` → time slots for date/service/employee combo

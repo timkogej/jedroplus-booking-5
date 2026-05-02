@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
+import { useSecureBooking } from '@/hooks/useSecureBooking';
 
 interface FormErrors {
   firstName?: string;
@@ -96,7 +97,10 @@ export default function ElegantCustomerDetails() {
   const [notes, setNotes] = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [website, setWebsite] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'elegant' });
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -111,23 +115,34 @@ export default function ElegantCustomerDetails() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    const details: CustomerDetails = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+    const fd = {
+      ime: sanitize(firstName.trim()),
+      priimek: sanitize(lastName.trim()),
       email: email.trim(),
-      phone: phone.trim(),
-      gender: gender || undefined,
-      notes: notes.trim() || undefined,
-      gdprSendMarketing: gdprMarketing,
-      privacyConsent,
+      telefon: phone.trim(),
+      opombe: notes.trim() || undefined,
+      website,
     };
-    setCustomerDetails(details);
-    nextStep();
+    const success = await submitBooking(fd);
+    if (success) {
+      const details: CustomerDetails = {
+        firstName: fd.ime,
+        lastName: fd.priimek,
+        email: fd.email,
+        phone: fd.telefon,
+        gender: gender || undefined,
+        notes: notes.trim() || undefined,
+        gdprSendMarketing: gdprMarketing,
+        privacyConsent,
+      };
+      setCustomerDetails(details);
+      nextStep();
+    }
   };
 
-  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent;
+  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent && !isSubmitting;
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
@@ -236,7 +251,7 @@ export default function ElegantCustomerDetails() {
             primaryColor={theme.primaryColor}
           />
           <AnimatePresence>
-            {errors.email && (
+            {(errors.email || fieldErrors.email) && (
               <motion.p
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -248,7 +263,7 @@ export default function ElegantCustomerDetails() {
                   marginTop: '0.25rem',
                 }}
               >
-                {errors.email}
+                {errors.email || fieldErrors.email}
               </motion.p>
             )}
           </AnimatePresence>
@@ -346,6 +361,18 @@ export default function ElegantCustomerDetails() {
           />
         </div>
 
+        {/* Honeypot */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          aria-hidden="true"
+          autoComplete="off"
+          style={{ position: 'absolute', left: '-9999px' }}
+        />
+
         {/* Checkboxes */}
         <div className="space-y-3">
           {/* GDPR marketing */}
@@ -439,6 +466,16 @@ export default function ElegantCustomerDetails() {
       </motion.div>
 
       {/* Submit button */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 text-sm text-center"
+          style={{ fontFamily: 'var(--font-inter)', color: '#EF4444' }}
+        >
+          {error}
+        </motion.p>
+      )}
       <motion.div variants={itemVariants} className="mt-5">
         <motion.button
           onClick={handleSubmit}
@@ -455,7 +492,7 @@ export default function ElegantCustomerDetails() {
             boxShadow: isFormComplete ? `0 4px 14px ${theme.primaryColor}30` : 'none',
           }}
         >
-          Nadaljuj
+          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj'}
         </motion.button>
       </motion.div>
     </motion.div>

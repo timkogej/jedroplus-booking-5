@@ -3,12 +3,11 @@
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
-  { number: 1, label: 'Kategorija' },
-  { number: 2, label: 'Storitev' },
-  { number: 3, label: 'Specialist' },
-  { number: 4, label: 'Datum in ura' },
-  { number: 5, label: 'Podatki' },
-  { number: 6, label: 'Potrditev' },
+  { number: 1, label: 'Storitev', visual: 1 },
+  { number: 3, label: 'Specialist', visual: 2 },
+  { number: 4, label: 'Datum in ura', visual: 3 },
+  { number: 5, label: 'Podatki', visual: 4 },
+  { number: 6, label: 'Potrditev', visual: 5 },
 ];
 
 interface Props {
@@ -49,7 +48,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   fontFamily: 'var(--font-inter)',
                 }}
               >
-                {isDone ? '✓' : step.number}
+                {isDone ? '✓' : step.visual}
               </div>
 
               {/* Connecting line */}

@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import BookingSummaryCard from './SlotMachine';
-import CasinoCategorySelection from './steps/CasinoCategorySelection';
 import CasinoServiceSelection from './steps/CasinoServiceSelection';
 import CasinoEmployeeSelection from './steps/CasinoEmployeeSelection';
 import CasinoDateTimeSelection from './steps/CasinoDateTimeSelection';
@@ -15,13 +14,20 @@ interface CasinoLayoutProps {
 }
 
 const STEP_INFO: Record<number, { title: string; subtitle: string }> = {
-  1: { title: 'Izberi Kategorijo',       subtitle: 'Choose your experience' },
-  2: { title: 'Postavi Stavo',           subtitle: 'Place your bet' },
+  1: { title: 'Postavi Stavo',           subtitle: 'Place your bet' },
   3: { title: 'Izberi Specialista',      subtitle: 'Pick your specialist' },
   4: { title: 'Rezerviraj Termin',       subtitle: 'Claim your slot' },
   5: { title: 'Registracija',            subtitle: 'Player registration' },
   6: { title: 'Potrditev',               subtitle: 'Confirm your seat' },
 };
+
+function storeToVisualCasino(storeStep: number): number {
+  if (storeStep <= 2) return 1;
+  if (storeStep === 3) return 2;
+  if (storeStep === 4) return 3;
+  if (storeStep === 5) return 4;
+  return 5;
+}
 
 const pageVariants = {
   initial: { opacity: 0, y: 18, filter: 'blur(3px)' },
@@ -44,11 +50,12 @@ const pageVariants = {
 
 // ── Step indicator — elegant dots ──────────────────────────────
 function StepIndicator({ current }: { current: number }) {
+  const visualCurrent = storeToVisualCasino(current);
   return (
     <div className="flex items-center justify-center gap-1.5 mb-8">
-      {[1, 2, 3, 4, 5, 6].map((step) => {
-        const isDone = step < current;
-        const isActive = step === current;
+      {[1, 2, 3, 4, 5].map((step) => {
+        const isDone = step < visualCurrent;
+        const isActive = step === visualCurrent;
         return (
           <div key={step} className="relative flex items-center justify-center">
             <div
@@ -212,7 +219,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
       return <CasinoConfirmation companySlug={companySlug} />;
     }
     switch (currentStep) {
-      case 1: return <CasinoCategorySelection />;
+      case 1:
       case 2: return <CasinoServiceSelection />;
       case 3: return <CasinoEmployeeSelection />;
       case 4: return <CasinoDateTimeSelection companySlug={companySlug} />;

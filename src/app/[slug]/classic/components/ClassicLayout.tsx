@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import ClassicSummaryCard from './ClassicSummaryCard';
-import ClassicCategorySelection from './steps/ClassicCategorySelection';
 import ClassicServiceSelection from './steps/ClassicServiceSelection';
 import ClassicEmployeeSelection from './steps/ClassicEmployeeSelection';
 import ClassicDateTimeSelection from './steps/ClassicDateTimeSelection';
@@ -38,18 +37,20 @@ export function getContrastMode(bgFrom: string, bgTo: string): 'light' | 'dark' 
   return avg > 0.5 ? 'dark' : 'light';
 }
 
-// ── Step config (matches store: 1=Category 2=Service 3=Employee 4=DateTime 5=Customer 6=Confirm)
+// ── Step config (store: 1=Storitev+Kat combined, 3=Employee, 4=DateTime, 5=Customer, 6=Confirm)
 const CLASSIC_STEPS = [
-  { visual: 1, label: 'Kategorija' },
-  { visual: 2, label: 'Storitev' },
-  { visual: 3, label: 'Oseba' },
-  { visual: 4, label: 'Termin' },
-  { visual: 5, label: 'Podatki' },
+  { visual: 1, label: 'Storitev', storeStep: 1 },
+  { visual: 2, label: 'Oseba', storeStep: 3 },
+  { visual: 3, label: 'Termin', storeStep: 4 },
+  { visual: 4, label: 'Podatki', storeStep: 5 },
 ];
 
-// Store step 6 (confirm) maps to visual 5 completed
 function storeToVisual(storeStep: number): number {
-  return Math.min(storeStep, 6);
+  if (storeStep <= 2) return 1;
+  if (storeStep === 3) return 2;
+  if (storeStep === 4) return 3;
+  if (storeStep === 5) return 4;
+  return 5; // step 6 — all visual steps done
 }
 
 // ── Page variants ──────────────────────────────────────────────
@@ -179,7 +180,7 @@ export default function ClassicLayout({ companySlug }: Props) {
       return <ClassicConfirmation companySlug={companySlug} />;
     }
     switch (currentStep) {
-      case 1: return <ClassicCategorySelection />;
+      case 1:
       case 2: return <ClassicServiceSelection />;
       case 3: return <ClassicEmployeeSelection />;
       case 4: return <ClassicDateTimeSelection companySlug={companySlug} />;

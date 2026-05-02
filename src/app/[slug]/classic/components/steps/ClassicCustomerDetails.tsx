@@ -7,6 +7,7 @@ import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { getContrastMode } from '../ClassicLayout';
+import { useSecureBooking } from '@/hooks/useSecureBooking';
 
 interface FormErrors {
   firstName?: string;
@@ -175,7 +176,10 @@ export default function ClassicCustomerDetails() {
   const [notes, setNotes] = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [website, setWebsite] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'classic' });
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -190,20 +194,31 @@ export default function ClassicCustomerDetails() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    const details: CustomerDetails = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+    const fd = {
+      ime: sanitize(firstName.trim()),
+      priimek: sanitize(lastName.trim()),
       email: email.trim(),
-      phone: phone.trim(),
-      gender: gender || undefined,
-      notes: notes.trim() || undefined,
-      gdprSendMarketing: gdprMarketing,
-      privacyConsent,
+      telefon: phone.trim(),
+      opombe: notes.trim() || undefined,
+      website,
     };
-    setCustomerDetails(details);
-    nextStep();
+    const success = await submitBooking(fd);
+    if (success) {
+      const details: CustomerDetails = {
+        firstName: fd.ime,
+        lastName: fd.priimek,
+        email: fd.email,
+        phone: fd.telefon,
+        gender: gender || undefined,
+        notes: notes.trim() || undefined,
+        gdprSendMarketing: gdprMarketing,
+        privacyConsent,
+      };
+      setCustomerDetails(details);
+      nextStep();
+    }
   };
 
   const errorText = (msg?: string) =>
@@ -286,7 +301,7 @@ export default function ClassicCustomerDetails() {
             onChange={setEmail}
             placeholder="janez@email.com"
             type="email"
-            error={errors.email}
+            error={errors.email || fieldErrors.email}
             primaryColor={theme.primaryColor}
           />
         </div>
@@ -378,6 +393,18 @@ export default function ClassicCustomerDetails() {
           />
         </div>
 
+        {/* Honeypot */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          aria-hidden="true"
+          autoComplete="off"
+          style={{ position: 'absolute', left: '-9999px' }}
+        />
+
         {/* Checkboxes */}
         <div className="space-y-3">
           {/* Marketing — optional */}
@@ -451,20 +478,33 @@ export default function ClassicCustomerDetails() {
       </motion.div>
 
       {/* Submit button */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 text-sm text-center"
+          style={{ fontFamily: 'var(--font-nunito-sans)', color: '#EF4444' }}
+        >
+          {error}
+        </motion.p>
+      )}
       <motion.div variants={itemVariants} className="mt-6 flex justify-end">
         <motion.button
           onClick={handleSubmit}
+          disabled={isSubmitting}
           className="px-8 py-4 rounded-2xl font-bold text-white flex items-center gap-2"
           style={{
             fontFamily: 'var(--font-nunito)',
             backgroundColor: theme.primaryColor,
             boxShadow: `0 8px 28px ${theme.primaryColor}40`,
+            opacity: isSubmitting ? 0.6 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
           }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          whileHover={isSubmitting ? {} : { scale: 1.03 }}
+          whileTap={isSubmitting ? {} : { scale: 0.97 }}
         >
-          Naprej na potrditev
-          <span style={{ fontSize: '1rem' }}>→</span>
+          {isSubmitting ? 'Pošiljam...' : 'Naprej na potrditev'}
+          {!isSubmitting && <span style={{ fontSize: '1rem' }}>→</span>}
         </motion.button>
       </motion.div>
     </motion.div>

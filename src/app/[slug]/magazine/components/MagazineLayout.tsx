@@ -5,7 +5,6 @@ import { useBookingStore } from '@/store/bookingStore';
 import MagazineMasthead from './MagazineMasthead';
 import MagazineProgress from './MagazineProgress';
 import MagazineEmployeeSelection from './steps/MagazineEmployeeSelection';
-import MagazineCategorySelection from './steps/MagazineCategorySelection';
 import MagazineServiceSelection from './steps/MagazineServiceSelection';
 import MagazineDateTimeSelection from './steps/MagazineDateTimeSelection';
 import MagazineCustomerDetails from './steps/MagazineCustomerDetails';
@@ -35,10 +34,10 @@ const pageVariants: Variants = {
 const EDITORIAL_PANELS = [
   {
     step: 1,
-    eyebrow: 'Naše kategorije',
-    headline: 'Vsaka storitev je zgodba zase',
-    quote: 'Izberite področje, ki vas zanima.',
-    accent: 'Kategorija',
+    eyebrow: 'Naše storitve',
+    headline: 'Izbiramo samo najboljše za vas',
+    quote: 'Kakovost je naš standard, ne izjema.',
+    accent: 'Storitve',
   },
   {
     step: 2,
@@ -217,7 +216,6 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
     }
     switch (currentStep) {
       case 1:
-        return <MagazineCategorySelection />;
       case 2:
         return <MagazineServiceSelection />;
       case 3:

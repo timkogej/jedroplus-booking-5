@@ -2,7 +2,7 @@
 
 import { motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import { Service } from '@/types';
+import { Category, Service } from '@/types';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
 
 function formatDuration(minutes: number): string {
@@ -26,18 +26,26 @@ const itemVariants: Variants = {
   },
 };
 
-function ServiceRow({ service, onSelect }: { service: Service; onSelect: (s: Service) => void }) {
-  const { theme, selectedService } = useBookingStore();
+function ServiceRow({
+  service,
+  category,
+  isLast,
+}: {
+  service: Service;
+  category: Category;
+  isLast: boolean;
+}) {
+  const { theme, selectedService, selectCategoryAndService } = useBookingStore();
   const isSelected = selectedService?.id === service.id;
 
   return (
     <motion.button
       variants={itemVariants}
-      onClick={() => onSelect(service)}
+      onClick={() => selectCategoryAndService(category, service)}
       className="w-full text-left px-5 py-4 transition-colors duration-150 relative group"
       style={{
         backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
-        borderBottom: '1px solid var(--b1)',
+        borderBottom: isLast ? 'none' : '1px solid var(--b1)',
       }}
       whileTap={{ scale: 0.995 }}
       whileHover={{ backgroundColor: isSelected ? `${theme.primaryColor}14` : 'var(--s1)' }}
@@ -77,11 +85,7 @@ function ServiceRow({ service, onSelect }: { service: Service; onSelect: (s: Ser
         <div className="flex-shrink-0 text-right">
           <p
             className="font-bold"
-            style={{
-              fontFamily: 'var(--font-quicksand)',
-              fontSize: '1.05rem',
-              color: 'var(--t-primary)',
-            }}
+            style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
           >
             €{service.cena}
           </p>
@@ -106,9 +110,17 @@ interface Props {
 }
 
 export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
-  const { selectedCategory, servicesByCategory, selectService, theme } = useBookingStore();
+  const { theme, categories, servicesByCategory } = useBookingStore();
 
-  const services = selectedCategory ? (servicesByCategory[selectedCategory.id] ?? []) : [];
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)', fontSize: '0.9rem' }}>
+          Ni razpoložljivih storitev.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -118,14 +130,6 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
         transition={{ duration: 0.4 }}
         className="mb-8"
       >
-        {selectedCategory && (
-          <p
-            className="text-xs font-semibold mb-2 tracking-widest uppercase"
-            style={{ color: theme.primaryColor, fontFamily: 'var(--font-quicksand)' }}
-          >
-            {selectedCategory.name}
-          </p>
-        )}
         <h2
           className="text-3xl font-bold mb-2"
           style={{
@@ -136,9 +140,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
           Izberi{' '}
           <span
             className="seasonal-gradient-text"
-            style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
-            }}
+            style={{ backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
           >
             storitev
           </span>
@@ -148,37 +150,44 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
         </p>
       </motion.div>
 
-      {services.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
-          <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)', fontSize: '0.9rem' }}>
-            Ni razpoložljivih storitev.
-          </p>
-        </motion.div>
-      ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="rounded-2xl overflow-hidden seasonal-surface"
-          style={{
-            backgroundColor: 'var(--s2)',
-            border: '1px solid var(--b2)',
-          }}
-        >
-          {services.map((service, i) => (
-            <div
-              key={service.id}
-              style={i === services.length - 1 ? { borderBottom: 'none' } : {}}
-            >
-              <ServiceRow service={service} onSelect={selectService} />
-            </div>
-          ))}
-        </motion.div>
-      )}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-5"
+      >
+        {categories.map((category) => {
+          const services: Service[] = servicesByCategory[category.id] ?? [];
+          if (services.length === 0) return null;
+
+          return (
+            <motion.div key={category.id} variants={itemVariants}>
+              {/* Category header */}
+              <p
+                className="text-xs font-semibold mb-2 tracking-widest uppercase"
+                style={{ color: theme.primaryColor, fontFamily: 'var(--font-quicksand)' }}
+              >
+                {category.name}
+              </p>
+
+              {/* Service list */}
+              <div
+                className="rounded-2xl overflow-hidden seasonal-surface"
+                style={{ backgroundColor: 'var(--s2)', border: '1px solid var(--b2)' }}
+              >
+                {services.map((service, i) => (
+                  <ServiceRow
+                    key={service.id}
+                    service={service}
+                    category={category}
+                    isLast={i === services.length - 1}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          );
+        })}
+      </motion.div>
     </div>
   );
 }

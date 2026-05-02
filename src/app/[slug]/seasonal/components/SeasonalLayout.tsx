@@ -7,7 +7,6 @@ import { getCurrentSeasonalTheme, getSeasonEmoji } from './decorations/SeasonDet
 import SeasonalDecorations from './decorations/SeasonalDecorations';
 import FloatingEmojis from './decorations/FloatingEmojis';
 import SeasonalSuccessAnimation from './decorations/SeasonalSuccessAnimation';
-import SeasonalCategorySelection from './steps/SeasonalCategorySelection';
 import SeasonalServiceSelection from './steps/SeasonalServiceSelection';
 import SeasonalEmployeeSelection from './steps/SeasonalEmployeeSelection';
 import SeasonalDateTimeSelection from './steps/SeasonalDateTimeSelection';
@@ -15,12 +14,11 @@ import SeasonalCustomerDetails from './steps/SeasonalCustomerDetails';
 import SeasonalConfirmation from './steps/SeasonalConfirmation';
 
 const STEPS = [
-  { number: 1, label: 'Kategorija' },
-  { number: 2, label: 'Storitev' },
-  { number: 3, label: 'Specialist' },
-  { number: 4, label: 'Datum' },
-  { number: 5, label: 'Podatki' },
-  { number: 6, label: 'Potrditev' },
+  { number: 1, label: 'Storitev', storeStep: 1 },
+  { number: 2, label: 'Specialist', storeStep: 3 },
+  { number: 3, label: 'Datum', storeStep: 4 },
+  { number: 4, label: 'Podatki', storeStep: 5 },
+  { number: 5, label: 'Potrditev', storeStep: 6 },
 ];
 
 const pageVariants: Variants = {
@@ -96,7 +94,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
       return <SeasonalConfirmation companySlug={companySlug} seasonalTheme={seasonalTheme} />;
     }
     switch (currentStep) {
-      case 1: return <SeasonalCategorySelection seasonalTheme={seasonalTheme} />;
+      case 1:
       case 2: return <SeasonalServiceSelection seasonalTheme={seasonalTheme} />;
       case 3: return <SeasonalEmployeeSelection seasonalTheme={seasonalTheme} />;
       case 4: return <SeasonalDateTimeSelection companySlug={companySlug} seasonalTheme={seasonalTheme} />;
@@ -194,8 +192,8 @@ export default function SeasonalLayout({ companySlug }: Props) {
         <div className="relative px-8 py-5 max-w-2xl mx-auto w-full">
           <div className="flex items-start">
             {STEPS.map((step, i) => {
-              const isDone = displayStep > step.number;
-              const isActive = displayStep === step.number;
+              const isDone = displayStep > step.storeStep;
+              const isActive = displayStep === step.storeStep;
               const isLast = i === STEPS.length - 1;
 
               return (

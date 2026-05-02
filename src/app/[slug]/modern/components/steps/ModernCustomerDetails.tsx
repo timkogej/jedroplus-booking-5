@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
+import { useSecureBooking } from '@/hooks/useSecureBooking';
 
 interface FormErrors {
   firstName?: string;
@@ -86,7 +87,10 @@ export default function ModernCustomerDetails() {
   const [notes, setNotes] = useState('');
   const [gdprMarketing, setGdprMarketing] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [website, setWebsite] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'modern' });
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -101,23 +105,34 @@ export default function ModernCustomerDetails() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    const details: CustomerDetails = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+    const fd = {
+      ime: sanitize(firstName.trim()),
+      priimek: sanitize(lastName.trim()),
       email: email.trim(),
-      phone: phone.trim(),
-      gender: gender || undefined,
-      notes: notes.trim() || undefined,
-      gdprSendMarketing: gdprMarketing,
-      privacyConsent,
+      telefon: phone.trim(),
+      opombe: notes.trim() || undefined,
+      website,
     };
-    setCustomerDetails(details);
-    nextStep();
+    const success = await submitBooking(fd);
+    if (success) {
+      const details: CustomerDetails = {
+        firstName: fd.ime,
+        lastName: fd.priimek,
+        email: fd.email,
+        phone: fd.telefon,
+        gender: gender || undefined,
+        notes: notes.trim() || undefined,
+        gdprSendMarketing: gdprMarketing,
+        privacyConsent,
+      };
+      setCustomerDetails(details);
+      nextStep();
+    }
   };
 
-  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent;
+  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent && !isSubmitting;
 
   const errorText = (msg?: string) =>
     msg ? (
@@ -203,7 +218,7 @@ export default function ModernCustomerDetails() {
             hasError={!!errors.email}
             primaryColor={theme.primaryColor}
           />
-          <AnimatePresence>{errorText(errors.email)}</AnimatePresence>
+          <AnimatePresence>{errorText(errors.email || fieldErrors.email)}</AnimatePresence>
         </div>
 
         {/* Phone */}
@@ -264,6 +279,18 @@ export default function ModernCustomerDetails() {
             className="modern-textarea"
           />
         </div>
+
+        {/* Honeypot */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          aria-hidden="true"
+          autoComplete="off"
+          style={{ position: 'absolute', left: '-9999px' }}
+        />
 
         {/* Checkboxes */}
         <div className="space-y-3">
@@ -359,6 +386,16 @@ export default function ModernCustomerDetails() {
       </motion.div>
 
       {/* Submit */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 text-sm text-center"
+          style={{ color: '#EF4444', fontFamily: 'var(--font-inter)' }}
+        >
+          {error}
+        </motion.p>
+      )}
       <motion.div variants={itemVariants}>
         <motion.button
           onClick={handleSubmit}
@@ -386,7 +423,7 @@ export default function ModernCustomerDetails() {
               transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2 }}
             />
           )}
-          Nadaljuj
+          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj'}
         </motion.button>
       </motion.div>
     </motion.div>

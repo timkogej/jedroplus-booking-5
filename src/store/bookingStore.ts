@@ -62,6 +62,7 @@ interface BookingState {
   selectEmployee: (employeeId: string | null, isAnyPerson?: boolean) => void;
   selectCategory: (category: Category) => void;
   selectService: (service: Service) => void;
+  selectCategoryAndService: (category: Category, service: Service) => void;
   selectDate: (date: Date) => void;
   selectTime: (time: string) => void;
   setCustomerDetails: (details: CustomerDetails) => void;
@@ -163,6 +164,31 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     get().nextStep();
   },
 
+  selectCategoryAndService: (category, service) => {
+    const { employeesByServiceId, employeesUI } = get();
+    const serviceKey = String(service.id);
+
+    let eligibleIds: string[];
+    if (serviceKey in employeesByServiceId) {
+      eligibleIds = employeesByServiceId[serviceKey].map(String);
+    } else {
+      eligibleIds = employeesUI.map(emp => String(emp.id));
+    }
+
+    const eligibleSet = new Set(eligibleIds);
+    const filteredEmployees = employeesUI.filter(emp => eligibleSet.has(String(emp.id)));
+    const autoSelectedId = filteredEmployees.length === 1 ? filteredEmployees[0].id : null;
+
+    set({
+      selectedCategory: category,
+      selectedService: service,
+      selectedEmployeeId: autoSelectedId,
+      anyPerson: false,
+      eligibleEmployeeIds: eligibleIds,
+    });
+    get().goToStep(3);
+  },
+
   selectDate: (date) => set({ selectedDate: date, selectedTime: null }),
 
   selectTime: (time) => {
@@ -181,7 +207,9 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
   prevStep: () => {
     const { currentStep } = get();
-    if (currentStep > 1) {
+    if (currentStep === 3) {
+      set({ currentStep: 1 as BookingStep });
+    } else if (currentStep > 1) {
       set({ currentStep: (currentStep - 1) as BookingStep });
     }
   },

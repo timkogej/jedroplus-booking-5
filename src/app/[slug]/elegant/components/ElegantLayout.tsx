@@ -5,7 +5,6 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import ElegantSidebar from './ElegantSidebar';
-import ElegantCategorySelection from './steps/ElegantCategorySelection';
 import ElegantServiceSelection from './steps/ElegantServiceSelection';
 import ElegantEmployeeSelection from './steps/ElegantEmployeeSelection';
 import ElegantDateTimeSelection from './steps/ElegantDateTimeSelection';
@@ -31,13 +30,20 @@ const pageVariants: Variants = {
 };
 
 const STEP_LABELS: Record<number, string> = {
-  1: 'Kategorija',
-  2: 'Storitev',
+  1: 'Storitev',
   3: 'Specialist',
   4: 'Datum in ura',
   5: 'Podatki',
   6: 'Potrditev',
 };
+
+function storeToVisualElegant(storeStep: number): number {
+  if (storeStep <= 2) return 1;
+  if (storeStep === 3) return 2;
+  if (storeStep === 4) return 3;
+  if (storeStep === 5) return 4;
+  return 5;
+}
 
 export default function ElegantLayout({ companySlug }: Props) {
   const {
@@ -65,7 +71,7 @@ export default function ElegantLayout({ companySlug }: Props) {
       return <ElegantConfirmation companySlug={companySlug} />;
     }
     switch (currentStep) {
-      case 1: return <ElegantCategorySelection />;
+      case 1:
       case 2: return <ElegantServiceSelection />;
       case 3: return <ElegantEmployeeSelection />;
       case 4: return <ElegantDateTimeSelection companySlug={companySlug} />;
@@ -77,10 +83,11 @@ export default function ElegantLayout({ companySlug }: Props) {
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
-  // Sidebar step values
+  const visualStep = storeToVisualElegant(currentStep);
+
+  // Sidebar step values (keys match store step numbers used in ElegantSidebar)
   const stepValues: Record<number, string | undefined> = {
-    1: selectedCategory?.name,
-    2: selectedService?.naziv,
+    1: selectedService?.naziv,
     3: anyPerson ? 'Kdorkoli' : selectedEmployee?.label,
     4: selectedDate
       ? selectedTime
@@ -185,17 +192,17 @@ export default function ElegantLayout({ companySlug }: Props) {
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Mobile: pill dots */}
               <div className="flex items-center gap-1 md:hidden">
-                {[1, 2, 3, 4, 5, 6].map((s) => (
+                {[1, 2, 3, 4, 5].map((v) => (
                   <div
-                    key={s}
+                    key={v}
                     className="rounded-full transition-all duration-300"
                     style={{
-                      width: s === currentStep ? 18 : 6,
+                      width: v === visualStep ? 18 : 6,
                       height: 6,
                       background:
-                        s === currentStep
+                        v === visualStep
                           ? `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
-                          : s < currentStep
+                          : v < visualStep
                           ? theme.primaryColor
                           : '#E5E7EB',
                     }}
@@ -207,7 +214,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                 className="hidden md:block text-sm"
                 style={{ color: '#9CA3AF', fontFamily: 'var(--font-inter)' }}
               >
-                Korak {currentStep} od 6
+                Korak {visualStep} od 5
               </span>
             </div>
           ) : (

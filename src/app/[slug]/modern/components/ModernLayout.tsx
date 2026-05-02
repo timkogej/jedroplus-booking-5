@@ -5,7 +5,6 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { Theme } from '@/types';
 import ModernHeader from './ModernHeader';
-import ModernCategorySelection from './steps/ModernCategorySelection';
 import ModernServiceSelection from './steps/ModernServiceSelection';
 import ModernEmployeeSelection from './steps/ModernEmployeeSelection';
 import ModernDateTimeSelection from './steps/ModernDateTimeSelection';
@@ -132,7 +131,7 @@ export default function ModernLayout({ companySlug }: Props) {
       return <ModernConfirmation companySlug={companySlug} />;
     }
     switch (currentStep) {
-      case 1: return <ModernCategorySelection />;
+      case 1:
       case 2: return <ModernServiceSelection />;
       case 3: return <ModernEmployeeSelection />;
       case 4: return <ModernDateTimeSelection companySlug={companySlug} />;

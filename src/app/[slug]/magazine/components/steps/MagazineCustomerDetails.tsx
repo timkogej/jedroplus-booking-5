@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails as CustomerDetailsType } from '@/types';
+import { useSecureBooking } from '@/hooks/useSecureBooking';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.07 } },
@@ -129,6 +130,9 @@ export default function MagazineCustomerDetails() {
 
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetailsType, string>>>({});
   const [focused, setFocused] = useState<string | null>(null);
+  const [website, setWebsite] = useState('');
+
+  const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'magazine' });
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof CustomerDetailsType, string>> = {};
@@ -145,10 +149,26 @@ export default function MagazineCustomerDetails() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (ev: React.FormEvent) => {
+  const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (validate()) {
-      setCustomerDetails(formData);
+    if (!validate()) return;
+    const fd = {
+      ime: sanitize(formData.firstName.trim()),
+      priimek: sanitize(formData.lastName.trim()),
+      email: formData.email.trim(),
+      telefon: formData.phone.trim(),
+      opombe: formData.notes?.trim() || undefined,
+      website,
+    };
+    const success = await submitBooking(fd);
+    if (success) {
+      setCustomerDetails({
+        ...formData,
+        firstName: fd.ime,
+        lastName: fd.priimek,
+        email: fd.email,
+        phone: fd.telefon,
+      });
       nextStep();
     }
   };
@@ -218,7 +238,7 @@ export default function MagazineCustomerDetails() {
               label="E-pošta"
               type="email"
               value={formData.email}
-              error={errors.email}
+              error={errors.email || fieldErrors.email}
               focused={focused}
               theme={theme}
               onChange={handleChange}
@@ -429,14 +449,36 @@ export default function MagazineCustomerDetails() {
             </label>
           </motion.div>
 
+          {/* Honeypot */}
+          <input
+            type="text"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            tabIndex={-1}
+            aria-hidden="true"
+            autoComplete="off"
+            style={{ position: 'absolute', left: '-9999px' }}
+          />
+
           {/* Submit */}
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6 text-red-500 text-[11px] magazine-caps tracking-[0.1em]"
+            >
+              {error}
+            </motion.p>
+          )}
           <motion.div variants={itemVariants} className="mt-10">
             <motion.button
               type="submit"
+              disabled={isSubmitting}
               className="group relative px-8 py-3 overflow-hidden transition-all duration-300"
-              style={{ border: `1px solid ${theme.primaryColor}` }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              style={{ border: `1px solid ${theme.primaryColor}`, opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+              whileHover={isSubmitting ? {} : { scale: 1.02 }}
+              whileTap={isSubmitting ? {} : { scale: 0.98 }}
             >
               <motion.div
                 className="absolute inset-0"
@@ -449,7 +491,7 @@ export default function MagazineCustomerDetails() {
                 className="relative z-10 magazine-caps text-[10px] tracking-[0.2em]"
                 style={{ color: theme.primaryColor }}
               >
-                Nadaljuj na potrditev
+                {isSubmitting ? 'Pošiljam...' : 'Nadaljuj na potrditev'}
               </span>
             </motion.button>
           </motion.div>

@@ -1,6 +1,6 @@
 import { InitResponse, SlotsResponse, BookingConfirmation, Theme } from '@/types';
 
-const API_BASE_URL = 'https://tikej.app.n8n.cloud/webhook/booking';
+const API_BASE_URL = 'https://n8n.jedroplus.com/webhook/booking';
 
 // Default theme values
 const DEFAULT_THEME: Theme = {

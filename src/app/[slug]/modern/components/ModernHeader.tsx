@@ -4,12 +4,11 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
-  { num: 1, label: 'Kategorija' },
-  { num: 2, label: 'Storitev' },
-  { num: 3, label: 'Specialist' },
-  { num: 4, label: 'Datum' },
-  { num: 5, label: 'Podatki' },
-  { num: 6, label: 'Potrditev' },
+  { num: 1, label: 'Storitev', storeStep: 1 },
+  { num: 2, label: 'Specialist', storeStep: 3 },
+  { num: 3, label: 'Datum', storeStep: 4 },
+  { num: 4, label: 'Podatki', storeStep: 5 },
+  { num: 5, label: 'Potrditev', storeStep: 6 },
 ];
 
 interface Props {
@@ -22,9 +21,12 @@ interface Props {
 export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack }: Props) {
   const { company, theme } = useBookingStore();
 
+  const visualIdx = isSuccess
+    ? STEPS.length - 1
+    : Math.max(0, STEPS.findIndex(s => s.storeStep >= currentStep));
   const progressPercent = isSuccess
     ? 100
-    : ((currentStep - 1) / (STEPS.length - 1)) * 100;
+    : (visualIdx / (STEPS.length - 1)) * 100;
 
   return (
     <header className="relative z-20 flex-shrink-0 pt-8 pb-0 px-4">
@@ -66,9 +68,9 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
           >
             {/* Desktop: step labels + dots */}
             <div className="hidden sm:flex items-end justify-between mb-2 px-1">
-              {STEPS.map((step) => {
-                const isDone = currentStep > step.num;
-                const isActive = currentStep === step.num;
+              {STEPS.map((step, i) => {
+                const isDone = i < visualIdx;
+                const isActive = i === visualIdx;
 
                 return (
                   <div
@@ -132,7 +134,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
                 className="text-xs font-medium"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
               >
-                {STEPS[currentStep - 1]?.label} · {currentStep}/6
+                {STEPS[visualIdx]?.label} · {visualIdx + 1}/5
               </p>
             </div>
           </motion.div>

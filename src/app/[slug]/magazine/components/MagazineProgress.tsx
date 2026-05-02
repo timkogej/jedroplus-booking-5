@@ -4,25 +4,25 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
-  { num: '01', label: 'Kategorija', roman: 'I' },
-  { num: '02', label: 'Storitev', roman: 'II' },
-  { num: '03', label: 'Specialist', roman: 'III' },
-  { num: '04', label: 'Termin', roman: 'IV' },
-  { num: '05', label: 'Podatki', roman: 'V' },
-  { num: '06', label: 'Potrditev', roman: 'VI' },
+  { num: '01', label: 'Storitev', roman: 'I', storeStep: 1 },
+  { num: '02', label: 'Specialist', roman: 'II', storeStep: 3 },
+  { num: '03', label: 'Termin', roman: 'III', storeStep: 4 },
+  { num: '04', label: 'Podatki', roman: 'IV', storeStep: 5 },
+  { num: '05', label: 'Potrditev', roman: 'V', storeStep: 6 },
 ];
 
 export default function MagazineProgress() {
   const { currentStep, theme } = useBookingStore();
-  const idx = currentStep - 1;
+  const idx = STEPS.findIndex(s => s.storeStep >= currentStep);
+  const safeIdx = idx === -1 ? STEPS.length - 1 : idx;
 
   return (
     <div className="px-8 py-5 md:px-12">
       {/* Desktop: roman numeral chain */}
       <div className="hidden md:flex items-center">
         {STEPS.map((step, i) => {
-          const isActive = i === idx;
-          const isPast = i < idx;
+          const isActive = i === safeIdx;
+          const isPast = i < safeIdx;
 
           return (
             <div key={i} className="flex items-center">
@@ -66,7 +66,7 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em]"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[idx]?.num} / 06
+            Poglavje {STEPS[safeIdx]?.num} / 05
           </p>
         </div>
       </div>
@@ -78,10 +78,10 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em] mb-1"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[idx]?.num} / 06
+            Poglavje {STEPS[safeIdx]?.num} / 05
           </p>
           <p className="magazine-serif text-base text-[#1A1A1A]">
-            {STEPS[idx]?.label}
+            {STEPS[safeIdx]?.label}
           </p>
         </div>
 
@@ -92,11 +92,11 @@ export default function MagazineProgress() {
               key={i}
               className="rounded-full h-1.5"
               animate={{
-                width: i === idx ? 20 : 6,
+                width: i === safeIdx ? 20 : 6,
                 backgroundColor:
-                  i === idx
+                  i === safeIdx
                     ? theme.primaryColor
-                    : i < idx
+                    : i < safeIdx
                     ? `${theme.primaryColor}50`
                     : 'rgba(0,0,0,0.12)',
               }}
@@ -111,7 +111,7 @@ export default function MagazineProgress() {
         <motion.div
           className="h-full"
           style={{ backgroundColor: theme.primaryColor }}
-          animate={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+          animate={{ width: `${((safeIdx + 1) / STEPS.length) * 100}%` }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         />
       </div>
