@@ -5,6 +5,9 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { AddOnSelector } from '@/components/shared/AddOnSelector';
+import { t } from '../../i18n';
 
 interface FormErrors {
   firstName?: string;
@@ -77,7 +80,7 @@ function ModernInput({
 }
 
 export default function ModernCustomerDetails() {
-  const { setCustomerDetails, nextStep, theme } = useBookingStore();
+  const { setCustomerDetails, nextStep, theme, language } = useBookingStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -91,16 +94,17 @@ export default function ModernCustomerDetails() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'modern' });
+  const { availableAddOns, isLoadingAddOns } = usePromotionsStore();
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!firstName.trim()) e.firstName = 'Ime je obvezno';
-    if (!lastName.trim()) e.lastName = 'Priimek je obvezen';
-    if (!email.trim()) e.email = 'Email je obvezen';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
-    if (!phone.trim()) e.phone = 'Telefon je obvezen';
-    if (!gender) e.gender = 'Izberite nagovor';
-    if (!privacyConsent) e.privacyConsent = 'Strinjanje s pogoji je obvezno';
+    if (!firstName.trim()) e.firstName = t(language, 'firstNameRequired');
+    if (!lastName.trim()) e.lastName = t(language, 'lastNameRequired');
+    if (!email.trim()) e.email = t(language, 'emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t(language, 'emailInvalid');
+    if (!phone.trim()) e.phone = t(language, 'phoneRequired');
+    if (!gender) e.gender = t(language, 'genderRequired');
+    if (!privacyConsent) e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -147,27 +151,42 @@ export default function ModernCustomerDetails() {
       </motion.p>
     ) : null;
 
+  const salutations = [
+    { value: 'male', label: t(language, 'salutationMr') },
+    { value: 'female', label: t(language, 'salutationMs') },
+    { value: 'other', label: t(language, 'salutationOther') },
+  ];
+
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
       {/* Heading */}
       <motion.div variants={itemVariants} className="mb-8">
         <h2
-          className="text-3xl font-bold mb-2"
-          style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-dm-sans)' }}
+          className="mb-2"
+          style={{
+            color: 'var(--t-primary)',
+            fontFamily: 'var(--font-clash)',
+            fontWeight: 400,
+            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
+            letterSpacing: '-0.015em',
+            lineHeight: 1.1,
+          }}
         >
-          Vaši{' '}
-          <span
-            className="modern-gradient-text"
-            style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
-            }}
-          >
-            podatki
-          </span>
+          {t(language, 'yourDetails')}
         </h2>
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          Izpolnite podatke za rezervacijo
+          {t(language, 'fillContact')}
         </p>
+      </motion.div>
+
+      {/* Add-on selector */}
+      <motion.div variants={itemVariants}>
+        <AddOnSelector
+          addOns={availableAddOns}
+          isLoading={isLoadingAddOns}
+          primaryColor={theme.primaryColor}
+          variantStyle="modern"
+        />
       </motion.div>
 
       {/* Form card */}
@@ -184,7 +203,7 @@ export default function ModernCustomerDetails() {
         {/* Name row */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <ModernLabel required>Ime</ModernLabel>
+            <ModernLabel required>{t(language, 'firstNameLabel')}</ModernLabel>
             <ModernInput
               value={firstName}
               onChange={setFirstName}
@@ -195,7 +214,7 @@ export default function ModernCustomerDetails() {
             <AnimatePresence>{errorText(errors.firstName)}</AnimatePresence>
           </div>
           <div>
-            <ModernLabel required>Priimek</ModernLabel>
+            <ModernLabel required>{t(language, 'lastNameLabel')}</ModernLabel>
             <ModernInput
               value={lastName}
               onChange={setLastName}
@@ -209,7 +228,7 @@ export default function ModernCustomerDetails() {
 
         {/* Email */}
         <div className="mb-5">
-          <ModernLabel required>Email</ModernLabel>
+          <ModernLabel required>{t(language, 'emailLabel')}</ModernLabel>
           <ModernInput
             value={email}
             onChange={setEmail}
@@ -223,7 +242,7 @@ export default function ModernCustomerDetails() {
 
         {/* Phone */}
         <div className="mb-5">
-          <ModernLabel required>Telefon</ModernLabel>
+          <ModernLabel required>{t(language, 'phoneLabel')}</ModernLabel>
           <ModernInput
             value={phone}
             onChange={setPhone}
@@ -235,15 +254,11 @@ export default function ModernCustomerDetails() {
           <AnimatePresence>{errorText(errors.phone)}</AnimatePresence>
         </div>
 
-        {/* Gender */}
+        {/* Salutation */}
         <div className="mb-5">
-          <ModernLabel required>Nagovor</ModernLabel>
+          <ModernLabel required>{t(language, 'salutationLabel')}</ModernLabel>
           <div className="flex gap-2 mt-1">
-            {[
-              { value: 'male', label: 'Gospod' },
-              { value: 'female', label: 'Gospa' },
-              { value: 'other', label: 'Nevtralno' },
-            ].map((opt) => {
+            {salutations.map((opt) => {
               const isSelected = gender === opt.value;
               return (
                 <motion.button
@@ -270,11 +285,11 @@ export default function ModernCustomerDetails() {
 
         {/* Notes */}
         <div className="mb-6">
-          <ModernLabel>Opombe</ModernLabel>
+          <ModernLabel>{t(language, 'notesLabel')}</ModernLabel>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Posebne želje ali opombe..."
+            placeholder={t(language, 'notesPlaceholder')}
             rows={3}
             className="modern-textarea"
           />
@@ -323,7 +338,7 @@ export default function ModernCustomerDetails() {
               className="text-sm leading-relaxed"
               style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
             >
-              Želim prejemati obvestila o ponudbah in novostih
+              {t(language, 'marketingLabel')}
             </span>
           </label>
 
@@ -367,7 +382,7 @@ export default function ModernCustomerDetails() {
                 className="text-sm leading-relaxed"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
               >
-                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                {t(language, 'privacyLabel')}{' '}
                 <a
                   href="https://jedroplus.com/privacy"
                   target="_blank"
@@ -375,7 +390,7 @@ export default function ModernCustomerDetails() {
                   className="underline transition-colors"
                   style={{ color: theme.primaryColor }}
                 >
-                  Preberi politiko zasebnosti
+                  {t(language, 'privacyLinkLabel')}
                 </a>
                 <span className="text-red-400 ml-0.5">*</span>
               </span>
@@ -385,7 +400,7 @@ export default function ModernCustomerDetails() {
         </div>
       </motion.div>
 
-      {/* Submit */}
+      {/* Submit error */}
       {error && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -396,6 +411,7 @@ export default function ModernCustomerDetails() {
           {error}
         </motion.p>
       )}
+
       <motion.div variants={itemVariants}>
         <motion.button
           onClick={handleSubmit}
@@ -423,7 +439,7 @@ export default function ModernCustomerDetails() {
               transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2 }}
             />
           )}
-          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj'}
+          {isSubmitting ? t(language, 'sending') : t(language, 'nextToConfirm')}
         </motion.button>
       </motion.div>
     </motion.div>

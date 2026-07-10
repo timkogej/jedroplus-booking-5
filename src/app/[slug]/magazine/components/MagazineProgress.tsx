@@ -2,17 +2,19 @@
 
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-
-const STEPS = [
-  { num: '01', label: 'Storitev', roman: 'I', storeStep: 1 },
-  { num: '02', label: 'Specialist', roman: 'II', storeStep: 3 },
-  { num: '03', label: 'Termin', roman: 'III', storeStep: 4 },
-  { num: '04', label: 'Podatki', roman: 'IV', storeStep: 5 },
-  { num: '05', label: 'Potrditev', roman: 'V', storeStep: 6 },
-];
+import { t } from '../i18n';
 
 export default function MagazineProgress() {
-  const { currentStep, theme } = useBookingStore();
+  const { currentStep, theme, language } = useBookingStore();
+
+  const STEPS = [
+    { num: '01', labelKey: 'stepService' as const, roman: 'I', storeStep: 1 },
+    { num: '02', labelKey: 'stepSpecialist' as const, roman: 'II', storeStep: 3 },
+    { num: '03', labelKey: 'stepAppointment' as const, roman: 'III', storeStep: 4 },
+    { num: '04', labelKey: 'stepDetails' as const, roman: 'IV', storeStep: 5 },
+    { num: '05', labelKey: 'stepConfirm' as const, roman: 'V', storeStep: 6 },
+  ];
+
   const idx = STEPS.findIndex(s => s.storeStep >= currentStep);
   const safeIdx = idx === -1 ? STEPS.length - 1 : idx;
 
@@ -37,7 +39,7 @@ export default function MagazineProgress() {
                       : 'rgba(0,0,0,0.2)',
                   }}
                 >
-                  {step.label}
+                  {t(language, step.labelKey)}
                 </span>
                 <span
                   className="magazine-serif text-[11px] transition-all duration-500"
@@ -66,7 +68,7 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em]"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[safeIdx]?.num} / 05
+            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / 05
           </p>
         </div>
       </div>
@@ -78,10 +80,10 @@ export default function MagazineProgress() {
             className="magazine-caps text-[9px] tracking-[0.22em] mb-1"
             style={{ color: theme.primaryColor }}
           >
-            Poglavje {STEPS[safeIdx]?.num} / 05
+            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / 05
           </p>
           <p className="magazine-serif text-base text-[#1A1A1A]">
-            {STEPS[safeIdx]?.label}
+            {t(language, STEPS[safeIdx]?.labelKey ?? 'stepService')}
           </p>
         </div>
 

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
+import { t } from '../../i18n';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 
@@ -35,10 +36,12 @@ function SpecialistCard({
   employee,
   index,
   onSelect,
+  isRouletteHighlighted,
 }: {
   employee: EmployeeUI;
   index: number;
   onSelect: (id: string) => void;
+  isRouletteHighlighted: boolean;
 }) {
   const { selectedEmployeeId } = useBookingStore();
   const isSelected = selectedEmployeeId === employee.id;
@@ -57,13 +60,17 @@ function SpecialistCard({
           ? 'rgba(12, 50, 24, 0.95)'
           : 'rgba(10, 40, 20, 0.82)',
         backdropFilter: 'blur(8px)',
-        border: isSelected
+        border: isRouletteHighlighted
+          ? '2px solid rgba(201, 168, 76, 0.95)'
+          : isSelected
           ? '1px solid rgba(201, 168, 76, 0.75)'
           : '1px solid rgba(201, 168, 76, 0.2)',
-        boxShadow: isSelected
+        boxShadow: isRouletteHighlighted
+          ? '0 0 28px rgba(201, 168, 76, 0.55), inset 0 0 20px rgba(201, 168, 76, 0.1)'
+          : isSelected
           ? '0 0 24px rgba(201, 168, 76, 0.15), inset 0 0 16px rgba(201, 168, 76, 0.04)'
           : '0 4px 16px rgba(0,0,0,0.2)',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.15s ease',
         aspectRatio: '2/3',
         minHeight: '160px',
       }}
@@ -96,7 +103,7 @@ function SpecialistCard({
 
       {/* Selected checkmark */}
       <AnimatePresence>
-        {isSelected && (
+        {isSelected && !isRouletteHighlighted && (
           <motion.div
             variants={checkmarkVariants}
             initial="initial"
@@ -110,19 +117,40 @@ function SpecialistCard({
         )}
       </AnimatePresence>
 
+      {/* Roulette glow overlay */}
+      <AnimatePresence>
+        {isRouletteHighlighted && (
+          <motion.div
+            key="roulette-glow"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.08 }}
+            className="absolute inset-0 pointer-events-none rounded-lg"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.18) 0%, transparent 70%)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-2">
         {/* Avatar */}
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300"
+          className="w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-200"
           style={{
             background: '#1a6b35',
-            border: `2px solid ${isSelected ? '#c9a84c' : 'rgba(201, 168, 76, 0.3)'}`,
+            border: `2px solid ${isRouletteHighlighted ? '#e8c96d' : isSelected ? '#c9a84c' : 'rgba(201, 168, 76, 0.3)'}`,
             fontFamily: 'var(--font-playfair)',
             fontSize: '0.85rem',
-            color: isSelected ? '#c9a84c' : '#e8c96d',
-            boxShadow: isSelected ? '0 0 12px rgba(201,168,76,0.3)' : 'none',
-            transition: 'all 0.3s ease',
+            color: isRouletteHighlighted || isSelected ? '#c9a84c' : '#e8c96d',
+            boxShadow: isRouletteHighlighted
+              ? '0 0 20px rgba(201,168,76,0.5)'
+              : isSelected
+              ? '0 0 12px rgba(201,168,76,0.3)'
+              : 'none',
+            transition: 'all 0.15s ease',
           }}
         >
           {employee.initials}
@@ -168,63 +196,76 @@ function SpecialistCard({
   );
 }
 
-function AnySpecialistCard({ onSelect }: { onSelect: () => void }) {
-  const { anyPerson } = useBookingStore();
-  const [isShuffling, setIsShuffling] = useState(false);
-
-  const handleClick = () => {
-    setIsShuffling(true);
-    setTimeout(() => {
-      setIsShuffling(false);
-      onSelect();
-    }, 700);
-  };
-
+// ── Presenečenje / Surprise card ───────────────────────────────
+function SurpriseCard({
+  isSpinning,
+  onClick,
+  language,
+}: {
+  isSpinning: boolean;
+  onClick: () => void;
+  language: string;
+}) {
   return (
     <motion.button
       variants={itemVariants}
-      onClick={handleClick}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      whileHover={!isSpinning ? { y: -4 } : {}}
+      whileTap={!isSpinning ? { scale: 0.97 } : {}}
+      disabled={isSpinning}
       className="relative rounded-lg text-left overflow-hidden group"
       style={{
-        background: anyPerson ? 'rgba(12, 50, 24, 0.95)' : 'rgba(8, 30, 15, 0.7)',
+        background: 'rgba(8, 30, 15, 0.7)',
         backdropFilter: 'blur(8px)',
-        border: anyPerson
-          ? '1px solid rgba(201, 168, 76, 0.75)'
-          : '1.5px dashed rgba(201, 168, 76, 0.25)',
+        border: '1.5px dashed rgba(201, 168, 76, 0.35)',
         transition: 'all 0.3s ease',
         aspectRatio: '2/3',
         minHeight: '160px',
+        cursor: isSpinning ? 'default' : 'pointer',
       }}
     >
-      {/* Subtle pulsing bg */}
-      {!anyPerson && (
-        <div
-          className="absolute inset-0 rounded-lg"
-          style={{
-            background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.04), transparent 70%)',
-          }}
-        />
-      )}
+      {/* Subtle bg */}
+      <div
+        className="absolute inset-0 rounded-lg"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.04), transparent 70%)',
+        }}
+      />
 
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-2">
         <AnimatePresence mode="wait">
-          {isShuffling ? (
+          {isSpinning ? (
             <motion.div
-              key="shuffling"
+              key="spinning"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="flex flex-col items-center gap-3"
             >
-              <motion.span
-                className="text-2xl block"
-                animate={{ rotate: [0, 180, 360] }}
-                transition={{ duration: 0.5, repeat: 1 }}
-                style={{ fontFamily: 'Georgia, serif', color: '#c9a84c' }}
+              {/* Cycling diamonds */}
+              <div className="flex gap-1.5 items-center">
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    style={{ color: '#c9a84c', fontFamily: 'Georgia, serif', fontSize: i === 1 ? '1.1rem' : '0.65rem' }}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' as const }}
+                  >
+                    ◆
+                  </motion.span>
+                ))}
+              </div>
+              <motion.div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'rgba(13, 59, 30, 0.7)',
+                  border: '2px solid rgba(201,168,76,0.5)',
+                }}
+                animate={{ boxShadow: ['0 0 8px rgba(201,168,76,0.2)', '0 0 20px rgba(201,168,76,0.55)', '0 0 8px rgba(201,168,76,0.2)'] }}
+                transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut' as const }}
               >
-                ◆
-              </motion.span>
+                <span style={{ color: '#c9a84c', fontSize: '1rem', fontFamily: 'Georgia, serif' }}>🎲</span>
+              </motion.div>
             </motion.div>
           ) : (
             <motion.div
@@ -238,12 +279,10 @@ function AnySpecialistCard({ onSelect }: { onSelect: () => void }) {
                 className="w-12 h-12 rounded-full flex items-center justify-center"
                 style={{
                   background: 'rgba(13, 59, 30, 0.7)',
-                  border: `2px solid ${anyPerson ? 'rgba(201,168,76,0.7)' : 'rgba(201,168,76,0.25)'}`,
+                  border: '2px solid rgba(201,168,76,0.25)',
                 }}
               >
-                <span
-                  style={{ fontFamily: 'Georgia, serif', fontSize: '1.1rem', color: 'rgba(201,168,76,0.5)' }}
-                >
+                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', color: 'rgba(201,168,76,0.5)' }}>
                   🎲
                 </span>
               </div>
@@ -253,10 +292,10 @@ function AnySpecialistCard({ onSelect }: { onSelect: () => void }) {
                   style={{
                     fontFamily: 'var(--font-playfair)',
                     fontSize: '0.72rem',
-                    color: anyPerson ? '#c9a84c' : '#f5edd6',
+                    color: '#f5edd6',
                   }}
                 >
-                  {anyPerson ? '◆ Izbrano' : 'Kdorkoli'}
+                  {t(language as 'sl' | 'en', 'surpriseMe')}
                 </p>
                 <p
                   className="mt-0.5 italic"
@@ -266,7 +305,7 @@ function AnySpecialistCard({ onSelect }: { onSelect: () => void }) {
                     color: 'rgba(201,168,76,0.45)',
                   }}
                 >
-                  Prepustite usodi
+                  {t(language as 'sl' | 'en', 'surpriseMeDesc')}
                 </p>
               </div>
             </motion.div>
@@ -278,11 +317,63 @@ function AnySpecialistCard({ onSelect }: { onSelect: () => void }) {
 }
 
 export default function CasinoEmployeeSelection() {
-  const { employeesUI, eligibleEmployeeIds, selectEmployee } = useBookingStore();
+  const { employeesUI, eligibleEmployeeIds, selectEmployee, language } = useBookingStore();
+  const [rouletteHighlight, setRouletteHighlight] = useState<string | null>(null);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter((e) => eligibleSet.has(String(e.id)));
   const noEmployees = eligibleEmployeeIds.length === 0;
+
+  const handleSurprise = useCallback(() => {
+    if (isSpinning || filteredEmployees.length === 0) return;
+
+    // Randomly pick the winner from eligible employees
+    const winner = filteredEmployees[Math.floor(Math.random() * filteredEmployees.length)];
+    setIsSpinning(true);
+
+    const totalSteps = filteredEmployees.length === 1
+      ? 5
+      : 14 + filteredEmployees.length * 3;
+
+    let step = 0;
+    let prevId: string | null = null;
+
+    const getDelay = (s: number): number => {
+      const p = s / totalSteps;
+      if (p < 0.5) return 75;
+      if (p < 0.7) return 140;
+      if (p < 0.85) return 240;
+      if (p < 0.95) return 400;
+      return 580;
+    };
+
+    const cycle = () => {
+      if (step >= totalSteps) {
+        // Land on winner
+        setRouletteHighlight(winner.id);
+        // Hold the winner highlight, then advance
+        setTimeout(() => {
+          setIsSpinning(false);
+          setRouletteHighlight(null);
+          // any_person = false — concrete employee chosen locally at random
+          selectEmployee(winner.id, false);
+        }, 850);
+        return;
+      }
+
+      const pool = filteredEmployees.length > 1
+        ? filteredEmployees.filter((e) => e.id !== prevId)
+        : filteredEmployees;
+      const next = pool[Math.floor(Math.random() * pool.length)];
+      prevId = next.id;
+      setRouletteHighlight(next.id);
+      step++;
+      setTimeout(cycle, getDelay(step));
+    };
+
+    setTimeout(cycle, 80);
+  }, [isSpinning, filteredEmployees, selectEmployee]);
 
   if (noEmployees) {
     return (
@@ -292,7 +383,7 @@ export default function CasinoEmployeeSelection() {
           className="mt-4 italic"
           style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1rem', color: 'rgba(201,168,76,0.4)' }}
         >
-          Za to storitev ni razpoložljivega osebja.
+          {t(language, 'noStaff')}
         </p>
       </div>
     );
@@ -310,17 +401,22 @@ export default function CasinoEmployeeSelection() {
           lineHeight: 1.7,
         }}
       >
-        Izberite svojega specialista ali prepustite izbiro usodi.
+        {t(language, 'employeeIntro')}
       </motion.p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-        <AnySpecialistCard onSelect={() => selectEmployee(null, true)} />
+        <SurpriseCard
+          isSpinning={isSpinning}
+          onClick={handleSurprise}
+          language={language}
+        />
         {filteredEmployees.map((emp, i) => (
           <SpecialistCard
             key={emp.id}
             employee={emp}
             index={i}
             onSelect={(id) => selectEmployee(id, false)}
+            isRouletteHighlighted={rouletteHighlight === emp.id}
           />
         ))}
       </div>

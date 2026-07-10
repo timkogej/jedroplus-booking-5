@@ -1,8 +1,11 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { PromotionBadge } from '@/components/shared/PromotionBadge';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.06 } },
@@ -28,12 +31,17 @@ function ServiceCard({
   category: Category;
 }) {
   const { selectedService, selectCategoryAndService, theme } = useBookingStore();
+  const { serviceDiscounts } = usePromotionsStore();
   const isSelected = selectedService?.id === service.id;
+  const promo = serviceDiscounts[String(service.id)];
 
   return (
     <motion.div
       variants={itemVariants}
-      onClick={() => selectCategoryAndService(category, service)}
+      onClick={() => {
+        selectCategoryAndService(category, service);
+        usePromotionsStore.getState().computeActivePromotion(String(service.id));
+      }}
       className="group cursor-pointer relative"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.25 }}
@@ -67,12 +75,28 @@ function ServiceCard({
           </div>
 
           <div className="flex-shrink-0 text-right">
-            <span
-              className="magazine-serif text-[1.4rem] leading-none font-light tabular-nums transition-colors duration-300"
-              style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
-            >
-              €{service.cena}
-            </span>
+            {promo ? (
+              <AnimatePresence>
+                <PromotionBadge
+                  type={promo.type}
+                  naziv={promo.naziv}
+                  badgeLabel={promo.badgeLabel}
+                  originalCena={promo.originalCena}
+                  finalCena={promo.finalCena}
+                  size="sm"
+                  variantStyle="magazine"
+                  accentColor={theme.primaryColor}
+                  priceStyle={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+                />
+              </AnimatePresence>
+            ) : (
+              <span
+                className="magazine-serif text-[1.4rem] leading-none font-light tabular-nums transition-colors duration-300"
+                style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+              >
+                €{service.cena}
+              </span>
+            )}
           </div>
         </div>
 
@@ -88,7 +112,7 @@ function ServiceCard({
 }
 
 export default function MagazineServiceSelection() {
-  const { categories, servicesByCategory, theme } = useBookingStore();
+  const { categories, servicesByCategory, theme, language } = useBookingStore();
 
   return (
     <motion.div
@@ -101,11 +125,11 @@ export default function MagazineServiceSelection() {
       <motion.div variants={itemVariants} className="mb-10">
         <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-2">
-          Storitve
+          {t(language, 'servicesTitle')}
         </h1>
         <div className="h-[1px] w-full bg-black/10 mb-4" />
         <p className="magazine-body text-[#6B6B6B] text-[15px] italic leading-relaxed">
-          Izberite storitev
+          {t(language, 'servicesSubtitle')}
         </p>
       </motion.div>
 

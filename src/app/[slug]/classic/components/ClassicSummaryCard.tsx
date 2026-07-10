@@ -1,28 +1,44 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import type { SupportedLanguage } from '@/types';
+import { formatBookingPrice } from '@/lib/pricing';
+import { t } from '../i18n';
+
+interface ServiceEntry {
+  name: string;
+  price: number;
+  duration: number;
+}
 
 interface Props {
+  services: ServiceEntry[];
+  addOn?: ServiceEntry;
   employee?: string;
-  service?: { name: string; price: number; duration: number };
   dateTime?: string;
   customer?: string;
   primaryColor: string;
+  language: SupportedLanguage;
+  originalTotal?: number;
+  finalTotal?: number;
+  hasDiscount?: boolean;
 }
 
-interface RowProps {
+function SummaryRow({
+  label,
+  value,
+  primaryColor,
+}: {
   label: string;
   value: string;
   primaryColor: string;
-}
-
-function SummaryRow({ label, value, primaryColor }: RowProps) {
+}) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-start gap-3 py-2.5 border-b"
-      style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+      className="flex items-start gap-3 py-2.5"
+      style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}
     >
       <div
         className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
@@ -30,8 +46,13 @@ function SummaryRow({ label, value, primaryColor }: RowProps) {
       />
       <div className="min-w-0">
         <p
-          className="text-xs uppercase tracking-wide font-medium mb-0.5"
-          style={{ fontFamily: 'var(--font-nunito-sans)', color: '#9CA3AF', fontSize: '0.65rem' }}
+          className="uppercase tracking-wide font-medium mb-0.5"
+          style={{
+            fontFamily: 'var(--font-nunito-sans)',
+            color: '#9CA3AF',
+            fontSize: '0.6rem',
+            letterSpacing: '0.08em',
+          }}
         >
           {label}
         </p>
@@ -47,54 +68,114 @@ function SummaryRow({ label, value, primaryColor }: RowProps) {
 }
 
 export default function ClassicSummaryCard({
+  services,
+  addOn,
   employee,
-  service,
   dateTime,
   customer,
   primaryColor,
+  language,
+  originalTotal,
+  finalTotal,
+  hasDiscount = false,
 }: Props) {
-  const hasAny = employee || service || dateTime || customer;
+  const hasAny = services.length > 0 || !!addOn || employee || dateTime || customer;
+
+  const computedTotalPrice = services.reduce((sum, s) => sum + Number(s.price), 0);
+  const totalPrice = finalTotal ?? computedTotalPrice;
+  const originalPrice = originalTotal ?? computedTotalPrice;
+  const showDiscount = hasDiscount && originalPrice > totalPrice;
+  const totalDuration =
+    services.reduce((sum, s) => sum + s.duration, 0) + (addOn?.duration ?? 0);
+
+  const formatDuration = (min: number) => {
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+  };
 
   return (
     <div
       className="rounded-2xl overflow-hidden sticky top-6"
       style={{
-        background: 'rgba(255,255,255,0.92)',
+        background: 'rgba(255,255,255,0.94)',
         backdropFilter: 'blur(12px)',
-        border: `1px solid ${primaryColor}20`,
-        boxShadow: `0 8px 32px rgba(0,0,0,0.08), 0 0 0 1px ${primaryColor}10`,
+        border: `1px solid ${primaryColor}1A`,
+        boxShadow: `0 6px 28px rgba(0,0,0,0.07), 0 0 0 1px ${primaryColor}0D`,
       }}
     >
       {/* Header */}
       <div
-        className="px-5 py-4 border-b"
+        className="px-5 py-3.5 border-b"
         style={{
-          borderColor: 'rgba(0,0,0,0.06)',
+          borderColor: 'rgba(0,0,0,0.05)',
           background: `linear-gradient(135deg, ${primaryColor}08, transparent)`,
         }}
       >
         <p
-          className="text-xs uppercase tracking-widest font-bold"
-          style={{ fontFamily: 'var(--font-nunito)', color: '#6B7280' }}
+          className="uppercase tracking-widest font-bold"
+          style={{
+            fontFamily: 'var(--font-nunito)',
+            color: '#6B7280',
+            fontSize: '0.62rem',
+            letterSpacing: '0.12em',
+          }}
         >
-          Vaša Rezervacija
+          {t(language, 'yourBooking')}
         </p>
       </div>
 
       {/* Rows */}
-      <div className="px-5 py-2">
+      <div className="px-5 py-1">
         <AnimatePresence>
-          {employee && (
-            <SummaryRow key="emp" label="Oseba" value={employee} primaryColor={primaryColor} />
+          {services.length > 0 && (
+            <div key="services">
+              {services.map((s, i) => (
+                <SummaryRow
+                  key={`svc-${i}`}
+                  label={
+                    services.length > 1
+                      ? `${t(language, 'fieldService')} ${i + 1}`
+                      : t(language, 'fieldService')
+                  }
+                  value={s.name}
+                  primaryColor={primaryColor}
+                />
+              ))}
+            </div>
           )}
-          {service && (
-            <SummaryRow key="svc" label="Storitev" value={service.name} primaryColor={primaryColor} />
+          {addOn && (
+            <SummaryRow
+              key="addon"
+              label={t(language, 'fieldAddon')}
+              value={`${addOn.name} (+${formatBookingPrice(addOn.price)} €)`}
+              primaryColor={primaryColor}
+            />
+          )}
+          {employee && (
+            <SummaryRow
+              key="emp"
+              label={t(language, 'stepPerson')}
+              value={employee}
+              primaryColor={primaryColor}
+            />
           )}
           {dateTime && (
-            <SummaryRow key="dt" label="Termin" value={dateTime} primaryColor={primaryColor} />
+            <SummaryRow
+              key="dt"
+              label={t(language, 'stepAppointment')}
+              value={dateTime}
+              primaryColor={primaryColor}
+            />
           )}
           {customer && (
-            <SummaryRow key="cust" label="Stranka" value={customer} primaryColor={primaryColor} />
+            <SummaryRow
+              key="cust"
+              label={t(language, 'fieldName')}
+              value={customer}
+              primaryColor={primaryColor}
+            />
           )}
         </AnimatePresence>
 
@@ -103,37 +184,47 @@ export default function ClassicSummaryCard({
             className="text-sm text-center py-6"
             style={{ fontFamily: 'var(--font-nunito-sans)', color: '#D1D5DB' }}
           >
-            Izberite možnosti za začetek
+            {t(language, 'startSelectingOptions')}
           </p>
         )}
       </div>
 
       {/* Price footer */}
-      {service && (
+      {services.length > 0 && (
         <div
           className="px-5 py-3 flex items-center justify-between border-t"
-          style={{ borderColor: 'rgba(0,0,0,0.06)' }}
+          style={{ borderColor: 'rgba(0,0,0,0.05)' }}
         >
           <div>
             <p
               className="text-xs text-gray-400"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
-              {service.duration} min
+              {formatDuration(totalDuration)}
             </p>
             <p
               className="text-xs text-gray-400 mt-0.5"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
-              Skupaj
+              {t(language, 'total')}
             </p>
           </div>
-          <p
-            className="text-xl font-bold"
-            style={{ fontFamily: 'var(--font-nunito)', color: primaryColor }}
-          >
-            {Number(service.price).toFixed(2).replace('.', ',')} €
-          </p>
+          <div className="text-right">
+            {showDiscount && (
+              <p
+                className="text-xs line-through text-gray-300"
+                style={{ fontFamily: 'var(--font-nunito-sans)' }}
+              >
+                {formatBookingPrice(originalPrice)} €
+              </p>
+            )}
+            <p
+              className="text-xl font-bold"
+              style={{ fontFamily: 'var(--font-nunito)', color: primaryColor }}
+            >
+              {formatBookingPrice(totalPrice)} €
+            </p>
+          </div>
         </div>
       )}
     </div>

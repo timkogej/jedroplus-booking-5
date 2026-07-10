@@ -5,46 +5,50 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
-import type { Theme } from '@/types';
+import { fetchActiveDiscounts, calculateDiscount } from '@/lib/promotionsApi';
+import type { ServicePromotion } from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
 import ModernLayout from './components/ModernLayout';
 
+// Minimal white loading screen — same pattern as classic variant
 function ModernLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-0">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col items-center"
-        style={{ flex: 1, justifyContent: 'center' }}
+        transition={{ duration: 0.35 }}
+        className="flex flex-col items-center gap-5"
       >
-        {/* Spinning gradient arc — no background ring, just the arc */}
-        <motion.div
-          className="modern-loading-arc"
-          style={{ width: 44, height: 44 }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' as const }}
-        />
-      </motion.div>
+        {/* Three pulsing dots */}
+        <div className="flex items-center gap-2">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="block w-2 h-2 rounded-full"
+              style={{ backgroundColor: '#D1D5DB' }}
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{
+                duration: 1.1,
+                repeat: Infinity,
+                delay: i * 0.18,
+                ease: 'easeInOut' as const,
+              }}
+            />
+          ))}
+        </div>
 
-      {/* Powered by */}
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-        className="pb-8 text-xs"
-        style={{ color: 'rgba(0,0,0,0.3)', fontFamily: 'var(--font-inter)' }}
-      >
-        Powered by{' '}
-        <a
-          href="https://jedroplus.si"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'rgba(0,0,0,0.45)', textDecoration: 'none', fontWeight: 500 }}
+        <p
+          className="text-xs tracking-widest uppercase"
+          style={{
+            fontFamily: 'var(--font-inter)',
+            color: '#9CA3AF',
+            letterSpacing: '0.12em',
+          }}
         >
-          Jedro+
-        </a>
-      </motion.p>
+          Loading
+        </p>
+      </motion.div>
     </div>
   );
 }
@@ -72,8 +76,8 @@ function ModernErrorScreen({ error }: { error: string }) {
           <span style={{ color: '#FCA5A5', fontSize: '1.5rem' }}>×</span>
         </div>
         <h1
-          className="text-2xl font-bold mb-3"
-          style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-dm-sans)' }}
+          className="text-2xl mb-3"
+          style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-clash)', fontWeight: 400 }}
         >
           Napaka pri nalaganju
         </h1>
@@ -103,16 +107,7 @@ export default function ModernPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const {
-    setTheme,
-    setCompany,
-    setEmployeesUI,
-    setCategories,
-    setServices,
-    setServicesByCategory,
-    setEmployeesByServiceId,
-    setLoading,
-  } = useBookingStore();
+  const { setInitData, setLoading } = useBookingStore();
 
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -130,14 +125,30 @@ export default function ModernPage() {
 
       try {
         const data = await fetchInitData(slug);
+        // Single call hydrates all store state (multipleServicesAllowed, maxDniRezervacija, etc.)
+        setInitData(data);
 
-        if (data.theme) setTheme(data.theme as Theme);
-        if (data.company) setCompany(data.company);
-        if (data.employees_ui) setEmployeesUI(data.employees_ui);
-        if (data.serviceCategories) setCategories(data.serviceCategories);
-        if (data.services) setServices(data.services);
-        if (data.servicesByCategory) setServicesByCategory(data.servicesByCategory);
-        if (data.employeesByServiceId) setEmployeesByServiceId(data.employeesByServiceId);
+        const companyId = data.company?.idPodjetja;
+        const serviceIds = (data.services ?? []).map((s) => String(s.id));
+
+        if (companyId && serviceIds.length) {
+          try {
+            const discounts = await fetchActiveDiscounts(companyId, serviceIds);
+            const enriched: Record<string, ServicePromotion> = {};
+            for (const [sId, promo] of Object.entries(discounts)) {
+              const service = (data.services ?? []).find((s) => String(s.id) === sId);
+              if (service) {
+                const { finalCena, popustZnesek } = calculateDiscount(
+                  Number(service.cena), promo.tipPopusta, promo.vrednost
+                );
+                enriched[sId] = { ...promo, originalCena: Number(service.cena), finalCena, popustZnesek };
+              }
+            }
+            usePromotionsStore.getState().setServiceDiscounts(enriched);
+          } catch {
+            // Promotions are non-critical
+          }
+        }
       } catch (err) {
         console.error('Modern booking: failed to load init data:', err);
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
@@ -148,15 +159,10 @@ export default function ModernPage() {
     }
 
     loadInitData();
-  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
+  }, [slug, setInitData, setLoading]);
 
-  if (!hasLoaded) {
-    return <ModernLoadingScreen />;
-  }
-
-  if (error) {
-    return <ModernErrorScreen error={error} />;
-  }
+  if (!hasLoaded) return <ModernLoadingScreen />;
+  if (error) return <ModernErrorScreen error={error} />;
 
   return <ModernLayout companySlug={slug} />;
 }

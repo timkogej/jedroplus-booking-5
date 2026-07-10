@@ -5,45 +5,33 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
-import type { Theme } from '@/types';
+import { fetchActiveDiscounts, calculateDiscount } from '@/lib/promotionsApi';
+import type { ServicePromotion } from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
 import SeasonalLayout from './components/SeasonalLayout';
 
 function SeasonalLoadingScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-center flex-1 flex flex-col items-center justify-center"
-      >
+      <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        {/* Minimal dark spinner */}
         <motion.div
-          className="w-16 h-16 mx-auto mb-6 rounded-full"
-          style={{
-            background: 'conic-gradient(from 0deg, #8B5CF6, #3B82F6, #06B6D4, transparent 80%)',
-            WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), white 0)',
-            mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), white 0)',
-          }}
+          className="w-6 h-6 rounded-full border-2 border-gray-200 border-t-gray-700"
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
+          transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' as const }}
         />
         <p
-          className="text-lg font-medium text-gray-700"
-          style={{ fontFamily: 'var(--font-quicksand)' }}
+          className="text-sm text-gray-400 tracking-wide"
+          style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)', fontWeight: 500 }}
         >
-          Pripravljamo rezervacijo
+          Loading
         </p>
-        <p
-          className="mt-1 text-sm text-gray-400"
-          style={{ fontFamily: 'var(--font-quicksand)' }}
-        >
-          Prosimo počakajte&hellip;
-        </p>
-      </motion.div>
+      </div>
 
+      {/* Powered by Jedro+ — always at the very bottom */}
       <p
-        className="pb-8 text-xs text-gray-300"
-        style={{ fontFamily: 'var(--font-quicksand)' }}
+        className="pb-8 text-xs text-gray-300 tracking-wide"
+        style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}
       >
         Powered by Jedro+
       </p>
@@ -52,47 +40,35 @@ function SeasonalLoadingScreen() {
 }
 
 function SeasonalErrorScreen({ error }: { error: string }) {
-  const { theme } = useBookingStore();
-
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-6"
-      style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.4 }}
         className="text-center max-w-sm"
       >
-        <div
-          className="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)' }}
-        >
-          <span style={{ color: '#FCA5A5', fontSize: '1.5rem' }}>×</span>
+        <div className="w-12 h-12 rounded-full bg-red-50 border border-red-100 mx-auto mb-5 flex items-center justify-center">
+          <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
         </div>
-        <h1
-          className="text-2xl font-bold mb-3"
-          style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-quicksand)' }}
+        <h2
+          className="text-lg font-semibold text-gray-800 mb-2"
+          style={{ fontFamily: 'var(--font-stardom, serif)' }}
         >
           Napaka pri nalaganju
-        </h1>
+        </h2>
         <p
-          className="mb-8 text-sm leading-relaxed"
-          style={{ color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-quicksand)' }}
+          className="text-sm text-gray-500 mb-7 leading-relaxed"
+          style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}
         >
           {error}
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
-          style={{
-            backgroundColor: theme.primaryColor,
-            fontFamily: 'var(--font-quicksand)',
-            boxShadow: `0 8px 25px ${theme.primaryColor}50`,
-          }}
+          className="px-6 py-2.5 rounded-xl text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+          style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)' }}
         >
           Poskusi znova
         </button>
@@ -105,16 +81,7 @@ export default function SeasonalPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const {
-    setTheme,
-    setCompany,
-    setEmployeesUI,
-    setCategories,
-    setServices,
-    setServicesByCategory,
-    setEmployeesByServiceId,
-    setLoading,
-  } = useBookingStore();
+  const { setInitData, setLoading } = useBookingStore();
 
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -132,14 +99,29 @@ export default function SeasonalPage() {
 
       try {
         const data = await fetchInitData(slug);
+        setInitData(data);
 
-        if (data.theme) setTheme(data.theme as Theme);
-        if (data.company) setCompany(data.company);
-        if (data.employees_ui) setEmployeesUI(data.employees_ui);
-        if (data.serviceCategories) setCategories(data.serviceCategories);
-        if (data.services) setServices(data.services);
-        if (data.servicesByCategory) setServicesByCategory(data.servicesByCategory);
-        if (data.employeesByServiceId) setEmployeesByServiceId(data.employeesByServiceId);
+        const companyId = data.company?.idPodjetja;
+        const serviceIds = (data.services ?? []).map((s) => String(s.id));
+
+        if (companyId && serviceIds.length) {
+          try {
+            const discounts = await fetchActiveDiscounts(companyId, serviceIds);
+            const enriched: Record<string, ServicePromotion> = {};
+            for (const [sId, promo] of Object.entries(discounts)) {
+              const service = (data.services ?? []).find((s) => String(s.id) === sId);
+              if (service) {
+                const { finalCena, popustZnesek } = calculateDiscount(
+                  Number(service.cena), promo.tipPopusta, promo.vrednost
+                );
+                enriched[sId] = { ...promo, originalCena: Number(service.cena), finalCena, popustZnesek };
+              }
+            }
+            usePromotionsStore.getState().setServiceDiscounts(enriched);
+          } catch {
+            // Promotions are non-critical — ignore errors
+          }
+        }
       } catch (err) {
         console.error('Seasonal booking: failed to load init data:', err);
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
@@ -150,15 +132,10 @@ export default function SeasonalPage() {
     }
 
     loadInitData();
-  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
+  }, [slug, setInitData, setLoading]);
 
-  if (!hasLoaded) {
-    return <SeasonalLoadingScreen />;
-  }
-
-  if (error) {
-    return <SeasonalErrorScreen error={error} />;
-  }
+  if (!hasLoaded) return <SeasonalLoadingScreen />;
+  if (error) return <SeasonalErrorScreen error={error} />;
 
   return <SeasonalLayout companySlug={slug} />;
 }

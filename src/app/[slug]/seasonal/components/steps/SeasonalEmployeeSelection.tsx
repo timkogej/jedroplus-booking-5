@@ -88,7 +88,7 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
                   initial={{ scale: 1, opacity: 0.7 }}
                   animate={{ scale: 1.5, opacity: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1, repeat: Infinity }}
+                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut' as const }}
                 />
               )}
             </AnimatePresence>

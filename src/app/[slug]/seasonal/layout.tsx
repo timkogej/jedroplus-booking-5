@@ -1,20 +1,14 @@
-import { Quicksand, Playfair_Display, Mountains_of_Christmas, Creepster } from 'next/font/google';
+import { Inter, Mountains_of_Christmas, Creepster } from 'next/font/google';
 import './styles/seasonal.css';
 
-const quicksand = Quicksand({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-quicksand',
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
   display: 'swap',
 });
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
-
+// Holiday decorative fonts — kept for theming special events
 const mountainsOfChristmas = Mountains_of_Christmas({
   subsets: ['latin'],
   weight: ['400', '700'],
@@ -31,7 +25,7 @@ const creepster = Creepster({
 
 export default function SeasonalRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${quicksand.variable} ${playfair.variable} ${mountainsOfChristmas.variable} ${creepster.variable}`}>
+    <div className={`${inter.variable} ${mountainsOfChristmas.variable} ${creepster.variable}`}>
       {children}
     </div>
   );

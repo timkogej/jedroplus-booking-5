@@ -91,9 +91,9 @@
 }
 
 .elegant-date-pill {
-  width: 42px;
-  height: 58px;
-  border-radius: 12px;
+  width: 52px;
+  height: 68px;
+  border-radius: 14px;
   scroll-snap-align: start;
   transition: all 0.15s ease;
   outline: none;

@@ -1,8 +1,12 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import { Category, Service } from '@/types';
+import type { Category, Service } from '@/types';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { PromotionBadge } from '@/components/shared/PromotionBadge';
+import { t } from '../../i18n';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 
@@ -36,30 +40,63 @@ const checkmarkVariants: Variants = {
   },
 };
 
+// ── Selected service chip ──────────────────────────────────────
+function ServiceChip({ service, onRemove }: { service: Service; onRemove: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+      style={{
+        background: 'rgba(201,168,76,0.08)',
+        border: '1px solid rgba(201,168,76,0.35)',
+        color: '#c9a84c',
+        fontFamily: 'var(--font-oswald)',
+        fontSize: '0.62rem',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+      }}
+    >
+      <span className="truncate max-w-[140px]">{service.naziv}</span>
+      <button
+        onClick={onRemove}
+        className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
+        style={{ background: 'rgba(201,168,76,0.18)' }}
+      >
+        <svg width="7" height="7" viewBox="0 0 8 8" fill="none">
+          <path d="M1 1l6 6M7 1L1 7" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </button>
+    </motion.div>
+  );
+}
+
 function ServiceCard({
   service,
-  category,
   suitIndex,
+  isSelected,
+  onSelect,
 }: {
   service: Service;
-  category: Category;
   suitIndex: number;
+  isSelected: boolean;
+  onSelect: () => void;
 }) {
-  const { selectedService, selectCategoryAndService } = useBookingStore();
-  const isSelected = selectedService?.id === service.id;
+  const { language } = useBookingStore();
+  const { serviceDiscounts } = usePromotionsStore();
   const suit = SUITS[suitIndex % SUITS.length];
+  const promo = serviceDiscounts[String(service.id)];
 
   return (
     <motion.button
       variants={itemVariants}
-      onClick={() => selectCategoryAndService(category, service)}
+      onClick={onSelect}
       whileHover={{ y: -3 }}
       whileTap={{ scale: 0.99 }}
       className="w-full text-left relative overflow-hidden group rounded-lg"
       style={{
-        background: isSelected
-          ? 'rgba(12, 50, 24, 0.95)'
-          : 'rgba(10, 40, 20, 0.82)',
+        background: isSelected ? 'rgba(12, 50, 24, 0.95)' : 'rgba(10, 40, 20, 0.82)',
         backdropFilter: 'blur(8px)',
         border: isSelected
           ? '1px solid rgba(201, 168, 76, 0.75)'
@@ -108,12 +145,26 @@ function ServiceCard({
           >
             {service.naziv}
           </h3>
-          <span
-            className="flex-shrink-0 font-bold"
-            style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.05rem', color: '#e8c96d' }}
-          >
-            €{service.cena}
-          </span>
+          {promo ? (
+            <AnimatePresence>
+              <PromotionBadge
+                type={promo.type}
+                naziv={promo.naziv}
+                badgeLabel={promo.badgeLabel}
+                originalCena={promo.originalCena}
+                finalCena={promo.finalCena}
+                size="sm"
+                variantStyle="casino"
+              />
+            </AnimatePresence>
+          ) : (
+            <span
+              className="flex-shrink-0 font-bold"
+              style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.05rem', color: '#e8c96d' }}
+            >
+              €{service.cena}
+            </span>
+          )}
         </div>
 
         {service.opis && (
@@ -137,7 +188,7 @@ function ServiceCard({
           <span
             style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: isSelected ? '#c9a84c' : 'rgba(201,168,76,0.4)', transition: 'color 0.3s' }}
           >
-            {isSelected ? '◆ Izbrano' : 'Izberi ›'}
+            {isSelected ? t(language, 'serviceSelected') : t(language, 'serviceChoose')}
           </span>
         </div>
       </div>
@@ -146,14 +197,52 @@ function ServiceCard({
 }
 
 export default function CasinoServiceSelection() {
-  const { categories, servicesByCategory } = useBookingStore();
+  const {
+    categories,
+    servicesByCategory,
+    selectedServices,
+    multipleServicesAllowed,
+    noEmployeeForCombination,
+    currentStep,
+    language,
+    addService,
+    removeService,
+    goToStep,
+    selectCategoryAndService,
+  } = useBookingStore();
+
+  const categoryRefs = useRef<Record<string, HTMLElement | null>>({});
+  const pillScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollToCategory = useCallback((catId: string) => {
+    const el = categoryRefs.current[catId];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
+
+  const isAddMoreMode = currentStep === 2 && multipleServicesAllowed;
+
+  const handleServiceClick = (category: Category, service: Service) => {
+    if (isAddMoreMode) {
+      addService(service);
+    } else {
+      selectCategoryAndService(category, service);
+      usePromotionsStore.getState().computeActivePromotion(String(service.id));
+    }
+  };
+
+  const isServiceSelected = (serviceId: string) =>
+    selectedServices.some((s) => s.id === serviceId);
+
+  const canAddMore = multipleServicesAllowed && selectedServices.length < 3;
 
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-16">
         <span style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: 'rgba(201,168,76,0.2)' }}>◆</span>
         <p className="mt-4 italic" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1rem', color: 'rgba(201,168,76,0.4)' }}>
-          Ni razpoložljivih storitev.
+          {t(language, 'noServices')}
         </p>
       </div>
     );
@@ -165,12 +254,97 @@ export default function CasinoServiceSelection() {
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
       <motion.p
         variants={itemVariants}
-        className="italic mb-7"
+        className="italic mb-5"
         style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.05rem', color: 'rgba(232, 217, 184, 0.65)', lineHeight: 1.7 }}
       >
-        Vsaka storitev je stavka v igri. Izberite svojo potezo.
+        {t(language, 'serviceIntro')}
       </motion.p>
 
+      {/* ── Selected chips (multi-service add-more mode) ── */}
+      {isAddMoreMode && selectedServices.length > 0 && (
+        <motion.div variants={itemVariants} className="mb-4">
+          <p
+            className="mb-2"
+            style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.55rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.4)' }}
+          >
+            {t(language, 'selectedServices')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <AnimatePresence>
+              {selectedServices.map((s) => (
+                <ServiceChip key={s.id} service={s} onRemove={() => removeService(s.id)} />
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* No-employee-for-combination warning */}
+          <AnimatePresence>
+            {noEmployeeForCombination && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 px-4 py-3 rounded-lg"
+                style={{
+                  background: 'rgba(192, 57, 43, 0.08)',
+                  border: '1px solid rgba(192,57,43,0.3)',
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '0.9rem',
+                  color: 'rgba(232,100,80,0.9)',
+                  fontStyle: 'italic',
+                }}
+              >
+                {t(language, 'noEmployeeForCombination')}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* ── Category pill strip ── */}
+      {categories.length > 1 && (
+        <motion.div variants={itemVariants} className="mb-5 -mx-1">
+          <div
+            ref={pillScrollRef}
+            className="flex gap-2 overflow-x-auto pb-1 px-1 mc-scrollbar-hide"
+          >
+            {categories.map((cat) => {
+              const catIndex = categories.indexOf(cat);
+              const suit = SUITS[catIndex % SUITS.length];
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => scrollToCategory(cat.id)}
+                  className="flex-shrink-0 px-4 py-2 rounded-full transition-all"
+                  style={{
+                    fontFamily: 'var(--font-oswald)',
+                    fontSize: '0.65rem',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    background: 'rgba(10, 40, 20, 0.75)',
+                    border: '1px solid rgba(201,168,76,0.25)',
+                    color: '#a89060',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(201,168,76,0.55)';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#c9a84c';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(201,168,76,0.25)';
+                    (e.currentTarget as HTMLButtonElement).style.color = '#a89060';
+                  }}
+                >
+                  {suit} {cat.name}
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Service sections by category ── */}
       <div className="space-y-7">
         {categories.map((category, catIndex) => {
           const services: Service[] = servicesByCategory[category.id] ?? [];
@@ -178,7 +352,11 @@ export default function CasinoServiceSelection() {
           const catSuit = SUITS[catIndex % SUITS.length];
 
           return (
-            <motion.div key={category.id} variants={itemVariants}>
+            <motion.div
+              key={category.id}
+              variants={itemVariants}
+              ref={(el) => { categoryRefs.current[category.id] = el; }}
+            >
               {/* Category header */}
               <div className="flex items-center gap-3 mb-3">
                 <div
@@ -205,7 +383,13 @@ export default function CasinoServiceSelection() {
                 {services.map((service) => {
                   const idx = globalServiceIndex++;
                   return (
-                    <ServiceCard key={service.id} service={service} category={category} suitIndex={idx} />
+                    <ServiceCard
+                      key={service.id}
+                      service={service}
+                      suitIndex={idx}
+                      isSelected={isServiceSelected(service.id)}
+                      onSelect={() => handleServiceClick(category, service)}
+                    />
                   );
                 })}
               </div>
@@ -214,6 +398,38 @@ export default function CasinoServiceSelection() {
         })}
       </div>
 
+      {/* ── Step-2 actions (multi-service add-more mode) ── */}
+      {isAddMoreMode && (
+        <motion.div variants={itemVariants} className="mt-8">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {canAddMore && (
+              <p
+                className="text-sm italic"
+                style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: 'rgba(232,217,184,0.5)' }}
+              >
+                {t(language, 'addAnotherService')} ({selectedServices.length}/3)
+              </p>
+            )}
+            <div className="sm:ml-auto">
+              <motion.button
+                onClick={() => goToStep(3)}
+                disabled={selectedServices.length === 0 || noEmployeeForCombination}
+                className="mc-btn-gold px-10 py-4"
+                style={{
+                  opacity: selectedServices.length === 0 || noEmployeeForCombination ? 0.45 : 1,
+                  cursor: selectedServices.length === 0 || noEmployeeForCombination ? 'not-allowed' : 'pointer',
+                }}
+                whileHover={selectedServices.length > 0 && !noEmployeeForCombination ? { scale: 1.04 } : {}}
+                whileTap={selectedServices.length > 0 && !noEmployeeForCombination ? { scale: 0.97 } : {}}
+              >
+                {t(language, 'next')} →
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Chip divider ── */}
       <motion.div
         variants={itemVariants}
         className="flex items-center justify-center gap-2 mt-8"

@@ -7,6 +7,14 @@ import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails as CustomerDetailsType } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import { AddOnSelector } from '@/components/shared/AddOnSelector';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.07 } },
@@ -64,12 +72,10 @@ function MagField({
       </label>
 
       <div className="mag-input-wrap relative">
-        {/* Base underline */}
         <div
           className="absolute bottom-0 left-0 right-0 h-[1px]"
           style={{ backgroundColor: error ? '#EF4444' : 'rgba(0,0,0,0.12)' }}
         />
-        {/* Focus underline — animated via CSS in magazine.css, but also inline override */}
         <motion.div
           className="absolute bottom-0 left-0 h-[1px] pointer-events-none"
           animate={{ width: isFocused ? '100%' : '0%' }}
@@ -105,6 +111,7 @@ function MagField({
 export default function MagazineCustomerDetails() {
   const {
     theme,
+    language,
     employeesUI,
     selectedEmployeeId,
     anyPerson,
@@ -133,18 +140,28 @@ export default function MagazineCustomerDetails() {
   const [website, setWebsite] = useState('');
 
   const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'magazine' });
+  const {
+    activePromotion,
+    serviceDiscounts,
+    availableAddOns,
+    selectedAddOn,
+    isLoadingAddOns,
+  } = usePromotionsStore();
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof CustomerDetailsType, string>> = {};
-    if (!formData.firstName.trim()) e.firstName = 'Ime je obvezno';
-    if (!formData.lastName.trim()) e.lastName = 'Priimek je obvezen';
+    if (!formData.firstName.trim()) e.firstName = t(language, 'firstNameRequired');
+    if (!formData.lastName.trim()) e.lastName = t(language, 'lastNameRequired');
     if (!formData.email.trim()) {
-      e.email = 'Email je obvezen';
+      e.email = t(language, 'emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      e.email = 'Vnesi veljaven email';
+      e.email = t(language, 'emailInvalid');
     }
-    if (!formData.phone.trim()) e.phone = 'Telefon je obvezen';
-    if (!formData.privacyConsent) e.privacyConsent = 'Za oddajo rezervacije se morate strinjati s politiko zasebnosti.';
+    if (!formData.phone.trim()) e.phone = t(language, 'phoneRequired');
+    if (!formData.privacyConsent) e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -195,12 +212,21 @@ export default function MagazineCustomerDetails() {
       <motion.div variants={itemVariants} className="mb-10">
         <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
-          Vaši Podatki
+          {t(language, 'detailsTitle')}
         </h1>
         <div className="h-[1px] w-full bg-black/10 mb-4" />
         <p className="magazine-body text-[#6B6B6B] text-[15px] italic leading-relaxed">
-          Izpolnite za potrditev rezervacije
+          {t(language, 'detailsSubtitle')}
         </p>
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <AddOnSelector
+          addOns={availableAddOns}
+          isLoading={isLoadingAddOns}
+          primaryColor={theme.primaryColor}
+          variantStyle="magazine"
+        />
       </motion.div>
 
       <div className="flex flex-col lg:flex-row gap-12 xl:gap-16">
@@ -211,7 +237,7 @@ export default function MagazineCustomerDetails() {
             <div className="grid grid-cols-2 gap-6">
               <MagField
                 name="firstName"
-                label="Ime"
+                label={t(language, 'firstName')}
                 value={formData.firstName}
                 error={errors.firstName}
                 focused={focused}
@@ -222,7 +248,7 @@ export default function MagazineCustomerDetails() {
               />
               <MagField
                 name="lastName"
-                label="Priimek"
+                label={t(language, 'lastName')}
                 value={formData.lastName}
                 error={errors.lastName}
                 focused={focused}
@@ -235,7 +261,7 @@ export default function MagazineCustomerDetails() {
 
             <MagField
               name="email"
-              label="E-pošta"
+              label={t(language, 'email')}
               type="email"
               value={formData.email}
               error={errors.email || fieldErrors.email}
@@ -248,7 +274,7 @@ export default function MagazineCustomerDetails() {
 
             <MagField
               name="phone"
-              label="Telefon"
+              label={t(language, 'phone')}
               type="tel"
               value={formData.phone}
               error={errors.phone}
@@ -263,13 +289,14 @@ export default function MagazineCustomerDetails() {
           {/* Gender selection */}
           <motion.div variants={itemVariants} className="mt-8">
             <p className="magazine-caps text-[9px] tracking-[0.2em] text-[#6B6B6B] mb-4">
-              Nagovor <span className="text-black/25 ml-1">(neobvezno)</span>
+              {t(language, 'salutation')}{' '}
+              <span className="text-black/25 ml-1">({t(language, 'optional')})</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'male', label: 'Gospod' },
-                { value: 'female', label: 'Gospa' },
-                { value: 'other', label: 'Nevtralno' },
+                { value: 'male', labelKey: 'salutMr' as const },
+                { value: 'female', labelKey: 'salutMs' as const },
+                { value: 'other', labelKey: 'salutOther' as const },
               ].map((opt) => {
                 const isSelected = formData.gender === opt.value;
                 return (
@@ -287,7 +314,7 @@ export default function MagazineCustomerDetails() {
                       borderBottom: `1px solid ${isSelected ? theme.primaryColor : 'rgba(0,0,0,0.12)'}`,
                     }}
                   >
-                    {opt.label}
+                    {t(language, opt.labelKey)}
                   </button>
                 );
               })}
@@ -296,7 +323,6 @@ export default function MagazineCustomerDetails() {
 
           {/* Notes */}
           <motion.div variants={itemVariants} className="mt-8 relative">
-            {/* Pull-quote decoration */}
             <span
               className="absolute -left-4 -top-4 magazine-serif text-4xl leading-none pointer-events-none select-none"
               style={{ color: `${theme.primaryColor}18`, fontStyle: 'italic' }}
@@ -308,7 +334,8 @@ export default function MagazineCustomerDetails() {
               className="block magazine-caps text-[9px] tracking-[0.2em] mb-3 transition-colors duration-200"
               style={{ color: focused === 'notes' ? theme.primaryColor : '#6B6B6B' }}
             >
-              Dodatne želje <span className="text-black/25 ml-1">(neobvezno)</span>
+              {t(language, 'notes')}{' '}
+              <span className="text-black/25 ml-1">({t(language, 'optional')})</span>
             </label>
             <div className="relative">
               <div
@@ -328,22 +355,19 @@ export default function MagazineCustomerDetails() {
                 onFocus={() => setFocused('notes')}
                 onBlur={() => setFocused(null)}
                 rows={3}
-                placeholder="Posebne želje ali napotki..."
+                placeholder={t(language, 'notesPlaceholder')}
                 className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none resize-none text-[#1A1A1A] placeholder:text-black/20"
                 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               />
             </div>
           </motion.div>
 
-          {/* Privacy consent - OBVEZEN */}
+          {/* Privacy consent */}
           <motion.div variants={itemVariants} className="mt-8 flex items-start gap-3">
             <div
               className="relative w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
               onClick={() =>
-                setFormData((p) => ({
-                  ...p,
-                  privacyConsent: !p.privacyConsent,
-                }))
+                setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }))
               }
             >
               <div
@@ -376,13 +400,10 @@ export default function MagazineCustomerDetails() {
               <label
                 className="text-[#6B6B6B] text-[12px] leading-relaxed cursor-pointer"
                 onClick={() =>
-                  setFormData((p) => ({
-                    ...p,
-                    privacyConsent: !p.privacyConsent,
-                  }))
+                  setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }))
                 }
               >
-                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                {t(language, 'privacyLabel')}{' '}
                 <a
                   href="https://jedroplus.com/privacy"
                   target="_blank"
@@ -390,7 +411,7 @@ export default function MagazineCustomerDetails() {
                   className="underline transition-colors"
                   style={{ color: theme.primaryColor }}
                 >
-                  Preberi politiko zasebnosti
+                  {t(language, 'privacyLink')}
                 </a>
               </label>
               {errors.privacyConsent && (
@@ -401,15 +422,12 @@ export default function MagazineCustomerDetails() {
             </div>
           </motion.div>
 
-          {/* GDPR Marketing */}
+          {/* Marketing consent */}
           <motion.div variants={itemVariants} className="mt-4 flex items-start gap-3">
             <div
               className="relative w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
               onClick={() =>
-                setFormData((p) => ({
-                  ...p,
-                  gdprSendMarketing: !p.gdprSendMarketing,
-                }))
+                setFormData((p) => ({ ...p, gdprSendMarketing: !p.gdprSendMarketing }))
               }
             >
               <div
@@ -439,13 +457,10 @@ export default function MagazineCustomerDetails() {
             <label
               className="text-[#6B6B6B] text-[12px] leading-relaxed cursor-pointer"
               onClick={() =>
-                setFormData((p) => ({
-                  ...p,
-                  gdprSendMarketing: !p.gdprSendMarketing,
-                }))
+                setFormData((p) => ({ ...p, gdprSendMarketing: !p.gdprSendMarketing }))
               }
             >
-              Želim prejemati obvestila o promocijah in novostih.
+              {t(language, 'marketingLabel')}
             </label>
           </motion.div>
 
@@ -461,7 +476,7 @@ export default function MagazineCustomerDetails() {
             style={{ position: 'absolute', left: '-9999px' }}
           />
 
-          {/* Submit */}
+          {/* Submit error */}
           {error && (
             <motion.p
               initial={{ opacity: 0 }}
@@ -471,12 +486,17 @@ export default function MagazineCustomerDetails() {
               {error}
             </motion.p>
           )}
+
           <motion.div variants={itemVariants} className="mt-10">
             <motion.button
               type="submit"
               disabled={isSubmitting}
               className="group relative px-8 py-3 overflow-hidden transition-all duration-300"
-              style={{ border: `1px solid ${theme.primaryColor}`, opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+              style={{
+                border: `1px solid ${theme.primaryColor}`,
+                opacity: isSubmitting ? 0.6 : 1,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              }}
               whileHover={isSubmitting ? {} : { scale: 1.02 }}
               whileTap={isSubmitting ? {} : { scale: 0.98 }}
             >
@@ -491,7 +511,7 @@ export default function MagazineCustomerDetails() {
                 className="relative z-10 magazine-caps text-[10px] tracking-[0.2em]"
                 style={{ color: theme.primaryColor }}
               >
-                {isSubmitting ? 'Pošiljam...' : 'Nadaljuj na potrditev'}
+                {isSubmitting ? t(language, 'sending') : t(language, 'continueToConfirm')}
               </span>
             </motion.button>
           </motion.div>
@@ -500,7 +520,7 @@ export default function MagazineCustomerDetails() {
         {/* Summary sidebar */}
         <motion.div variants={itemVariants} className="lg:w-64 xl:w-72">
           <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#6B6B6B] mb-4">
-            Vaša rezervacija
+            {t(language, 'yourBooking')}
           </p>
           <div className="h-[1px] bg-black/10 mb-5" />
 
@@ -508,10 +528,10 @@ export default function MagazineCustomerDetails() {
             {(selectedEmployee || anyPerson) && (
               <div>
                 <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                  Specialist
+                  {t(language, 'specialist')}
                 </p>
                 <p className="magazine-serif text-[15px] text-[#1A1A1A]">
-                  {selectedEmployee ? selectedEmployee.label : 'Kdorkoli prost'}
+                  {selectedEmployee ? selectedEmployee.label : t(language, 'anyoneLabel')}
                 </p>
               </div>
             )}
@@ -520,7 +540,7 @@ export default function MagazineCustomerDetails() {
               <>
                 <div>
                   <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                    Storitev
+                    {t(language, 'service')}
                   </p>
                   <p className="magazine-serif text-[15px] text-[#1A1A1A]">
                     {selectedService.naziv}
@@ -535,7 +555,7 @@ export default function MagazineCustomerDetails() {
             {selectedDate && (
               <div>
                 <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                  Datum
+                  {t(language, 'date')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A]">
                   {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
@@ -546,10 +566,21 @@ export default function MagazineCustomerDetails() {
             {selectedTime && (
               <div>
                 <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                  Ura
+                  {t(language, 'time')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A] tabular-nums">
                   {selectedTime}
+                </p>
+              </div>
+            )}
+
+            {selectedAddOn && (
+              <div>
+                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                  {t(language, 'addon')}
+                </p>
+                <p className="magazine-body text-[15px] text-[#1A1A1A]">
+                  {selectedAddOn.naziv} (+€{formatBookingPrice(selectedAddOn.finalCena)})
                 </p>
               </div>
             )}
@@ -560,13 +591,18 @@ export default function MagazineCustomerDetails() {
               <div className="h-[1px] bg-black/10 my-5" />
               <div className="flex justify-between items-baseline">
                 <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                  Skupaj
+                  {t(language, 'total')}
                 </p>
                 <p
                   className="magazine-serif text-[1.5rem] font-light tabular-nums"
                   style={{ color: theme.primaryColor }}
                 >
-                  €{selectedService.cena}
+                  {pricing.hasDiscount && (
+                    <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
+                      €{formatBookingPrice(pricing.originalTotal)}
+                    </span>
+                  )}
+                  €{formatBookingPrice(pricing.finalTotal)}
                 </p>
               </div>
             </>

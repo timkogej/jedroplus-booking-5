@@ -6,6 +6,18 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { submitBooking } from '@/lib/api';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  getPromotionPopustTip,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import {
+  buildCancelUrl,
+  buildSuccessUrl,
+  redirectToCheckout,
+} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -115,7 +127,7 @@ function SuccessView() {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '1.75rem',
+            fontSize: '2.1rem',
             fontWeight: 400,
             color: '#111111',
           }}
@@ -226,7 +238,7 @@ function SuccessView() {
         </div>
 
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => { usePromotionsStore.getState().resetSelections(); window.location.reload(); }}
           className="w-full py-4 rounded-xl text-white font-medium text-sm transition-opacity hover:opacity-90"
           style={{
             backgroundColor: theme.primaryColor,
@@ -257,10 +269,16 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     setSubmitting,
     setBookingConfirmation,
     theme,
+    language,
   } = useBookingStore();
 
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   if (bookingConfirmation?.success) {
     return <SuccessView />;
@@ -290,14 +308,75 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
+        privacyConsent: customerDetails.privacyConsent ?? false,
+        marketingConsent: customerDetails.gdprSendMarketing ?? false,
+        consentTimestamp: new Date().toISOString(),
+        originalCena: pricing.originalTotal,
+        finalCena: pricing.finalTotal,
+        ...(promotion ? {
+          promocijaTip: promotion.type,
+          promocijaNaziv: promotion.naziv,
+          popust: pricing.discountAmount,
+          popustTip: getPromotionPopustTip(promotion),
+          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
+          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
+        } : {}),
+        ...(selectedAddOn ? {
+          addOnServiceId: selectedAddOn.id,
+          addOnNaziv: selectedAddOn.naziv,
+          addOnFinalCena: selectedAddOn.finalCena,
+          addOnOriginalCena: selectedAddOn.originalCena,
+          addOnPopust: selectedAddOn.popustZnesek,
+          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
+          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
+        } : {}),
       });
 
       if (response.success) {
+        const serviceName = response.storitev || selectedService.naziv;
+        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+
+        if (response.requiresPayment === true) {
+          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
+          setRedirecting(true);
+
+          try {
+            await redirectToCheckout({
+              companySlug,
+              appointmentId,
+              amount: response.paymentAmount ?? pricing.finalTotal,
+              currency: response.currency ?? 'EUR',
+              serviceName,
+              customerEmail: customerDetails.email,
+              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+              language,
+              paymentMode: response.paymentMode ?? 'full',
+              successUrl: buildSuccessUrl(companySlug, 'elegant', {
+                lang: language,
+                serviceName,
+                date: response.datum || datumDisplay,
+                time: response.cas || selectedTime,
+              }),
+              cancelUrl: buildCancelUrl(companySlug, 'elegant'),
+            });
+            return;
+          } catch (err) {
+            console.error('Elegant booking: failed to start payment:', err);
+            setRedirecting(false);
+            setError(
+              language === 'en'
+                ? 'We could not start the payment. Your booking is saved but not yet confirmed. Please try again.'
+                : 'Plačila ni bilo mogoče začeti. Vaša rezervacija je shranjena, a še ni potrjena. Prosimo, poskusite znova.'
+            );
+            return;
+          }
+        }
+
         setBookingConfirmation({
           success: true,
           message: response.message || 'Rezervacija uspešna!',
-          storitev: selectedService.naziv,
-          datum: format(selectedDate, 'd. MMMM yyyy', { locale: sl }),
+          storitev: serviceName,
+          datum: datumDisplay,
           cas: selectedTime,
         });
       } else {
@@ -330,6 +409,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     },
     { label: 'Email', value: customerDetails?.email },
     { label: 'Telefon', value: customerDetails?.phone },
+    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -339,7 +419,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '1.75rem',
+            fontSize: '2.1rem',
             fontWeight: 400,
             color: '#111111',
             lineHeight: 1.2,
@@ -407,16 +487,23 @@ export default function ElegantConfirmation({ companySlug }: Props) {
               >
                 Skupaj
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-playfair)',
-                  fontSize: '1.5rem',
-                  fontWeight: 500,
-                  color: '#111111',
-                }}
-              >
-                €{selectedService.cena}
-              </span>
+              <div className="text-right">
+                {pricing.hasDiscount && (
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'line-through' }}>
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </div>
+                )}
+                <span
+                  style={{
+                    fontFamily: 'var(--font-playfair)',
+                    fontSize: '1.5rem',
+                    fontWeight: 500,
+                    color: '#111111',
+                  }}
+                >
+                  €{formatBookingPrice(pricing.finalTotal)}
+                </span>
+              </div>
             </div>
           </>
         )}
@@ -475,7 +562,13 @@ export default function ElegantConfirmation({ companySlug }: Props) {
               animate={{ rotate: 360 }}
               transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' as const }}
             />
-            <span>Pošiljam rezervacijo&hellip;</span>
+            <span>
+              {redirecting
+                ? language === 'en'
+                  ? 'Redirecting to payment...'
+                  : 'Preusmerjamo na plačilo...'
+                : 'Pošiljam rezervacijo...'}
+            </span>
           </div>
         ) : (
           'Potrdi rezervacijo'

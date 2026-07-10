@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
@@ -13,6 +14,32 @@ const STEPS = [
 interface Props {
   currentStep: number;
   stepValues: Record<number, string | undefined>;
+}
+
+// Thin SVG checkmark — drawn-in on first appearance
+function ElegantCheck({ color }: { color: string }) {
+  return (
+    <motion.svg
+      width="11"
+      height="11"
+      viewBox="0 0 12 10"
+      fill="none"
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      initial={{ scale: 0.6, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+    >
+      <motion.path
+        d="M1 5L4.5 8.5L11 1"
+        strokeWidth="1.8"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 0.32, delay: 0.05, ease: 'easeOut' as const }}
+      />
+    </motion.svg>
+  );
 }
 
 export default function ElegantSidebar({ currentStep, stepValues }: Props) {
@@ -30,7 +57,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
           <div key={step.number} className="flex items-start gap-3">
             {/* Indicator column */}
             <div className="flex flex-col items-center flex-shrink-0" style={{ paddingTop: '2px' }}>
-              {/* Circle / checkmark */}
+              {/* Circle — done / active / pending */}
               <div
                 className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
                 style={{
@@ -42,13 +69,27 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                     : isActive
                     ? `2px solid ${theme.primaryColor}`
                     : '1.5px solid #D1D5DB',
-                  color: isDone ? 'white' : isActive ? theme.primaryColor : '#9CA3AF',
-                  fontSize: isDone ? '0.65rem' : '0.7rem',
-                  fontWeight: isDone ? 700 : 500,
+                  color: isActive ? theme.primaryColor : '#9CA3AF',
+                  fontSize: '0.7rem',
+                  fontWeight: 500,
                   fontFamily: 'var(--font-inter)',
                 }}
               >
-                {isDone ? '✓' : step.visual}
+                <AnimatePresence mode="wait">
+                  {isDone ? (
+                    <ElegantCheck key="check" color="white" />
+                  ) : (
+                    <motion.span
+                      key="num"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      {step.visual}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Connecting line */}

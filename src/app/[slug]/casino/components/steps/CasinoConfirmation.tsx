@@ -6,6 +6,19 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { submitBooking } from '@/lib/api';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  getPromotionPopustTip,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import { t } from '../../i18n';
+import {
+  buildCancelUrl,
+  buildSuccessUrl,
+  redirectToCheckout,
+} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -18,7 +31,7 @@ function formatDuration(minutes: number): string {
   return m > 0 ? `${h}h ${m}min` : `${h}h`;
 }
 
-// ── Gold particle effect (subtle, elegant) ────────────────────
+// ── Gold particle effect ──────────────────────────────────────
 function GoldParticles({ active }: { active: boolean }) {
   const [particles, setParticles] = useState<Array<{
     id: number; x: number; delay: number; duration: number;
@@ -33,8 +46,8 @@ function GoldParticles({ active }: { active: boolean }) {
       duration: 1.8 + Math.random() * 1.2,
     }));
     setParticles(newParticles);
-    const t = setTimeout(() => setParticles([]), 4000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setParticles([]), 4000);
+    return () => clearTimeout(timer);
   }, [active]);
 
   if (!particles.length) return null;
@@ -66,43 +79,56 @@ function SuccessView() {
   const {
     bookingConfirmation,
     selectedService,
+    selectedServices,
     selectedDate,
     selectedTime,
     selectedEmployeeId,
     anyPerson,
     employeesUI,
+    totalDurationMin,
     reset,
     customerDetails,
+    language,
   } = useBookingStore();
 
   const [copied, setCopied] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   useEffect(() => {
-    const t = setTimeout(() => setShowParticles(true), 400);
+    const t1 = setTimeout(() => setShowParticles(true), 400);
     const t2 = setTimeout(() => setShowParticles(false), 4500);
-    return () => { clearTimeout(t); clearTimeout(t2); };
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+  const primaryService = selectedServices[0] ?? selectedService;
+  const services = selectedServices.length > 0 ? selectedServices : primaryService ? [primaryService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
+  const displayServices = selectedServices.length > 1
+    ? selectedServices.map((s) => s.naziv).join(' + ')
+    : primaryService?.naziv;
+
   const handleAddToCalendar = () => {
-    if (!selectedDate || !selectedTime || !selectedService) return;
+    if (!selectedDate || !selectedTime || !primaryService) return;
     const [hours, minutes] = selectedTime.split(':').map(Number);
     const yr = selectedDate.getFullYear();
     const mo = String(selectedDate.getMonth() + 1).padStart(2, '0');
     const dy = String(selectedDate.getDate()).padStart(2, '0');
     const hh = String(hours).padStart(2, '0');
     const mm = String(minutes).padStart(2, '0');
-    const totalMin = hours * 60 + minutes + selectedService.trajanjeMin;
-    const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
-    const endM = String(totalMin % 60).padStart(2, '0');
+    const durMin = totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin;
+    const totalMinEnd = hours * 60 + minutes + durMin;
+    const endH = String(Math.floor(totalMinEnd / 60) % 24).padStart(2, '0');
+    const endM = String(totalMinEnd % 60).padStart(2, '0');
     const ics = [
       'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Jedro+//Booking//SL',
       'BEGIN:VEVENT',
       `DTSTART:${yr}${mo}${dy}T${hh}${mm}00`,
       `DTEND:${yr}${mo}${dy}T${endH}${endM}00`,
-      `SUMMARY:${selectedService.naziv}`,
-      `DESCRIPTION:Rezervacija storitve ${selectedService.naziv}`,
+      `SUMMARY:${primaryService.naziv}`,
+      `DESCRIPTION:Rezervacija storitve ${primaryService.naziv}`,
       'END:VEVENT', 'END:VCALENDAR',
     ].join('\r\n');
     const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
@@ -126,7 +152,6 @@ function SuccessView() {
     }
   };
 
-  // Generate a reference number
   const refNum = bookingConfirmation?.cas
     ? `MCB-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`
     : 'MCB-2026';
@@ -143,7 +168,6 @@ function SuccessView() {
           transition={{ delay: 0.3, type: 'spring', stiffness: 220, damping: 18 }}
           className="mb-6"
         >
-          {/* Gold diamond row */}
           <div className="flex items-center justify-center gap-2 mb-4">
             {['◆', '◆', '◆'].map((s, i) => (
               <motion.span
@@ -157,7 +181,6 @@ function SuccessView() {
             ))}
           </div>
 
-          {/* Checkmark circle */}
           <div
             className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
             style={{
@@ -188,7 +211,7 @@ function SuccessView() {
               letterSpacing: '0.02em',
             }}
           >
-            Rezervacija Potrjena
+            {t(language, 'bookingConfirmed')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
@@ -203,7 +226,7 @@ function SuccessView() {
               marginTop: '0.4rem',
             }}
           >
-            Vaš sedež pri mizi je rezerviran
+            {t(language, 'seatReserved')}
           </motion.p>
         </motion.div>
 
@@ -219,65 +242,33 @@ function SuccessView() {
             boxShadow: '0 0 30px rgba(201, 168, 76, 0.08)',
           }}
         >
-          {/* Top accent */}
-          <div
-            className="h-px"
-            style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }}
-          />
+          <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
 
-          {/* Ticket header */}
           <div
             className="px-5 py-3 flex items-center justify-between"
-            style={{
-              background: 'rgba(13, 59, 30, 0.4)',
-              borderBottom: '1px solid rgba(201,168,76,0.12)',
-            }}
+            style={{ background: 'rgba(13, 59, 30, 0.4)', borderBottom: '1px solid rgba(201,168,76,0.12)' }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-oswald)',
-                fontSize: '0.58rem',
-                letterSpacing: '0.25em',
-                textTransform: 'uppercase',
-                color: '#c9a84c',
-              }}
-            >
-              ◆ Dobitna Vstopnica
+            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.58rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c' }}>
+              {t(language, 'winningTicket')}
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-oswald)',
-                fontSize: '0.55rem',
-                letterSpacing: '0.12em',
-                color: 'rgba(201,168,76,0.4)',
-              }}
-            >
+            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.55rem', letterSpacing: '0.12em', color: 'rgba(201,168,76,0.4)' }}>
               #{refNum}
             </span>
           </div>
 
-          {/* Booking details */}
           <div className="px-5 py-4">
             {[
-              { label: 'Storitev',   value: bookingConfirmation?.storitev ?? selectedService?.naziv },
-              { label: 'Specialist', value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label },
-              { label: 'Datum',      value: bookingConfirmation?.datum },
-              { label: 'Ura',        value: bookingConfirmation?.cas },
-              { label: 'Trajanje',   value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
+              { label: t(language, 'fieldService'),    value: bookingConfirmation?.storitev ?? displayServices },
+              { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label },
+              { label: t(language, 'fieldDate'),       value: bookingConfirmation?.datum },
+              { label: t(language, 'fieldTime'),       value: bookingConfirmation?.cas },
+              { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
             ]
               .filter((r) => r.value)
               .map((row, i) => (
                 <div key={i} className="mc-summary-row">
                   <span className="mc-summary-label">{row.label}</span>
-                  <span
-                    className="text-right"
-                    style={{
-                      fontFamily: 'var(--font-cormorant)',
-                      fontSize: '0.95rem',
-                      color: '#f5edd6',
-                      maxWidth: '60%',
-                    }}
-                  >
+                  <span className="text-right" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6', maxWidth: '60%' }}>
                     {row.value}
                   </span>
                 </div>
@@ -286,88 +277,50 @@ function SuccessView() {
             {customerDetails && (
               <div className="mc-summary-row">
                 <span className="mc-summary-label">Gost</span>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-cormorant)',
-                    fontSize: '0.95rem',
-                    color: '#f5edd6',
-                  }}
-                >
+                <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6' }}>
                   {customerDetails.firstName} {customerDetails.lastName}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Tear line */}
-          <div
-            className="mx-5"
-            style={{ borderTop: '1px dashed rgba(201,168,76,0.2)' }}
-          />
+          <div className="mx-5" style={{ borderTop: '1px dashed rgba(201,168,76,0.2)' }} />
 
-          {/* Price */}
-          {selectedService && (
+          {primaryService && (
             <div className="px-5 py-3 flex items-center justify-between">
-              <span
-                style={{
-                  fontFamily: 'var(--font-oswald)',
-                  fontSize: '0.6rem',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: '#a89060',
-                }}
-              >
-                Skupaj
+              <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a89060' }}>
+                {t(language, 'fieldTotal')}
               </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-playfair)',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: '#e8c96d',
-                }}
-              >
-                €{selectedService.cena}
+              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
+                {pricing.hasDiscount && (
+                  <span style={{ display: 'block', fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </span>
+                )}
+                €{formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}
 
-          {/* Bottom accent */}
-          <div
-            className="h-px"
-            style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }}
-          />
+          <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
         </motion.div>
 
         {/* Action buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0 }}
-          className="space-y-3"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }} className="space-y-3">
           <div className="flex gap-3">
-            <button
-              onClick={handleAddToCalendar}
-              className="mc-btn-secondary flex-1"
-              style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}
-            >
-              Dodaj v Koledar
+            <button onClick={handleAddToCalendar} className="mc-btn-secondary flex-1" style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}>
+              {t(language, 'addToCalendar')}
             </button>
-            <button
-              onClick={handleShare}
-              className="mc-btn-secondary flex-1"
-              style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}
-            >
-              {copied ? '✓ Kopirano' : 'Deli'}
+            <button onClick={handleShare} className="mc-btn-secondary flex-1" style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}>
+              {copied ? t(language, 'copied') : t(language, 'share')}
             </button>
           </div>
 
           <button
-            onClick={reset}
+            onClick={() => { usePromotionsStore.getState().resetSelections(); reset(); }}
             className="mc-btn-gold w-full"
           >
-            Nova Rezervacija
+            {t(language, 'newBooking')}
           </button>
         </motion.div>
       </div>
@@ -383,6 +336,8 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     anyPerson,
     eligibleEmployeeIds,
     selectedService,
+    selectedServices,
+    totalDurationMin,
     selectedDate,
     selectedTime,
     customerDetails,
@@ -390,18 +345,29 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     isSubmitting,
     setSubmitting,
     setBookingConfirmation,
+    language,
   } = useBookingStore();
 
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
   if (bookingConfirmation?.success) {
     return <SuccessView />;
   }
 
+  const primaryService = selectedServices[0] ?? selectedService;
+  const services = selectedServices.length > 0 ? selectedServices : primaryService ? [primaryService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
+  const displayServices = selectedServices.length > 1
+    ? selectedServices.map((s) => s.naziv).join(' + ')
+    : primaryService?.naziv;
+
   const handleConfirm = async () => {
-    if (!companySlug || !selectedService || !selectedDate || !selectedTime || !customerDetails) {
-      setError('Manjkajo podatki za rezervacijo');
+    if (!companySlug || !primaryService || !selectedDate || !selectedTime || !customerDetails) {
+      setError(t(language, 'missingData'));
       return;
     }
     setSubmitting(true);
@@ -412,7 +378,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
         companySlug,
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
-        serviceId: selectedService.id,
+        serviceId: primaryService.id,
         employeeId: selectedEmployeeId,
         anyPerson,
         eligibleEmployeeIds,
@@ -423,36 +389,94 @@ export default function CasinoConfirmation({ companySlug }: Props) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
+        privacyConsent: customerDetails.privacyConsent ?? false,
+        marketingConsent: customerDetails.gdprSendMarketing ?? false,
+        consentTimestamp: new Date().toISOString(),
+        originalCena: pricing.originalTotal,
+        finalCena: pricing.finalTotal,
+        ...(promotion ? {
+          promocijaTip: promotion.type,
+          promocijaNaziv: promotion.naziv,
+          popust: pricing.discountAmount,
+          popustTip: getPromotionPopustTip(promotion),
+          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
+          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
+        } : {}),
+        ...(selectedAddOn ? {
+          addOnServiceId: selectedAddOn.id,
+          addOnNaziv: selectedAddOn.naziv,
+          addOnFinalCena: selectedAddOn.finalCena,
+          addOnOriginalCena: selectedAddOn.originalCena,
+          addOnPopust: selectedAddOn.popustZnesek,
+          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
+          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
+        } : {}),
       });
 
       if (response.success) {
+        const serviceName = response.storitev || displayServices || primaryService.naziv;
+        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+
+        if (response.requiresPayment === true) {
+          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
+          setRedirecting(true);
+
+          try {
+            await redirectToCheckout({
+              companySlug,
+              appointmentId,
+              amount: response.paymentAmount ?? pricing.finalTotal,
+              currency: response.currency ?? 'EUR',
+              serviceName,
+              customerEmail: customerDetails.email,
+              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+              language,
+              paymentMode: response.paymentMode ?? 'full',
+              successUrl: buildSuccessUrl(companySlug, 'casino', {
+                lang: language,
+                serviceName,
+                date: response.datum || datumDisplay,
+                time: response.cas || selectedTime,
+              }),
+              cancelUrl: buildCancelUrl(companySlug, 'casino'),
+            });
+            return;
+          } catch (err) {
+            console.error('Casino booking: failed to start payment:', err);
+            setRedirecting(false);
+            setError(t(language, 'paymentStartFailed'));
+            return;
+          }
+        }
+
         setBookingConfirmation({
           success: true,
           message: response.message || 'Rezervacija uspešna!',
-          storitev: selectedService.naziv,
-          datum: format(selectedDate, 'd. MMMM yyyy', { locale: sl }),
+          storitev: serviceName,
+          datum: datumDisplay,
           cas: selectedTime,
         });
       } else {
-        setError(response.message || 'Rezervacija ni uspela');
+        setError(response.message || t(language, 'bookingFailed'));
       }
     } catch (err) {
       console.error('Casino booking: submit failed:', err);
-      setError('Rezervacija ni uspela. Prosim poskusite znova.');
+      setError(t(language, 'bookingFailed'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const rows = [
-    { label: 'Specialist', value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label },
-    { label: 'Storitev',   value: selectedService?.naziv },
-    { label: 'Trajanje',   value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
-    { label: 'Datum',      value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },
-    { label: 'Ura',        value: selectedTime },
-    { label: 'Ime',        value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
-    { label: 'Email',      value: customerDetails?.email },
-    { label: 'Telefon',    value: customerDetails?.phone },
+    { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label },
+    { label: t(language, 'fieldService'),    value: displayServices },
+    { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
+    { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },
+    { label: t(language, 'fieldTime'),       value: selectedTime },
+    { label: 'Ime',   value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
+    { label: 'Email', value: customerDetails?.email },
+    { label: 'Tel.',  value: customerDetails?.phone },
+    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -466,7 +490,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
           lineHeight: 1.7,
         }}
       >
-        Preverite svojo rezervacijo pred dokončno potrditvijo.
+        {t(language, 'reviewIntro')}
       </p>
 
       {/* Review card */}
@@ -478,88 +502,46 @@ export default function CasinoConfirmation({ companySlug }: Props) {
           boxShadow: '0 0 24px rgba(201, 168, 76, 0.06)',
         }}
       >
-        {/* Top accent */}
-        <div
-          className="h-px"
-          style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }}
-        />
+        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
 
-        {/* Header */}
-        <div
-          className="px-5 py-3"
-          style={{
-            background: 'rgba(13, 59, 30, 0.4)',
-            borderBottom: '1px solid rgba(201,168,76,0.1)',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--font-oswald)',
-              fontSize: '0.6rem',
-              letterSpacing: '0.25em',
-              textTransform: 'uppercase',
-              color: '#a89060',
-            }}
-          >
-            ◆ Pregled Rezervacije
+        <div className="px-5 py-3" style={{ background: 'rgba(13, 59, 30, 0.4)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
+          <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#a89060' }}>
+            {t(language, 'reviewLabel')}
           </p>
         </div>
 
-        {/* Details table */}
         <div className="px-5 py-4">
           {rows.map((row, i) => (
             <div key={i} className="mc-summary-row" style={{ borderBottomColor: 'rgba(201,168,76,0.07)' }}>
               <span className="mc-summary-label">{row.label}</span>
-              <span
-                className="text-right"
-                style={{
-                  fontFamily: 'var(--font-cormorant)',
-                  fontSize: '0.95rem',
-                  color: '#f5edd6',
-                  maxWidth: '65%',
-                }}
-              >
+              <span className="text-right" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6', maxWidth: '65%' }}>
                 {row.value}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Divider */}
         <div className="mx-5" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }} />
 
-        {/* Price */}
-        {selectedService && (
+        {primaryService && (
           <div className="px-5 py-3 flex items-center justify-between">
-            <span
-              style={{
-                fontFamily: 'var(--font-oswald)',
-                fontSize: '0.6rem',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: '#a89060',
-              }}
-            >
-              Skupaj
+            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a89060' }}>
+              {t(language, 'fieldTotal')}
             </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-playfair)',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: '#e8c96d',
-              }}
-            >
-              €{selectedService.cena}
-            </span>
+            <div className="text-right">
+                {pricing.hasDiscount && (
+                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
+                  €{formatBookingPrice(pricing.originalTotal)}
+                </div>
+              )}
+              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
+                €{formatBookingPrice(pricing.finalTotal)}
+              </span>
+            </div>
           </div>
         )}
 
-        {/* Bottom accent */}
-        <div
-          className="h-px"
-          style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.3), transparent)' }}
-        />
+        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.3), transparent)' }} />
       </div>
 
       {/* Error */}
@@ -570,10 +552,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="mb-5 rounded-lg px-4 py-3 flex items-center gap-3"
-            style={{
-              background: 'rgba(192, 57, 43, 0.08)',
-              border: '1px solid rgba(192,57,43,0.3)',
-            }}
+            style={{ background: 'rgba(192, 57, 43, 0.08)', border: '1px solid rgba(192,57,43,0.3)' }}
           >
             <span style={{ color: '#c0392b', flexShrink: 0 }}>◆</span>
             <p className="mc-error">{error}</p>
@@ -596,23 +575,23 @@ export default function CasinoConfirmation({ companySlug }: Props) {
                 animate={{ rotate: 360 }}
                 transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' as const }}
               />
-              <span>Pošiljam rezervacijo&hellip;</span>
+              <span>
+                {redirecting
+                  ? t(language, 'redirectingToPayment')
+                  : t(language, 'confirmingBtn')}
+              </span>
             </div>
           ) : (
-            '♣ Potrdi Rezervacijo ♣'
+            t(language, 'confirmBtn')
           )}
         </button>
       </div>
 
       <p
         className="text-center mt-3 italic"
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '0.82rem',
-          color: 'rgba(201,168,76,0.3)',
-        }}
+        style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.82rem', color: 'rgba(201,168,76,0.3)' }}
       >
-        Potrditev bo poslana na vaš email
+        {t(language, 'confirmEmailNote')}
       </p>
     </div>
   );

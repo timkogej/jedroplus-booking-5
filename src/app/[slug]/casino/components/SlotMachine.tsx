@@ -81,22 +81,6 @@ export default function BookingSummaryCard() {
           >
             Vaša Izbira
           </span>
-          {allFilled && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 18 }}
-              style={{
-                fontFamily: 'var(--font-oswald)',
-                fontSize: '0.55rem',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: '#c9a84c',
-              }}
-            >
-              ◆ Miza rezervirana
-            </motion.span>
-          )}
         </div>
 
         {/* Items */}

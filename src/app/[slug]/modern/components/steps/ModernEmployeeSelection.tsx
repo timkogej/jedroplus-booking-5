@@ -4,6 +4,7 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import ModernCard from '../ModernCard';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -20,7 +21,7 @@ const itemVariants: Variants = {
 };
 
 function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
-  const { theme, anyPerson } = useBookingStore();
+  const { theme, anyPerson, language } = useBookingStore();
 
   return (
     <motion.div variants={itemVariants}>
@@ -52,10 +53,10 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               className="font-semibold"
               style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)', fontSize: '0.975rem' }}
             >
-              Kdorkoli
+              {t(language, 'anyone')}
             </p>
             <p className="text-sm mt-0.5" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-              Dodelimo vam prvega prostega specialista
+              {t(language, 'anyoneDesc')}
             </p>
           </div>
         </div>
@@ -64,7 +65,13 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
   );
 }
 
-function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: (id: string) => void }) {
+function EmployeeCard({
+  employee,
+  onSelect,
+}: {
+  employee: EmployeeUI;
+  onSelect: (id: string) => void;
+}) {
   const { theme, selectedEmployeeId, anyPerson } = useBookingStore();
   const isSelected = !anyPerson && selectedEmployeeId === employee.id;
 
@@ -76,20 +83,24 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
           <div className="relative flex-shrink-0">
             <div
               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base"
-              style={{ backgroundColor: theme.primaryColor, fontFamily: 'var(--font-dm-sans)' }}
+              style={{ backgroundColor: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
             >
               {employee.initials}
             </div>
-            {/* Pulse ring when selected */}
+            {/* Pulse ring when selected — slowed to 3 s cycle for a calm feel */}
             <AnimatePresence>
               {isSelected && (
                 <motion.div
                   className="absolute inset-0 rounded-full"
                   style={{ border: `2px solid ${theme.primaryColor}` }}
                   initial={{ scale: 1, opacity: 0.7 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
+                  animate={{ scale: 1.55, opacity: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1, repeat: Infinity }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: 'easeOut' as const,
+                  }}
                 />
               )}
             </AnimatePresence>
@@ -115,7 +126,7 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
 }
 
 export default function ModernEmployeeSelection() {
-  const { employeesUI, eligibleEmployeeIds, selectEmployee, theme } = useBookingStore();
+  const { employeesUI, eligibleEmployeeIds, selectEmployee, language } = useBookingStore();
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter((e) => eligibleSet.has(String(e.id)));
@@ -124,7 +135,7 @@ export default function ModernEmployeeSelection() {
     return (
       <div className="text-center py-16">
         <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)', fontSize: '0.9rem' }}>
-          Za to storitev ni razpoložljivega osebja.
+          {t(language, 'noStaff')}
         </p>
       </div>
     );
@@ -140,21 +151,20 @@ export default function ModernEmployeeSelection() {
         className="mb-8"
       >
         <h2
-          className="text-3xl font-bold mb-2"
-          style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-dm-sans)' }}
+          className="mb-2"
+          style={{
+            color: 'var(--t-primary)',
+            fontFamily: 'var(--font-clash)',
+            fontWeight: 400,
+            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
+            letterSpacing: '-0.015em',
+            lineHeight: 1.1,
+          }}
         >
-          Izberi{' '}
-          <span
-            className="modern-gradient-text"
-            style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
-            }}
-          >
-            specialista
-          </span>
+          {t(language, 'choosePerson')}
         </h2>
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          Kdo naj vas postreže?
+          {t(language, 'whoPerson')}
         </p>
       </motion.div>
 
@@ -171,7 +181,7 @@ export default function ModernEmployeeSelection() {
             <motion.div variants={itemVariants} className="flex items-center gap-3 my-2">
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
               <span className="text-xs" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}>
-                ali izberi osebo
+                {t(language, 'orChoosePerson')}
               </span>
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
             </motion.div>

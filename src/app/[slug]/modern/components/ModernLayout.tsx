@@ -10,6 +10,7 @@ import ModernEmployeeSelection from './steps/ModernEmployeeSelection';
 import ModernDateTimeSelection from './steps/ModernDateTimeSelection';
 import ModernCustomerDetails from './steps/ModernCustomerDetails';
 import ModernConfirmation from './steps/ModernConfirmation';
+import ModernPaymentStep from './steps/ModernPaymentStep';
 
 interface CssVars {
   '--t-primary': string;
@@ -118,6 +119,7 @@ export default function ModernLayout({ companySlug }: Props) {
     currentStep,
     prevStep,
     bookingConfirmation,
+    prikazZaposlenih,
   } = useBookingStore();
 
   const cssVars = useMemo(() => computeCssVars(theme), [theme]);
@@ -132,12 +134,23 @@ export default function ModernLayout({ companySlug }: Props) {
     }
     switch (currentStep) {
       case 1:
-      case 2: return <ModernServiceSelection />;
-      case 3: return <ModernEmployeeSelection />;
-      case 4: return <ModernDateTimeSelection companySlug={companySlug} />;
-      case 5: return <ModernCustomerDetails />;
-      case 6: return <ModernConfirmation companySlug={companySlug} />;
-      default: return null;
+      case 2:
+        return <ModernServiceSelection />;
+      case 3:
+        // When prikazZaposlenih=false, employee step is hidden — skip straight to date/time
+        return prikazZaposlenih
+          ? <ModernEmployeeSelection />
+          : <ModernDateTimeSelection companySlug={companySlug} />;
+      case 4:
+        return <ModernDateTimeSelection companySlug={companySlug} />;
+      case 5:
+        return <ModernCustomerDetails />;
+      case 6:
+        return <ModernConfirmation companySlug={companySlug} />;
+      case 7:
+        return <ModernPaymentStep />;
+      default:
+        return null;
     }
   };
 
@@ -150,7 +163,7 @@ export default function ModernLayout({ companySlug }: Props) {
         fontFamily: 'var(--font-inter)',
       }}
     >
-      {/* Animated background orbs — CSS animations for smooth, glitch-free rendering */}
+      {/* Animated background orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="modern-orb-1 absolute w-[600px] h-[600px] blur-3xl"
@@ -175,7 +188,6 @@ export default function ModernLayout({ companySlug }: Props) {
       {/* Content layer */}
       <div className="relative z-10 flex flex-col min-h-screen">
 
-        {/* Top: masthead + progress */}
         <ModernHeader
           currentStep={isSuccess ? 6 : currentStep}
           isSuccess={isSuccess}
@@ -183,7 +195,6 @@ export default function ModernLayout({ companySlug }: Props) {
           onBack={prevStep}
         />
 
-        {/* Main content — centered */}
         <main className="flex-1 overflow-y-auto py-8 px-4">
           <div className="max-w-2xl mx-auto">
             <AnimatePresence mode="wait">
@@ -200,7 +211,6 @@ export default function ModernLayout({ companySlug }: Props) {
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="py-4 text-center flex-shrink-0">
           <p
             className="text-xs"

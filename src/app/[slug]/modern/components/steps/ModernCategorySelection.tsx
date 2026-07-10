@@ -95,8 +95,15 @@ export default function ModernCategorySelection() {
         className="text-center mb-8"
       >
         <h2
-          className="text-3xl font-bold mb-3"
-          style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-dm-sans)' }}
+          className="mb-3"
+          style={{
+            color: 'var(--t-primary)',
+            fontFamily: 'var(--font-clash)',
+            fontWeight: 400,
+            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
+            letterSpacing: '-0.015em',
+            lineHeight: 1.1,
+          }}
         >
           Izberi{' '}
           <span

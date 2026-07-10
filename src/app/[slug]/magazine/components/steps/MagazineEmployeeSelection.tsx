@@ -3,6 +3,7 @@
 import { motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.08 } },
@@ -14,7 +15,7 @@ const itemVariants: Variants = {
 };
 
 export default function MagazineEmployeeSelection() {
-  const { employeesUI, eligibleEmployeeIds, selectedEmployeeId, anyPerson, selectEmployee, theme } =
+  const { employeesUI, eligibleEmployeeIds, selectedEmployeeId, anyPerson, selectEmployee, theme, language } =
     useBookingStore();
 
   const eligibleSet = new Set(eligibleEmployeeIds);
@@ -25,7 +26,6 @@ export default function MagazineEmployeeSelection() {
     const isSelected = isAnyOption ? anyPerson : selectedEmployeeId === employee?.id;
 
     if (isAnyOption) {
-      // "Kdorkoli" styled as pull-quote box
       return (
         <motion.div
           key="any"
@@ -58,16 +58,16 @@ export default function MagazineEmployeeSelection() {
                   className="magazine-caps text-[9px] tracking-[0.22em] mb-2"
                   style={{ color: isSelected ? theme.primaryColor : '#6B6B6B' }}
                 >
-                  Priporočamo
+                  {t(language, 'anyoneRecommend')}
                 </p>
                 <h3
                   className="magazine-serif text-xl text-[#1A1A1A] leading-snug"
                   style={{ fontStyle: 'italic' }}
                 >
-                  Prepustite nam izbiro
+                  {t(language, 'anyoneTitle')}
                 </h3>
                 <p className="text-[#6B6B6B] text-sm mt-1.5">
-                  Povežemo vas z najboljšim prostim specialistom
+                  {t(language, 'anyoneDesc')}
                 </p>
               </div>
 
@@ -127,7 +127,6 @@ export default function MagazineEmployeeSelection() {
           style={{
             borderColor: 'rgba(0,0,0,0.07)',
             backgroundColor: isSelected ? `${theme.primaryColor}04` : 'transparent',
-            paddingLeft: isSelected ? '20px' : '20px',
           }}
         >
           {/* Avatar / initials */}
@@ -186,18 +185,18 @@ export default function MagazineEmployeeSelection() {
           style={{ backgroundColor: theme.primaryColor }}
         />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
-          Naši Specialisti
+          {t(language, 'specialistsTitle')}
         </h1>
         <div className="h-[1px] w-full bg-black/10 mb-4" />
         <p className="magazine-body text-[#6B6B6B] text-[15px] italic leading-relaxed">
-          Izberite svojega strokovnjaka
+          {t(language, 'specialistsSubtitle')}
         </p>
       </motion.div>
 
       {noEmployeesAvailable ? (
         <motion.div variants={itemVariants} className="py-8">
           <p className="magazine-body text-[#6B6B6B] text-sm italic">
-            Za to storitev ni na voljo nobenega osebja.
+            {t(language, 'noStaff')}
           </p>
         </motion.div>
       ) : (
@@ -209,7 +208,7 @@ export default function MagazineEmployeeSelection() {
           <motion.div variants={itemVariants} className="my-6 flex items-center gap-4">
             <div className="flex-1 h-[1px] bg-black/08" />
             <span className="magazine-caps text-[9px] tracking-[0.2em] text-black/25">
-              ali
+              {t(language, 'or')}
             </span>
             <div className="flex-1 h-[1px] bg-black/08" />
           </motion.div>

@@ -1,3 +1,11 @@
+/* ── Stardom — high-fashion serif for headings ──────────── */
+@import url('https://api.fontshare.com/v2/css?f[]=stardom@400&display=swap');
+
+/* CSS custom property so JS components can reference it */
+:root {
+  --font-stardom: 'Stardom', serif;
+}
+
 /* ── Seasonal Booking Variant ─────────────────────────── */
 
 /* Hide scrollbar */
@@ -21,7 +29,7 @@
   position: relative;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: var(--font-quicksand);
+  font-family: var(--font-inter);
   border: 1.5px solid transparent;
 }
 .seasonal-cal-day:disabled {
@@ -34,7 +42,7 @@
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   border: 1px solid var(--b2);
-  font-family: var(--font-quicksand);
+  font-family: var(--font-inter);
   font-size: 0.9rem;
   color: var(--t-primary);
   background: var(--s1);
@@ -45,11 +53,11 @@
   color: var(--t-disabled);
 }
 .seasonal-input:focus {
-  background: var(--s2h);
+  background: var(--s2);
 }
 .seasonal-input.error {
   border-color: #EF4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10);
 }
 
 /* Textarea */
@@ -58,7 +66,7 @@
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
   border: 1px solid var(--b2);
-  font-family: var(--font-quicksand);
+  font-family: var(--font-inter);
   font-size: 0.9rem;
   color: var(--t-primary);
   background: var(--s1);
@@ -71,7 +79,7 @@
   color: var(--t-disabled);
 }
 .seasonal-textarea:focus {
-  background: var(--s2h);
+  background: var(--s2);
 }
 
 /* Summary rows */
@@ -87,16 +95,17 @@
   border-bottom: none;
 }
 .seasonal-summary-label {
-  font-family: var(--font-quicksand);
+  font-family: var(--font-inter);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--t-faint);
   flex-shrink: 0;
   padding-top: 0.1rem;
+  font-weight: 500;
 }
 .seasonal-summary-value {
-  font-family: var(--font-quicksand);
+  font-family: var(--font-inter);
   font-size: 0.875rem;
   color: var(--t-soft);
   text-align: right;
@@ -109,8 +118,28 @@
   -webkit-text-fill-color: transparent;
 }
 
-/* Solid surface — no blur, no glass */
+/* Solid white surface */
 .seasonal-surface {
-  background-color: var(--s2);
+  background-color: #ffffff;
   border: 1px solid var(--b2);
+}
+
+/* Scarcity pulse dots — orange (2-3 slots) and red (1 slot) */
+.seasonal-pulse-orange {
+  border-radius: 50%;
+  background-color: #F97316;
+  animation: seasonal-pulse-o 2s ease-in-out infinite;
+}
+.seasonal-pulse-red {
+  border-radius: 50%;
+  background-color: #EF4444;
+  animation: seasonal-pulse-r 2s ease-in-out infinite;
+}
+@keyframes seasonal-pulse-o {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.35); }
+}
+@keyframes seasonal-pulse-r {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
 }

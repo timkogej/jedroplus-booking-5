@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
+import {
+  calculateDiscount,
+  fetchActiveDiscounts,
+  type ServicePromotion,
+} from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
 
 import TimelineStepper from './TimelineStepper';
 import MobileStepIndicator from './MobileStepIndicator';
@@ -86,6 +92,36 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
         // Set employees by service
         if (data.employeesByServiceId) {
           setEmployeesByServiceId(data.employeesByServiceId);
+        }
+
+        const companyId = data.company?.idPodjetja;
+        const serviceIds = (data.services ?? []).map((service) => String(service.id));
+
+        if (companyId && serviceIds.length) {
+          try {
+            const discounts = await fetchActiveDiscounts(companyId, serviceIds);
+            const enriched: Record<string, ServicePromotion> = {};
+            for (const [serviceId, promo] of Object.entries(discounts)) {
+              const service = (data.services ?? []).find(
+                (item) => String(item.id) === serviceId
+              );
+              if (!service) continue;
+              const { finalCena, popustZnesek } = calculateDiscount(
+                Number(service.cena),
+                promo.tipPopusta,
+                promo.vrednost
+              );
+              enriched[serviceId] = {
+                ...promo,
+                originalCena: Number(service.cena),
+                finalCena,
+                popustZnesek,
+              };
+            }
+            usePromotionsStore.getState().setServiceDiscounts(enriched);
+          } catch {
+            // Promotions are non-critical.
+          }
         }
       } catch (err) {
         console.error('Failed to load init data:', err);

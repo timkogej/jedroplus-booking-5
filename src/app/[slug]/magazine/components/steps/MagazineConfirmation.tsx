@@ -6,6 +6,19 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { submitBooking } from '@/lib/api';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  getPromotionPopustTip,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import { t } from '../../i18n';
+import {
+  buildCancelUrl,
+  buildSuccessUrl,
+  redirectToCheckout,
+} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -24,10 +37,11 @@ const successItem = (i: number) => ({
   transition: { delay: i * 0.08, duration: 0.45, ease: 'easeOut' as const },
 });
 
-// ─── Success state ────────────────────────────────────────────
+// ─── Success state ─────────────────────────────────────────────────────────
 function SuccessView() {
   const {
     theme,
+    language,
     bookingConfirmation,
     employeesUI,
     selectedEmployeeId,
@@ -37,9 +51,13 @@ function SuccessView() {
     selectedTime,
     reset,
   } = useBookingStore();
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const [copied, setCopied] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   const handleAddToCalendar = () => {
     if (!selectedDate || !selectedTime || !selectedService) return;
@@ -70,9 +88,9 @@ function SuccessView() {
   };
 
   const handleShare = async () => {
-    const text = `Moja rezervacija:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ob ${bookingConfirmation?.cas}`;
+    const text = `${t(language, 'yourBooking')}:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ${t(language, 'atPreposition')} ${bookingConfirmation?.cas}`;
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try { await navigator.share({ title: 'Rezervacija potrjena', text }); } catch { /* cancelled */ }
+      try { await navigator.share({ title: t(language, 'confirmed'), text }); } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(text);
@@ -96,7 +114,6 @@ function SuccessView() {
         className="mb-10 relative"
       >
         <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="overflow-visible">
-          {/* Radiating rings */}
           <motion.circle
             cx="40" cy="40" r="38"
             stroke={theme.primaryColor}
@@ -117,7 +134,6 @@ function SuccessView() {
             transition={{ duration: 2.2, delay: 0.7, ease: 'easeOut' }}
             style={{ transformOrigin: '40px 40px' }}
           />
-          {/* Circle */}
           <circle
             cx="40" cy="40" r="38"
             stroke={`${theme.primaryColor}20`}
@@ -132,7 +148,6 @@ function SuccessView() {
             fill="none"
             className="circle-path"
           />
-          {/* Check */}
           <path
             d="M22 40L35 53L58 28"
             stroke={theme.primaryColor}
@@ -144,16 +159,12 @@ function SuccessView() {
         </svg>
       </motion.div>
 
-      {/* POTRJENO */}
-      <motion.div
-        {...successItem(0)}
-        className="mb-3"
-      >
+      <motion.div {...successItem(0)} className="mb-3">
         <p
           className="magazine-caps text-[11px] tracking-[0.35em]"
           style={{ color: theme.primaryColor }}
         >
-          Potrjeno
+          {t(language, 'confirmed')}
         </p>
       </motion.div>
 
@@ -161,37 +172,35 @@ function SuccessView() {
         {...successItem(1)}
         className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-3"
       >
-        Rezervacija<br />
-        <span style={{ fontStyle: 'italic' }}>potrjena</span>
+        {t(language, 'successTitle')}<br />
+        <span style={{ fontStyle: 'italic' }}>{t(language, 'successTitleItalic')}</span>
       </motion.h1>
 
       <motion.p
         {...successItem(2)}
         className="magazine-body text-[#6B6B6B] italic mb-10"
       >
-        Veselimo se vašega obiska!
+        {t(language, 'successSubtitle')}
       </motion.p>
 
       {/* Details */}
-      <motion.div
-        {...successItem(3)}
-      >
+      <motion.div {...successItem(3)}>
         <div className="h-[1px] bg-black/10 mb-6" />
         <div className="space-y-4">
           {(selectedEmployee || anyPerson) && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                Specialist
+                {t(language, 'specialist')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A]">
-                {selectedEmployee ? selectedEmployee.label : 'Kdorkoli prost'}
+                {selectedEmployee ? selectedEmployee.label : t(language, 'anyoneLabel')}
               </p>
             </div>
           )}
           {bookingConfirmation?.storitev && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                Storitev
+                {t(language, 'service')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A]">
                 {bookingConfirmation.storitev}
@@ -201,7 +210,7 @@ function SuccessView() {
           {bookingConfirmation?.datum && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                Datum
+                {t(language, 'date')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A]">
                 {bookingConfirmation.datum}
@@ -211,7 +220,7 @@ function SuccessView() {
           {bookingConfirmation?.cas && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                Ura
+                {t(language, 'time')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A] tabular-nums">
                 {bookingConfirmation.cas}
@@ -221,13 +230,18 @@ function SuccessView() {
           {selectedService && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
-                Cena
+                {t(language, 'price')}
               </p>
               <p
                 className="magazine-serif text-[1.4rem] font-light tabular-nums"
                 style={{ color: theme.primaryColor }}
               >
-                €{selectedService.cena}
+                {pricing.hasDiscount && (
+                  <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </span>
+                )}
+                €{formatBookingPrice(pricing.finalTotal)}
               </p>
             </div>
           )}
@@ -240,7 +254,6 @@ function SuccessView() {
         {...successItem(4)}
         className="mt-8 flex flex-wrap gap-3"
       >
-        {/* Dodaj v koledar — gradient fill */}
         <motion.button
           onClick={handleAddToCalendar}
           className="flex items-center gap-2 px-6 py-3 text-white magazine-caps text-[9px] tracking-[0.18em] transition-opacity"
@@ -250,10 +263,9 @@ function SuccessView() {
           whileHover={{ opacity: 0.9 }}
           whileTap={{ scale: 0.98 }}
         >
-          + Dodaj v Koledar
+          {t(language, 'addToCalendar')}
         </motion.button>
 
-        {/* Deli — outlined */}
         <motion.button
           onClick={handleShare}
           className="flex items-center gap-2 px-6 py-3 magazine-caps text-[9px] tracking-[0.18em] border transition-all duration-300"
@@ -261,25 +273,25 @@ function SuccessView() {
           whileHover={{ backgroundColor: `${theme.primaryColor}08` }}
           whileTap={{ scale: 0.98 }}
         >
-          {copied ? 'Kopirano ✓' : '↗ Deli'}
+          {copied ? t(language, 'copied') : t(language, 'share')}
         </motion.button>
 
-        {/* Nova rezervacija — text link */}
         <button
-          onClick={reset}
+          onClick={() => { usePromotionsStore.getState().resetSelections(); reset(); }}
           className="px-4 py-3 magazine-caps text-[9px] tracking-[0.18em] text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors duration-200"
         >
-          Nova rezervacija
+          {t(language, 'newBooking')}
         </button>
       </motion.div>
     </motion.div>
   );
 }
 
-// ─── Pre-confirmation (review) view ──────────────────────────
+// ─── Pre-confirmation (review) view ────────────────────────────────────────
 export default function MagazineConfirmation({ companySlug }: Props) {
   const {
     theme,
+    language,
     employeesUI,
     selectedEmployeeId,
     anyPerson,
@@ -294,17 +306,21 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     setBookingConfirmation,
   } = useBookingStore();
 
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
-  // If already confirmed, show success
   if (bookingConfirmation?.success) {
     return <SuccessView />;
   }
 
   const handleConfirm = async () => {
     if (!companySlug || !selectedService || !selectedDate || !selectedTime || !customerDetails) {
-      setError('Manjkajo potrebni podatki za rezervacijo');
+      setError(t(language, 'missingData'));
       return;
     }
 
@@ -327,25 +343,79 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent,
+        privacyConsent: customerDetails.privacyConsent ?? false,
         marketingConsent: customerDetails.gdprSendMarketing,
         consentTimestamp: new Date().toISOString(),
+        originalCena: pricing.originalTotal,
+        finalCena: pricing.finalTotal,
+        ...(promotion ? {
+          promocijaTip: promotion.type,
+          promocijaNaziv: promotion.naziv,
+          popust: pricing.discountAmount,
+          popustTip: getPromotionPopustTip(promotion),
+          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
+          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
+        } : {}),
+        ...(selectedAddOn ? {
+          addOnServiceId: selectedAddOn.id,
+          addOnNaziv: selectedAddOn.naziv,
+          addOnFinalCena: selectedAddOn.finalCena,
+          addOnOriginalCena: selectedAddOn.originalCena,
+          addOnPopust: selectedAddOn.popustZnesek,
+          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
+          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
+        } : {}),
       });
 
       if (response.success) {
+        const serviceName = response.storitev || selectedService.naziv;
+        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+
+        if (response.requiresPayment === true) {
+          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
+          setRedirecting(true);
+
+          try {
+            await redirectToCheckout({
+              companySlug,
+              appointmentId,
+              amount: response.paymentAmount ?? pricing.finalTotal,
+              currency: response.currency ?? 'EUR',
+              serviceName,
+              customerEmail: customerDetails.email,
+              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
+              language,
+              paymentMode: response.paymentMode ?? 'full',
+              successUrl: buildSuccessUrl(companySlug, 'magazine', {
+                lang: language,
+                serviceName,
+                date: response.datum || datumDisplay,
+                time: response.cas || selectedTime,
+              }),
+              cancelUrl: buildCancelUrl(companySlug, 'magazine'),
+            });
+            return;
+          } catch (err) {
+            console.error('Magazine booking: failed to start payment:', err);
+            setRedirecting(false);
+            setError(t(language, 'paymentStartFailed'));
+            return;
+          }
+        }
+
         setBookingConfirmation({
           success: true,
           message: response.message || 'Rezervacija uspešna!',
-          storitev: selectedService.naziv,
-          datum: format(selectedDate, 'd. MMMM yyyy', { locale: sl }),
+          storitev: serviceName,
+          datum: datumDisplay,
           cas: selectedTime,
         });
       } else {
-        setError(response.message || 'Rezervacija ni uspela');
+        setError(response.message || t(language, 'bookingFailed'));
       }
     } catch (err) {
       console.error('Failed to submit booking:', err);
-      setError('Rezervacija ni uspela. Prosim poskusi znova.');
+      setError(t(language, 'bookingFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -361,11 +431,11 @@ export default function MagazineConfirmation({ companySlug }: Props) {
       <div className="mb-10">
         <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
-          Pregled Rezervacije
+          {t(language, 'reviewTitle')}
         </h1>
         <div className="h-[1px] w-full bg-black/10 mb-4" />
         <p className="magazine-body text-[#6B6B6B] text-[15px] italic leading-relaxed">
-          Preverite podrobnosti pred potrditvijo
+          {t(language, 'reviewSubtitle')}
         </p>
       </div>
 
@@ -401,10 +471,10 @@ export default function MagazineConfirmation({ companySlug }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                Specialist
+                {t(language, 'specialist')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
-                {selectedEmployee ? selectedEmployee.label : 'Kdorkoli prost'}
+                {selectedEmployee ? selectedEmployee.label : t(language, 'anyoneLabel')}
               </p>
               {selectedEmployee?.subtitle && (
                 <p className="magazine-caps text-[8px] tracking-[0.14em] text-[#6B6B6B] mt-0.5">
@@ -428,13 +498,13 @@ export default function MagazineConfirmation({ companySlug }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                Storitev
+                {t(language, 'service')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A] mb-0.5">
                 {selectedService.naziv}
               </p>
               <p className="magazine-caps text-[8px] tracking-[0.14em] text-[#6B6B6B]">
-                {formatDuration(selectedService.trajanjeMin)} · €{selectedService.cena}
+                {formatDuration(selectedService.trajanjeMin)} · €{formatBookingPrice(pricing.primaryFinalPrice)}
               </p>
               {selectedService.opis && (
                 <p className="text-[#6B6B6B] text-[12px] mt-1 leading-relaxed">
@@ -455,7 +525,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                Datum in ura
+                {t(language, 'dateAndTime')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
                 {format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl })}
@@ -483,7 +553,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
-                Vaši podatki
+                {t(language, 'yourData')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
                 {customerDetails.firstName} {customerDetails.lastName}
@@ -503,13 +573,30 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         {selectedService && (
           <div className="flex justify-between items-baseline py-5">
             <p className="magazine-caps text-[8px] tracking-[0.2em] text-[#6B6B6B]">
-              Skupaj
+              {t(language, 'total')}
             </p>
-            <p
-              className="magazine-serif text-[1.8rem] font-light tabular-nums"
-              style={{ color: theme.primaryColor }}
-            >
-              €{selectedService.cena}
+            <div className="text-right">
+              {pricing.hasDiscount && (
+                <p className="magazine-body text-[13px] text-[#6B6B6B] line-through tabular-nums">
+                  €{formatBookingPrice(pricing.originalTotal)}
+                </p>
+              )}
+              <p
+                className="magazine-serif text-[1.8rem] font-light tabular-nums"
+                style={{ color: theme.primaryColor }}
+              >
+                €{formatBookingPrice(pricing.finalTotal)}
+              </p>
+            </div>
+          </div>
+        )}
+        {selectedAddOn && (
+          <div className="flex justify-between items-baseline pb-2">
+            <p className="magazine-caps text-[8px] tracking-[0.2em] text-[#6B6B6B]">
+              {t(language, 'addon')}
+            </p>
+            <p className="magazine-body text-[13px] text-[#1A1A1A]">
+              {selectedAddOn.naziv} (+€{Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2)})
             </p>
           </div>
         )}
@@ -545,18 +632,20 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
             />
             <span className="magazine-caps text-[10px] tracking-[0.2em]">
-              Potrjujem...
+              {redirecting
+                ? t(language, 'redirectingToPayment')
+                : t(language, 'confirmingBtn')}
             </span>
           </div>
         ) : (
           <span className="magazine-serif text-lg italic">
-            Potrdi Rezervacijo
+            {t(language, 'confirmBtn')}
           </span>
         )}
       </motion.button>
 
       <p className="magazine-caps text-[9px] tracking-[0.18em] text-black/30 mt-4">
-        Potrditev bo poslana na vaš email
+        {t(language, 'emailNote')}
       </p>
     </motion.div>
   );

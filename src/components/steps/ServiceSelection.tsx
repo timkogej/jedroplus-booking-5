@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion';
 import { ChevronLeft, Clock } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { formatBookingPrice } from '@/lib/pricing';
 
 export default function ServiceSelection() {
   const {
@@ -12,6 +14,7 @@ export default function ServiceSelection() {
     selectService,
     theme,
   } = useBookingStore();
+  const { serviceDiscounts } = usePromotionsStore();
 
   // Get services for the selected category
   const categoryServices = selectedCategory
@@ -76,13 +79,17 @@ export default function ServiceSelection() {
       <div className="space-y-0">
         {categoryServices.map((service) => {
           const isSelected = selectedService?.id === service.id;
+          const promo = serviceDiscounts[String(service.id)];
 
           return (
             <motion.div
               key={service.id}
               variants={itemVariants}
               className="group relative"
-              onClick={() => selectService(service)}
+              onClick={() => {
+                selectService(service);
+                usePromotionsStore.getState().computeActivePromotion(String(service.id));
+              }}
             >
               {/* Left accent dot */}
               <motion.div
@@ -118,14 +125,30 @@ export default function ServiceSelection() {
 
                   {/* Price and duration */}
                   <div className="flex flex-col items-end flex-shrink-0">
-                    <span
-                      className="font-light text-xl tracking-wider"
-                      style={{
-                        color: isSelected ? theme.primaryColor : 'white',
-                      }}
-                    >
-                      €{service.cena}
-                    </span>
+                    {promo ? (
+                      <>
+                        <span className="text-white/35 text-sm line-through">
+                          €{formatBookingPrice(promo.originalCena)}
+                        </span>
+                        <span
+                          className="font-light text-xl tracking-wider"
+                          style={{
+                            color: isSelected ? theme.primaryColor : 'white',
+                          }}
+                        >
+                          €{formatBookingPrice(promo.finalCena)}
+                        </span>
+                      </>
+                    ) : (
+                      <span
+                        className="font-light text-xl tracking-wider"
+                        style={{
+                          color: isSelected ? theme.primaryColor : 'white',
+                        }}
+                      >
+                        €{formatBookingPrice(Number(service.cena))}
+                      </span>
+                    )}
                     <span className="text-white/40 text-sm flex items-center gap-1 mt-1">
                       <Clock className="w-3 h-3" />
                       <span className="font-light tracking-wider">{formatDuration(service.trajanjeMin)}</span>

@@ -2,6 +2,14 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import type { SupportedLanguage } from '@/types';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import { t } from '../i18n';
 import BookingSummaryCard from './SlotMachine';
 import CasinoServiceSelection from './steps/CasinoServiceSelection';
 import CasinoEmployeeSelection from './steps/CasinoEmployeeSelection';
@@ -12,14 +20,6 @@ import CasinoConfirmation from './steps/CasinoConfirmation';
 interface CasinoLayoutProps {
   companySlug: string;
 }
-
-const STEP_INFO: Record<number, { title: string; subtitle: string }> = {
-  1: { title: 'Postavi Stavo',           subtitle: 'Place your bet' },
-  3: { title: 'Izberi Specialista',      subtitle: 'Pick your specialist' },
-  4: { title: 'Rezerviraj Termin',       subtitle: 'Claim your slot' },
-  5: { title: 'Registracija',            subtitle: 'Player registration' },
-  6: { title: 'Potrditev',               subtitle: 'Confirm your seat' },
-};
 
 function storeToVisualCasino(storeStep: number): number {
   if (storeStep <= 2) return 1;
@@ -78,12 +78,54 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
+// ── Language toggle ────────────────────────────────────────────
+function MCLanguageToggle({
+  language,
+  onToggle,
+}: {
+  language: SupportedLanguage;
+  onToggle: (l: SupportedLanguage) => void;
+}) {
+  const options: SupportedLanguage[] = ['sl', 'en'];
+  return (
+    <div
+      className="flex rounded overflow-hidden"
+      style={{ border: '1px solid rgba(201,168,76,0.25)' }}
+    >
+      {options.map((lang) => {
+        const isActive = language === lang;
+        return (
+          <button
+            key={lang}
+            onClick={() => onToggle(lang)}
+            className="px-2.5 py-1 text-xs font-semibold uppercase transition-all"
+            style={{
+              fontFamily: 'var(--font-oswald)',
+              letterSpacing: '0.08em',
+              background: isActive ? 'rgba(201,168,76,0.18)' : 'transparent',
+              color: isActive ? '#c9a84c' : 'rgba(201,168,76,0.35)',
+              borderRight: lang === 'sl' ? '1px solid rgba(201,168,76,0.2)' : 'none',
+            }}
+          >
+            {lang}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Header ─────────────────────────────────────────────────────
 function MCHeader() {
-  const { company } = useBookingStore();
+  const { company, language, setLanguage } = useBookingStore();
 
   return (
-    <header className="text-center pt-8 pb-6 px-4">
+    <header className="text-center pt-8 pb-6 px-4 relative">
+      {/* Language toggle — top right */}
+      <div className="absolute top-6 right-4">
+        <MCLanguageToggle language={language} onToggle={setLanguage} />
+      </div>
+
       {/* Top decorative line */}
       <div className="flex items-center gap-3 justify-center mb-5">
         <span style={{ color: 'rgba(201,168,76,0.5)', fontSize: '0.6rem', letterSpacing: '0.3em' }}>◆</span>
@@ -107,14 +149,17 @@ function MCHeader() {
         {company?.naziv ?? 'Booking'}
       </motion.h1>
 
+      {/* Panoga (industry) beneath company name */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-[10px] tracking-[0.45em] uppercase"
+        className="text-[10px] tracking-[0.4em] uppercase"
         style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201,168,76,0.35)' }}
       >
-        ♠ &nbsp; Booking Casino &nbsp; ♠
+        {company?.panoga ? (
+          <>♠ &nbsp; {company.panoga} &nbsp; ♠</>
+        ) : null}
       </motion.p>
 
       {/* Bottom decorative line */}
@@ -128,7 +173,7 @@ function MCHeader() {
 }
 
 // ── Back button ────────────────────────────────────────────────
-function BackButton({ onClick }: { onClick: () => void }) {
+function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (
     <motion.button
       onClick={onClick}
@@ -143,7 +188,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
         color: 'rgba(201, 168, 76, 0.45)',
       }}
     >
-      ← Nazaj
+      {label}
     </motion.button>
   );
 }
@@ -206,13 +251,33 @@ function CardSuitsDecoration() {
   );
 }
 
-export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
-  const { currentStep, prevStep, bookingConfirmation, selectedService } = useBookingStore();
+// ── Step title info (i18n) ─────────────────────────────────────
+function getStepInfo(step: number, lang: SupportedLanguage) {
+  const map: Record<number, { title: string; subtitle: string }> = {
+    1: { title: t(lang, 'placeYourBet'),      subtitle: t(lang, 'placeYourBetSub') },
+    2: { title: t(lang, 'placeYourBet'),      subtitle: t(lang, 'placeYourBetSub') },
+    3: { title: t(lang, 'chooseSpecialist'),  subtitle: t(lang, 'chooseSpecialistSub') },
+    4: { title: t(lang, 'reserveTerm'),       subtitle: t(lang, 'reserveTermSub') },
+    5: { title: t(lang, 'registration'),      subtitle: t(lang, 'registrationSub') },
+    6: { title: t(lang, 'confirmTitle'),      subtitle: t(lang, 'confirmSub') },
+  };
+  return map[step] ?? map[1];
+}
 
-  const stepInfo = STEP_INFO[currentStep] ?? STEP_INFO[1];
+export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
+  const { currentStep, prevStep, bookingConfirmation, selectedService, language } = useBookingStore();
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
+
+  const stepInfo = getStepInfo(currentStep, language);
   const stepKey = `step-${currentStep}-${!!bookingConfirmation?.success}`;
   const canGoBack = currentStep > 1 && !bookingConfirmation?.success;
   const isSuccess = !!bookingConfirmation?.success;
+
+  // Hide the summary card on step 5 (customer details) — it's shown inside the step itself
+  const showSummaryCard = !isSuccess && currentStep !== 5;
+  const selectedServices = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(selectedServices, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(selectedServices, promotion, selectedAddOn);
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -245,8 +310,8 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
         {/* Step indicator */}
         {!isSuccess && <StepIndicator current={currentStep} />}
 
-        {/* Booking summary card */}
-        {!isSuccess && (
+        {/* Booking summary card — hidden on step 5 */}
+        {showSummaryCard && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -268,7 +333,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
               transition={{ duration: 0.3 }}
               className="mb-6"
             >
-              {canGoBack && <BackButton onClick={prevStep} />}
+              {canGoBack && <BackButton onClick={prevStep} label={t(language, 'back')} />}
 
               {/* Step heading */}
               <h2
@@ -287,7 +352,6 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
                   fontFamily: 'var(--font-playfair)',
                   fontSize: '0.9rem',
                   color: '#c9a84c',
-                  fontStyle: 'italic',
                 }}
               >
                 — {stepInfo.subtitle}
@@ -324,7 +388,12 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
                       color: '#e8c96d',
                     }}
                   >
-                    €{selectedService.cena}
+                    {pricing.hasDiscount && (
+                      <span style={{ textDecoration: 'line-through', color: '#a89060', marginRight: 6 }}>
+                        €{formatBookingPrice(pricing.originalTotal)}
+                      </span>
+                    )}
+                    €{formatBookingPrice(pricing.finalTotal)}
                   </span>
                 </motion.div>
               )}

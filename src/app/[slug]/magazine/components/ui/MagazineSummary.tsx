@@ -3,6 +3,12 @@
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -26,8 +32,12 @@ export default function MagazineSummary() {
     selectedDate,
     selectedTime,
   } = useBookingStore();
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   const rows: SummaryRow[] = [];
 
@@ -40,7 +50,19 @@ export default function MagazineSummary() {
 
   if (selectedService) {
     rows.push({ label: 'Storitev', value: selectedService.naziv });
-    rows.push({ label: 'Trajanje', value: formatDuration(selectedService.trajanjeMin) });
+    rows.push({
+      label: 'Trajanje',
+      value: formatDuration(
+        selectedService.trajanjeMin + (selectedAddOn?.trajanjeMin ?? 0)
+      ),
+    });
+  }
+
+  if (selectedAddOn) {
+    rows.push({
+      label: 'Dodatek',
+      value: `${selectedAddOn.naziv} (+€${formatBookingPrice(selectedAddOn.finalCena)})`,
+    });
   }
 
   if (selectedDate) {
@@ -86,7 +108,12 @@ export default function MagazineSummary() {
               className="magazine-serif text-[1.4rem] font-light tabular-nums"
               style={{ color: theme.primaryColor }}
             >
-              €{selectedService.cena}
+              {pricing.hasDiscount && (
+                <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
+                  €{formatBookingPrice(pricing.originalTotal)}
+                </span>
+              )}
+              €{formatBookingPrice(pricing.finalTotal)}
             </p>
           </div>
         </>

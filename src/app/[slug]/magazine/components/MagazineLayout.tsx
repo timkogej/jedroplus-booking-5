@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
+import { t } from '../i18n';
 import MagazineMasthead from './MagazineMasthead';
 import MagazineProgress from './MagazineProgress';
 import MagazineEmployeeSelection from './steps/MagazineEmployeeSelection';
@@ -30,56 +31,22 @@ const pageVariants: Variants = {
   },
 };
 
-// Editorial panel content per step
-const EDITORIAL_PANELS = [
-  {
-    step: 1,
-    eyebrow: 'Naše storitve',
-    headline: 'Izbiramo samo najboljše za vas',
-    quote: 'Kakovost je naš standard, ne izjema.',
-    accent: 'Storitve',
-  },
-  {
-    step: 2,
-    eyebrow: 'Naše storitve',
-    headline: 'Izbiramo samo najboljše za vas',
-    quote: 'Kakovost je naš standard, ne izjema.',
-    accent: 'Storitve',
-  },
-  {
-    step: 3,
-    eyebrow: 'Naši strokovnjaki',
-    headline: 'Vsak specialist prinaša edinstveno izkušnjo',
-    quote: 'Pravi strokovnjak za vsako storitev.',
-    accent: 'Specialist',
-  },
-  {
-    step: 4,
-    eyebrow: 'Vaš termin',
-    headline: 'Čas je dragocen — rezervirajte ga pametno',
-    quote: 'Prosti termini, prilagojeni vašemu ritmu.',
-    accent: 'Termin',
-  },
-  {
-    step: 5,
-    eyebrow: 'Vaši podatki',
-    headline: 'Vaša zasebnost je naša prioriteta',
-    quote: 'Zaupamo si le tisto, kar je potrebno.',
-    accent: 'Podatki',
-  },
-  {
-    step: 6,
-    eyebrow: 'Potrditev',
-    headline: 'Vaša rezervacija je skoraj potrjena',
-    quote: 'Veselimo se vašega obiska.',
-    accent: 'Potrdi',
-  },
-];
-
 function EditorialPanel() {
-  const { currentStep, theme, bookingConfirmation } = useBookingStore();
+  const { currentStep, theme, bookingConfirmation, language } = useBookingStore();
   const step = bookingConfirmation?.success ? 6 : currentStep;
-  const panel = EDITORIAL_PANELS[step - 1] || EDITORIAL_PANELS[0];
+
+  type PanelKey = 1 | 2 | 3 | 4 | 5 | 6;
+  const panels: Record<PanelKey, { eyebrow: string; headline: string; quote: string; accent: string }> = {
+    1: { eyebrow: t(language, 'ep1Eyebrow'), headline: t(language, 'ep1Headline'), quote: t(language, 'ep1Quote'), accent: t(language, 'ep1Accent') },
+    2: { eyebrow: t(language, 'ep1Eyebrow'), headline: t(language, 'ep1Headline'), quote: t(language, 'ep1Quote'), accent: t(language, 'ep1Accent') },
+    3: { eyebrow: t(language, 'ep3Eyebrow'), headline: t(language, 'ep3Headline'), quote: t(language, 'ep3Quote'), accent: t(language, 'ep3Accent') },
+    4: { eyebrow: t(language, 'ep4Eyebrow'), headline: t(language, 'ep4Headline'), quote: t(language, 'ep4Quote'), accent: t(language, 'ep4Accent') },
+    5: { eyebrow: t(language, 'ep5Eyebrow'), headline: t(language, 'ep5Headline'), quote: t(language, 'ep5Quote'), accent: t(language, 'ep5Accent') },
+    6: { eyebrow: t(language, 'ep6Eyebrow'), headline: t(language, 'ep6Headline'), quote: t(language, 'ep6Quote'), accent: t(language, 'ep6Accent') },
+  };
+
+  const safeStep = (step >= 1 && step <= 6 ? step : 1) as PanelKey;
+  const panel = panels[safeStep];
 
   return (
     <div className="sticky top-0 h-screen flex flex-col justify-between p-12 overflow-hidden">
@@ -135,7 +102,7 @@ function EditorialPanel() {
         />
         <AnimatePresence mode="wait">
           <motion.p
-            key={`eyebrow-${step}`}
+            key={`eyebrow-${step}-${language}`}
             initial={{ opacity: 0, x: -12 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0 }}
@@ -157,11 +124,11 @@ function EditorialPanel() {
 
         <AnimatePresence mode="wait">
           <motion.h2
-            key={`headline-${step}`}
+            key={`headline-${step}-${language}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
             className="magazine-serif text-[2.1rem] leading-[1.15] text-[#1A1A1A] tracking-[-0.02em] mt-1 mb-6"
           >
             {panel.headline}
@@ -170,7 +137,7 @@ function EditorialPanel() {
 
         <AnimatePresence mode="wait">
           <motion.p
-            key={`quote-${step}`}
+            key={`quote-${step}-${language}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -188,7 +155,7 @@ function EditorialPanel() {
         <div className="flex items-center justify-between">
           <AnimatePresence mode="wait">
             <motion.span
-              key={`accent-${step}`}
+              key={`accent-${step}-${language}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -199,7 +166,7 @@ function EditorialPanel() {
             </motion.span>
           </AnimatePresence>
           <span className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
-            0{step} / 06
+            0{safeStep} / 06
           </span>
         </div>
       </div>
@@ -208,7 +175,10 @@ function EditorialPanel() {
 }
 
 export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
-  const { currentStep, bookingConfirmation } = useBookingStore();
+  const { currentStep, bookingConfirmation, language, prevStep } = useBookingStore();
+
+  const showBackButton =
+    !bookingConfirmation?.success && currentStep > 1;
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -247,6 +217,24 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
 
           {/* Right: Booking content */}
           <div className="flex-1 px-8 py-10 md:px-10 lg:px-14 xl:px-16 lg:py-12 pb-24 lg:pb-12">
+            {/* Back button */}
+            {showBackButton && (
+              <motion.button
+                onClick={prevStep}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center gap-1.5 mb-8 group"
+                style={{ color: 'rgba(0,0,0,0.28)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#1A1A1A')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(0,0,0,0.28)')}
+              >
+                <span className="magazine-caps text-[9px] tracking-[0.22em] transition-colors duration-200">
+                  {t(language, 'back')}
+                </span>
+              </motion.button>
+            )}
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={stepKey}
@@ -269,7 +257,7 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
             © {new Date().getFullYear()} · Jedro+
           </p>
           <p className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
-            Rezervacijski sistem
+            {t(language, 'onlineBooking')}
           </p>
         </div>
       </footer>

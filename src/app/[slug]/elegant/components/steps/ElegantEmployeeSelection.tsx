@@ -201,7 +201,7 @@ export default function ElegantEmployeeSelection() {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '1.75rem',
+            fontSize: '2.1rem',
             fontWeight: 400,
             color: '#111111',
             lineHeight: 1.2,

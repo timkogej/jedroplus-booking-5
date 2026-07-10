@@ -7,6 +7,14 @@ import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
+import { AddOnSelector } from '@/components/shared/AddOnSelector';
+import { t } from '../../i18n';
 
 interface FormErrors {
   firstName?: string;
@@ -15,12 +23,6 @@ interface FormErrors {
   phone?: string;
   privacyConsent?: string;
 }
-
-const GENDERS = [
-  { value: 'male',   label: 'Gospod', suit: '♠' },
-  { value: 'female', label: 'Gospa',  suit: '♥' },
-  { value: 'other',  label: 'Drugo',  suit: '♦' },
-];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -36,7 +38,6 @@ const itemVariants: Variants = {
   },
 };
 
-// Gold underline label
 function MCLabel({ children }: { children: React.ReactNode }) {
   return (
     <label
@@ -54,7 +55,6 @@ function MCLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Gold underline input
 function MCInput({
   value,
   onChange,
@@ -90,26 +90,49 @@ function MCInput({
   );
 }
 
-// Booking summary sidebar strip
+// ── Booking summary (kept — this is the summary shown on the page itself) ─────
 function BookingSummary() {
   const {
     selectedService,
+    selectedServices,
     selectedDate,
     selectedTime,
     selectedEmployeeId,
     anyPerson,
     employeesUI,
+    totalDurationMin,
+    language,
   } = useBookingStore();
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
-  if (!selectedService) return null;
+  const primaryService = selectedServices[0] ?? selectedService;
+  if (!primaryService) return null;
+  const services = selectedServices.length > 0 ? selectedServices : [primaryService];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
+
+  const displayServices = selectedServices.length > 1
+    ? selectedServices.map((s) => s.naziv).join(' + ')
+    : primaryService.naziv;
 
   const rows = [
-    { label: 'Storitev',    value: selectedService.naziv },
-    { label: 'Specialist',  value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label ?? '—' },
-    { label: 'Datum',       value: selectedDate ? format(selectedDate, 'd. MMM yyyy', { locale: sl }) : '—' },
-    { label: 'Čas',         value: selectedTime ?? '—' },
-    { label: 'Trajanje',    value: `${selectedService.trajanjeMin} min` },
+    { label: t(language, 'fieldService'),    value: displayServices },
+    { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : (selectedEmployee?.label ?? '—') },
+    { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'd. MMM yyyy', { locale: sl }) : '—' },
+    { label: t(language, 'fieldTime'),       value: selectedTime ?? '—' },
+    {
+      label: t(language, 'fieldDuration'),
+      value: `${(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) + (selectedAddOn?.trajanjeMin ?? 0)} min`,
+    },
+    ...(selectedAddOn
+      ? [
+          {
+            label: t(language, 'fieldAddon'),
+            value: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)} €)`,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -120,7 +143,6 @@ function BookingSummary() {
         border: '1px solid rgba(201, 168, 76, 0.2)',
       }}
     >
-      {/* Header */}
       <div
         className="px-4 py-2.5"
         style={{
@@ -137,7 +159,7 @@ function BookingSummary() {
             color: '#a89060',
           }}
         >
-          ◆ Vaša Rezervacija
+          {t(language, 'yourReservation')}
         </p>
       </div>
 
@@ -150,7 +172,6 @@ function BookingSummary() {
         ))}
       </div>
 
-      {/* Total */}
       <div
         className="px-4 py-3 flex items-center justify-between"
         style={{ borderTop: '1px solid rgba(201,168,76,0.15)' }}
@@ -164,7 +185,7 @@ function BookingSummary() {
             color: '#a89060',
           }}
         >
-          Skupaj
+          {t(language, 'fieldTotal')}
         </span>
         <span
           style={{
@@ -174,7 +195,12 @@ function BookingSummary() {
             color: '#e8c96d',
           }}
         >
-          €{selectedService.cena}
+          {pricing.hasDiscount && (
+            <span style={{ display: 'block', fontSize: '0.85rem', color: '#a89060', textDecoration: 'line-through' }}>
+              €{formatBookingPrice(pricing.originalTotal)}
+            </span>
+          )}
+          €{formatBookingPrice(pricing.finalTotal)}
         </span>
       </div>
     </div>
@@ -182,7 +208,7 @@ function BookingSummary() {
 }
 
 export default function CasinoCustomerDetails() {
-  const { setCustomerDetails, nextStep } = useBookingStore();
+  const { setCustomerDetails, nextStep, theme, language } = useBookingStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
@@ -198,15 +224,22 @@ export default function CasinoCustomerDetails() {
   const { isSubmitting, fieldErrors, submitBooking, sanitize } = useSecureBooking({
     companyId: 'casino',
   });
+  const { availableAddOns, isLoadingAddOns } = usePromotionsStore();
+
+  const GENDERS = [
+    { value: 'male',   label: t(language, 'salutMr'),    suit: '♠' },
+    { value: 'female', label: t(language, 'salutMs'),    suit: '♥' },
+    { value: 'other',  label: t(language, 'salutOther'), suit: '♦' },
+  ];
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!firstName.trim()) e.firstName = 'Ime je obvezno';
-    if (!lastName.trim())  e.lastName  = 'Priimek je obvezen';
-    if (!email.trim())     e.email     = 'Email je obvezen';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
-    if (!phone.trim())     e.phone     = 'Telefon je obvezen';
-    if (!privacyConsent)   e.privacyConsent = 'Strinjanje z obdelavo podatkov je obvezno';
+    if (!firstName.trim()) e.firstName = t(language, 'firstNameRequired');
+    if (!lastName.trim())  e.lastName  = t(language, 'lastNameRequired');
+    if (!email.trim())     e.email     = t(language, 'emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t(language, 'emailInvalid');
+    if (!phone.trim())     e.phone     = t(language, 'phoneRequired');
+    if (!privacyConsent)   e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -219,7 +252,7 @@ export default function CasinoCustomerDetails() {
       email:   email.trim(),
       telefon: phone.trim(),
       opombe:  notes.trim() || undefined,
-      website, // honeypot
+      website,
     };
     const success = await submitBooking(formData);
     if (success) {
@@ -231,6 +264,7 @@ export default function CasinoCustomerDetails() {
         gender:    gender || undefined,
         notes:     notes.trim() || undefined,
         gdprSendMarketing: gdprMarketing,
+        privacyConsent,
       };
       setCustomerDetails(details);
       nextStep();
@@ -244,6 +278,16 @@ export default function CasinoCustomerDetails() {
         <BookingSummary />
       </motion.div>
 
+      {/* Add-on selector */}
+      <motion.div variants={itemVariants}>
+        <AddOnSelector
+          addOns={availableAddOns}
+          isLoading={isLoadingAddOns}
+          primaryColor={theme.primaryColor}
+          variantStyle="casino"
+        />
+      </motion.div>
+
       {/* Form card */}
       <motion.div
         variants={itemVariants}
@@ -254,7 +298,6 @@ export default function CasinoCustomerDetails() {
           border: '1px solid rgba(201, 168, 76, 0.2)',
         }}
       >
-        {/* Section label */}
         <p
           className="mb-5"
           style={{
@@ -265,38 +308,28 @@ export default function CasinoCustomerDetails() {
             color: '#a89060',
           }}
         >
-          ◆ Registracija Igralca
+          {t(language, 'registrationLabel')}
         </p>
 
         {/* Name row */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <MCLabel>Ime</MCLabel>
+            <MCLabel>{t(language, 'firstNameLabel')}</MCLabel>
             <MCInput value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} />
             <AnimatePresence>
               {errors.firstName && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mc-error mt-1"
-                >
+                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
                   {errors.firstName}
                 </motion.p>
               )}
             </AnimatePresence>
           </div>
           <div>
-            <MCLabel>Priimek</MCLabel>
+            <MCLabel>{t(language, 'lastNameLabel')}</MCLabel>
             <MCInput value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} />
             <AnimatePresence>
               {errors.lastName && (
-                <motion.p
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mc-error mt-1"
-                >
+                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
                   {errors.lastName}
                 </motion.p>
               )}
@@ -306,16 +339,11 @@ export default function CasinoCustomerDetails() {
 
         {/* Email */}
         <div className="mb-5">
-          <MCLabel>Email</MCLabel>
+          <MCLabel>{t(language, 'emailLabel')}</MCLabel>
           <MCInput value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
           <AnimatePresence>
             {(errors.email || fieldErrors.email) && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mc-error mt-1"
-              >
+              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
                 {errors.email || fieldErrors.email}
               </motion.p>
             )}
@@ -324,25 +352,20 @@ export default function CasinoCustomerDetails() {
 
         {/* Phone */}
         <div className="mb-5">
-          <MCLabel>Telefon</MCLabel>
+          <MCLabel>{t(language, 'phoneLabel')}</MCLabel>
           <MCInput value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} />
           <AnimatePresence>
             {errors.phone && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mc-error mt-1"
-              >
+              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
                 {errors.phone}
               </motion.p>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Nagovor / Gender */}
+        {/* Salutation / Gender */}
         <div className="mb-5">
-          <MCLabel>Nagovor (opcijsko)</MCLabel>
+          <MCLabel>{t(language, 'salutationLabel')}</MCLabel>
           <div className="flex gap-2 mt-1">
             {GENDERS.map((g) => {
               const isSelected = gender === g.value;
@@ -374,17 +397,17 @@ export default function CasinoCustomerDetails() {
 
         {/* Notes */}
         <div className="mb-5">
-          <MCLabel>Posebne želje (opcijsko)</MCLabel>
+          <MCLabel>{t(language, 'notesLabel')}</MCLabel>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Posebne želje ali opombe..."
+            placeholder={t(language, 'notesPlaceholder')}
             rows={3}
             className="mc-textarea mt-1"
           />
         </div>
 
-        {/* Honeypot — skrito pred boti */}
+        {/* Honeypot */}
         <input
           type="text"
           name="website"
@@ -396,7 +419,7 @@ export default function CasinoCustomerDetails() {
           autoComplete="off"
         />
 
-        {/* Privacy consent — OBVEZNO */}
+        {/* Privacy consent */}
         <div className="mb-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <div
@@ -420,7 +443,7 @@ export default function CasinoCustomerDetails() {
                 lineHeight: 1.5,
               }}
             >
-              Strinjam se z obdelavo osebnih podatkov v skladu z{' '}
+              {t(language, 'privacyConsentPre')}{' '}
               <a
                 href="https://jedroplus.com/privacy"
                 target="_blank"
@@ -428,26 +451,21 @@ export default function CasinoCustomerDetails() {
                 style={{ color: '#c9a84c', textDecoration: 'underline' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                politiko zasebnosti
+                {t(language, 'privacyPolicy')}
               </a>
               {' '}*
             </span>
           </label>
           <AnimatePresence>
             {errors.privacyConsent && (
-              <motion.p
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mc-error mt-1 ml-7"
-              >
+              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1 ml-7">
                 {errors.privacyConsent}
               </motion.p>
             )}
           </AnimatePresence>
         </div>
 
-        {/* GDPR checkbox — opcijsko */}
+        {/* Marketing consent */}
         <label className="flex items-start gap-3 cursor-pointer">
           <div
             className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
@@ -471,7 +489,7 @@ export default function CasinoCustomerDetails() {
               lineHeight: 1.5,
             }}
           >
-            Želim prejemati ekskluzivne ponudbe in novosti
+            {t(language, 'marketingConsent')}
           </span>
         </label>
       </motion.div>
@@ -484,7 +502,7 @@ export default function CasinoCustomerDetails() {
           className="mc-btn-gold w-full max-w-sm py-4"
           style={{ opacity: (!privacyConsent || isSubmitting) ? 0.5 : 1, cursor: (!privacyConsent || isSubmitting) ? 'not-allowed' : 'pointer' }}
         >
-          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj na Potrditev'}
+          {isSubmitting ? t(language, 'sending') : t(language, 'nextToConfirm')}
         </button>
       </motion.div>
     </motion.div>

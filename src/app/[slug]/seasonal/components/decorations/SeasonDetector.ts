@@ -3,10 +3,10 @@ export type Holiday = 'christmas' | 'newyear' | 'valentine' | 'easter' | 'hallow
 
 export interface SeasonalThemeConfig {
   name: string;
-  // Seasonal background gradient (replaces API theme bg)
+  // Light seasonal background gradient
   bgFrom: string;
   bgTo: string;
-  // Solid card surfaces
+  // Solid white content card surfaces
   cardBg: string;
   cardBgAlt: string;
   cardBgHover: string;
@@ -27,8 +27,9 @@ export interface SeasonalThemeConfig {
   bats?: boolean;
   fireworks?: boolean;
   confetti?: boolean;
-  // Accent
+  // Accent color (used for glows, borders, accents)
   accentColor: string;
+  // Heading font — defaults to Stardom; holiday variants may use their own
   headingFont?: string;
 }
 
@@ -49,11 +50,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: 'christmas',
       config: {
         name: 'Božič',
-        bgFrom: '#0d1f10', bgTo: '#2a0a0a',
-        cardBg: '#132216', cardBgAlt: '#0f1c12', cardBgHover: '#1a2e1e', cardBorder: '#22381e',
+        bgFrom: '#F3FFF5', bgTo: '#FFF9F0',
+        cardBg: '#FFFFFF', cardBgAlt: '#F9FDFB', cardBgHover: '#F4FAF6', cardBorder: '#D6EDDA',
         snowflakes: true, ornaments: true, santaHats: true,
-        accentColor: '#C41E3A',
-        headingFont: 'var(--font-christmas)',
+        accentColor: '#16A34A',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -65,11 +66,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: 'newyear',
       config: {
         name: 'Novo Leto',
-        bgFrom: '#07071c', bgTo: '#10104a',
-        cardBg: '#0d0d28', cardBgAlt: '#0a0a1e', cardBgHover: '#141440', cardBorder: '#1e1e54',
+        bgFrom: '#F8F6FF', bgTo: '#F0F8FF',
+        cardBg: '#FFFFFF', cardBgAlt: '#F9F8FF', cardBgHover: '#F4F2FF', cardBorder: '#DDD8F5',
         snowflakes: true, fireworks: true, confetti: true,
-        accentColor: '#FFD700',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#7C3AED',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -80,12 +81,12 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       season: 'winter',
       holiday: 'valentine',
       config: {
-        name: "Valentinovo",
-        bgFrom: '#1a0512', bgTo: '#380c20',
-        cardBg: '#200818', cardBgAlt: '#1a0614', cardBgHover: '#2c1024', cardBorder: '#3e1630',
+        name: 'Valentinovo',
+        bgFrom: '#FFF5F8', bgTo: '#FFF0F5',
+        cardBg: '#FFFFFF', cardBgAlt: '#FFF8FB', cardBgHover: '#FFF2F6', cardBorder: '#F9C0D0',
         hearts: true,
-        accentColor: '#FF69B4',
-        headingFont: 'var(--font-playfair)',
+        accentColor: '#E11D48',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -97,11 +98,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: 'easter',
       config: {
         name: 'Velika Noč',
-        bgFrom: '#140e28', bgTo: '#261a52',
-        cardBg: '#1c1235', cardBgAlt: '#160e2c', cardBgHover: '#261848', cardBorder: '#322060',
+        bgFrom: '#F5F0FF', bgTo: '#F0FFF8',
+        cardBg: '#FFFFFF', cardBgAlt: '#FAF8FF', cardBgHover: '#F3F0FF', cardBorder: '#DDD0F5',
         flowers: true, eggs: true, bunnies: true,
-        accentColor: '#A78BFA',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#7C3AED',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -113,11 +114,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: 'halloween',
       config: {
         name: 'Halloween',
-        bgFrom: '#0a0414', bgTo: '#1c082e',
-        cardBg: '#110820', cardBgAlt: '#0d0618', cardBgHover: '#181030', cardBorder: '#281840',
+        bgFrom: '#FFF8F0', bgTo: '#FFF4E8',
+        cardBg: '#FFFFFF', cardBgAlt: '#FFFAF6', cardBgHover: '#FFF6EE', cardBorder: '#F5D8B0',
         pumpkins: true, ghosts: true, bats: true, leaves: true,
-        accentColor: '#FF6600',
-        headingFont: 'var(--font-creepster)',
+        accentColor: '#EA580C',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -129,11 +130,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: 'thanksgiving',
       config: {
         name: 'Zahvalnost',
-        bgFrom: '#1a0900', bgTo: '#3a1600',
-        cardBg: '#220e00', cardBgAlt: '#1c0a00', cardBgHover: '#2e1600', cardBorder: '#4a2200',
+        bgFrom: '#FFFBF0', bgTo: '#FFF7E6',
+        cardBg: '#FFFFFF', cardBgAlt: '#FFFDF8', cardBgHover: '#FFF9EE', cardBorder: '#EDD8A8',
         leaves: true,
-        accentColor: '#D2691E',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#B45309',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -145,11 +146,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: null,
       config: {
         name: 'Zima',
-        bgFrom: '#0f1829', bgTo: '#1a2e4a',
-        cardBg: '#162540', cardBgAlt: '#122035', cardBgHover: '#1e3052', cardBorder: '#243c5e',
+        bgFrom: '#F0F6FF', bgTo: '#EAF3FF',
+        cardBg: '#FFFFFF', cardBgAlt: '#F6FAFF', cardBgHover: '#EEF5FF', cardBorder: '#C8DCEE',
         snowflakes: true,
-        accentColor: '#87CEEB',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#2563EB',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -161,11 +162,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: null,
       config: {
         name: 'Pomlad',
-        bgFrom: '#0b1e0e', bgTo: '#153322',
-        cardBg: '#102515', cardBgAlt: '#0d2010', cardBgHover: '#163022', cardBorder: '#1e3e2c',
+        bgFrom: '#F2FFF6', bgTo: '#F8FFF4',
+        cardBg: '#FFFFFF', cardBgAlt: '#F8FFFA', cardBgHover: '#F0FFF4', cardBorder: '#BBE5C8',
         flowers: true,
-        accentColor: '#4ade80',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#16A34A',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -177,11 +178,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
       holiday: null,
       config: {
         name: 'Poletje',
-        bgFrom: '#001524', bgTo: '#00263e',
-        cardBg: '#001d30', cardBgAlt: '#001828', cardBgHover: '#002840', cardBorder: '#003255',
+        bgFrom: '#FFFBF0', bgTo: '#FFF8E6',
+        cardBg: '#FFFFFF', cardBgAlt: '#FFFDF8', cardBgHover: '#FFF9EE', cardBorder: '#E8D8A0',
         sunRays: true, waves: true,
-        accentColor: '#FCD34D',
-        headingFont: 'var(--font-quicksand)',
+        accentColor: '#D97706',
+        headingFont: 'var(--font-stardom)',
       },
     };
   }
@@ -192,11 +193,11 @@ export function getCurrentSeasonalTheme(date: Date = new Date()): SeasonalTheme 
     holiday: null,
     config: {
       name: 'Jesen',
-      bgFrom: '#1e0d00', bgTo: '#3d1e00',
-      cardBg: '#281500', cardBgAlt: '#221100', cardBgHover: '#341c00', cardBorder: '#4a2a00',
+      bgFrom: '#FFF9F0', bgTo: '#FFF5E8',
+      cardBg: '#FFFFFF', cardBgAlt: '#FFFDF9', cardBgHover: '#FFF8EE', cardBorder: '#E8CEAC',
       leaves: true,
-      accentColor: '#F97316',
-      headingFont: 'var(--font-quicksand)',
+      accentColor: '#EA580C',
+      headingFont: 'var(--font-stardom)',
     },
   };
 }

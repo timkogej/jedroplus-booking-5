@@ -412,3 +412,78 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* ── Scrollbar hide (horizontal date strip, pill row) ───────── */
+
+.mc-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.mc-scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ── Scarcity pulse animations ──────────────────────────────── */
+
+@keyframes mc-pulse-orange {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(1.4); }
+}
+
+@keyframes mc-pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(1.5); }
+}
+
+.mc-pulse-orange {
+  animation: mc-pulse-orange 1.3s ease-in-out infinite;
+}
+
+.mc-pulse-red {
+  animation: mc-pulse-red 0.9s ease-in-out infinite;
+}
+
+/* ── Date card (horizontal strip) ───────────────────────────── */
+
+.mc-date-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.3rem;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  background: rgba(10, 40, 20, 0.75);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  scroll-snap-align: center;
+  width: 68px;
+  min-height: 82px;
+  position: relative;
+}
+
+.mc-date-card:hover:not(:disabled) {
+  border-color: rgba(201, 168, 76, 0.45);
+  background: rgba(10, 40, 20, 0.9);
+  transform: translateY(-2px);
+}
+
+.mc-date-card.selected {
+  background: var(--mc-gold);
+  border-color: var(--mc-gold);
+  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.35);
+  transform: scale(1.06);
+}
+
+.mc-date-card.today-ring {
+  border-color: rgba(201, 168, 76, 0.5);
+}
+
+.mc-date-card:disabled,
+.mc-date-card.grayed {
+  opacity: 0.28;
+  cursor: not-allowed;
+  pointer-events: none;
+}

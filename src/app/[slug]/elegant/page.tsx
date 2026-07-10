@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
-import type { Theme } from '@/types';
+import { fetchActiveDiscounts, calculateDiscount } from '@/lib/promotionsApi';
+import type { ServicePromotion } from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
 import ElegantLayout from './components/ElegantLayout';
 
 function ElegantLoadingScreen() {
@@ -146,16 +148,7 @@ export default function ElegantPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const {
-    setTheme,
-    setCompany,
-    setEmployeesUI,
-    setCategories,
-    setServices,
-    setServicesByCategory,
-    setEmployeesByServiceId,
-    setLoading,
-  } = useBookingStore();
+  const { setInitData, setLoading } = useBookingStore();
 
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -174,13 +167,31 @@ export default function ElegantPage() {
       try {
         const data = await fetchInitData(slug);
 
-        if (data.theme) setTheme(data.theme as Theme);
-        if (data.company) setCompany(data.company);
-        if (data.employees_ui) setEmployeesUI(data.employees_ui);
-        if (data.serviceCategories) setCategories(data.serviceCategories);
-        if (data.services) setServices(data.services);
-        if (data.servicesByCategory) setServicesByCategory(data.servicesByCategory);
-        if (data.employeesByServiceId) setEmployeesByServiceId(data.employeesByServiceId);
+        // setInitData handles all fields: company, theme, employees, services,
+        // maxDniRezervacija, prikazZaposlenih, stripeEnabled, etc.
+        setInitData(data);
+
+        const companyId = data.company?.idPodjetja;
+        const serviceIds = (data.services ?? []).map((s) => String(s.id));
+
+        if (companyId && serviceIds.length) {
+          try {
+            const discounts = await fetchActiveDiscounts(companyId, serviceIds);
+            const enriched: Record<string, ServicePromotion> = {};
+            for (const [sId, promo] of Object.entries(discounts)) {
+              const service = (data.services ?? []).find((s) => String(s.id) === sId);
+              if (service) {
+                const { finalCena, popustZnesek } = calculateDiscount(
+                  Number(service.cena), promo.tipPopusta, promo.vrednost
+                );
+                enriched[sId] = { ...promo, originalCena: Number(service.cena), finalCena, popustZnesek };
+              }
+            }
+            usePromotionsStore.getState().setServiceDiscounts(enriched);
+          } catch {
+            // Promotions are non-critical — ignore errors
+          }
+        }
       } catch (err) {
         console.error('Elegant booking: failed to load init data:', err);
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
@@ -191,7 +202,7 @@ export default function ElegantPage() {
     }
 
     loadInitData();
-  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
+  }, [slug, setInitData, setLoading]);
 
   if (!hasLoaded) {
     return <ElegantLoadingScreen />;

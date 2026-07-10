@@ -22,74 +22,53 @@ function getEmojiSet(seasonalTheme: SeasonalTheme): string[] {
   return SEASON_EMOJIS[seasonalTheme.season];
 }
 
-interface Particle {
-  id: number;
-  emoji: string;
-  size: number;
-  opacity: number;
-  duration: number;
-  delay: number;
-  // start and end positions as vw/vh
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-  rotate: number;
-}
-
 interface Props {
   seasonalTheme: SeasonalTheme;
   count?: number;
 }
 
-export default function FloatingEmojis({ seasonalTheme, count = 22 }: Props) {
+export default function FloatingEmojis({ seasonalTheme, count = 14 }: Props) {
   const emojis = getEmojiSet(seasonalTheme);
 
-  const particles: Particle[] = useMemo(() => {
-    return Array.from({ length: count }).map((_, i) => {
-      // Pick a random edge to enter from: 0=top, 1=right, 2=bottom, 3=left
-      const enterEdge = i % 4;
-      const exitEdge = (enterEdge + 2) % 4; // opposite edge
+  const particles = useMemo(() => {
+    // Evenly divide the screen into a grid so emojis spread out nicely.
+    // We place each particle in its own zone to avoid clustering.
+    const cols = 4;
+    const rows = Math.ceil(count / cols);
 
-      const rand = (min: number, max: number, seed: number) => {
-        // deterministic-ish pseudo-random using index
-        const x = Math.sin(i * 9.301 + seed * 7.919) * 0.5 + 0.5;
-        return min + x * (max - min);
+    return Array.from({ length: count }).map((_, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+
+      // Deterministic pseudo-random within the zone
+      const seed = (n: number) => {
+        const x = Math.sin(i * 13.37 + n * 7.91) * 0.5 + 0.5;
+        return x;
       };
 
-      const edgePos = rand(5, 95, i);
+      const zoneW = 100 / cols;
+      const zoneH = 100 / rows;
 
-      const startX =
-        enterEdge === 3 ? -12 :
-        enterEdge === 1 ? 112 :
-        edgePos;
-      const startY =
-        enterEdge === 0 ? -12 :
-        enterEdge === 2 ? 112 :
-        edgePos;
+      // Start position within this zone (add small inset so emojis don't hug edges)
+      const startX = col * zoneW + zoneW * 0.1 + seed(1) * zoneW * 0.8;
+      const startY = row * zoneH + zoneH * 0.1 + seed(2) * zoneH * 0.8;
 
-      const endPos = rand(5, 95, i + 100);
-      const endX =
-        exitEdge === 3 ? -12 :
-        exitEdge === 1 ? 112 :
-        endPos;
-      const endY =
-        exitEdge === 0 ? -12 :
-        exitEdge === 2 ? 112 :
-        endPos;
+      // Drift — gentle, within ±12vw / ±10vh of start position
+      const driftX = (seed(3) - 0.5) * 24;
+      const driftY = (seed(4) - 0.5) * 20;
 
       return {
         id: i,
         emoji: emojis[i % emojis.length],
-        size: rand(18, 42, i + 1),
-        opacity: rand(0.25, 0.65, i + 2),
-        duration: rand(18, 38, i + 3),
-        delay: rand(0, 20, i + 4),
+        size: 16 + seed(5) * 18,           // 16–34px
+        opacity: 0.18 + seed(6) * 0.25,    // 0.18–0.43 — subtle on light bg
+        duration: 8 + seed(7) * 8,           // 8–16s — lively but smooth
+        delay: seed(8) * 6,                 // stagger up to 6s
         startX,
         startY,
-        endX,
-        endY,
-        rotate: rand(-180, 180, i + 5),
+        endX: startX + driftX,
+        endY: startY + driftY,
+        rotate: (seed(9) - 0.5) * 60,      // ±30°
       };
     });
   }, [count, emojis]);
@@ -102,7 +81,6 @@ export default function FloatingEmojis({ seasonalTheme, count = 22 }: Props) {
           className="absolute select-none"
           style={{
             fontSize: p.size,
-            opacity: p.opacity,
             left: 0,
             top: 0,
             willChange: 'transform',
@@ -111,20 +89,20 @@ export default function FloatingEmojis({ seasonalTheme, count = 22 }: Props) {
             x: `${p.startX}vw`,
             y: `${p.startY}vh`,
             rotate: 0,
-            scale: 0.7,
+            opacity: 0,
           }}
           animate={{
-            x: `${p.endX}vw`,
-            y: `${p.endY}vh`,
-            rotate: p.rotate,
-            scale: [0.7, 1.05, 0.85, 1, 0.7],
+            x: [`${p.startX}vw`, `${p.endX}vw`, `${p.startX}vw`],
+            y: [`${p.startY}vh`, `${p.endY}vh`, `${p.startY}vh`],
+            rotate: [0, p.rotate, 0],
+            opacity: [0, p.opacity, p.opacity, 0],
           }}
           transition={{
             duration: p.duration,
             repeat: Infinity,
-            repeatType: 'reverse',
             ease: 'easeInOut',
             delay: p.delay,
+            times: [0, 0.06, 0.94, 1],
           }}
         >
           {p.emoji}

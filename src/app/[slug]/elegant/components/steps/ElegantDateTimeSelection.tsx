@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import {
   format,
@@ -14,10 +14,14 @@ import {
   isBefore,
   startOfDay,
   getDay,
+  addDays,
 } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { fetchTimeSlots } from '@/lib/api';
+import { fetchTimeSlotsRange } from '@/lib/api';
+import { checkHappyHour, fetchAvailableAddOns, calculateDiscount, fetchHappyHoursForDay, type HappyHourRange } from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { AddOnModal } from '@/components/shared/AddOnModal';
 
 interface Props {
   companySlug?: string;
@@ -61,15 +65,78 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
     anyPerson,
     eligibleEmployeeIds,
     selectedService,
+    selectedServices,
     selectDate,
-    selectTime,
+    language,
+    nextStep,
     theme,
+    company,
+    services,
+    maxDniRezervacija,
+    slotsMap,
+    isLoadingSlots,
+    setSlotsMap,
+    setLoadingSlots,
+    requiredResursiIds,
   } = useBookingStore();
+
+  const {
+    availableAddOns,
+    serviceDiscounts,
+    setActiveHappyHour,
+    computeActivePromotion,
+    setAvailableAddOns,
+    selectAddOn,
+    setLoadingAddOns,
+  } = usePromotionsStore();
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [direction, setDirection] = useState(0);
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [happyHourRanges, setHappyHourRanges] = useState<HappyHourRange[]>([]);
+  const [showAddOnModal, setShowAddOnModal] = useState(false);
+
+  const today = useMemo(() => startOfDay(new Date()), []);
+
+  // Last bookable date
+  const windowEnd = useMemo(
+    () => addDays(today, maxDniRezervacija),
+    [today, maxDniRezervacija]
+  );
+
+  // Active service IDs — multi-service or single legacy
+  const activeServiceIds = useMemo(() => {
+    if (selectedServices.length > 0) return selectedServices.map((s) => s.id);
+    if (selectedService) return [selectedService.id];
+    return [];
+  }, [selectedServices, selectedService]);
+
+  useEffect(() => {
+    if (!company?.idPodjetja || activeServiceIds.length === 0 || !selectedDate) {
+      setHappyHourRanges([]);
+      return;
+    }
+    const primaryId = activeServiceIds[0];
+    const primaryService =
+      selectedServices.find((s) => s.id === primaryId) ?? selectedService;
+    const primaryRowId = String(primaryService?.id ?? primaryId);
+    fetchHappyHoursForDay(company.idPodjetja, primaryRowId, selectedDate)
+      .then(setHappyHourRanges)
+      .catch(() => setHappyHourRanges([]));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company?.idPodjetja, JSON.stringify(activeServiceIds), selectedDate?.toISOString()]);
+
+  const isHappyHour = useCallback(
+    (timeStr: string): string | null => {
+      if (!happyHourRanges.length) return null;
+      const [h, m] = timeStr.split(':').map(Number);
+      const minutes = h * 60 + m;
+      const range = happyHourRanges.find(
+        (r) => minutes >= r.startMin && minutes < r.endMin
+      );
+      return range?.label ?? null;
+    },
+    [happyHourRanges]
+  );
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
@@ -80,32 +147,133 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
     return [...Array(pad).fill(null), ...days] as (Date | null)[];
   }, [currentMonth]);
 
+  // ── Fetch full range on mount / when service or employee changes ──────────
   useEffect(() => {
-    if (!selectedDate || !companySlug || !selectedService) {
-      setTimeSlots([]);
-      return;
-    }
-    setLoadingSlots(true);
-    fetchTimeSlots(
-      companySlug,
-      format(selectedDate, 'yyyy-MM-dd'),
-      selectedService.id,
-      selectedEmployeeId,
-      anyPerson,
-      eligibleEmployeeIds
-    )
-      .then(setTimeSlots)
-      .catch(() => setTimeSlots([]))
-      .finally(() => setLoadingSlots(false));
-  }, [selectedDate, companySlug, selectedEmployeeId, anyPerson, selectedService, eligibleEmployeeIds]);
+    if (!companySlug || activeServiceIds.length === 0) return;
 
-  const today = startOfDay(new Date());
+    const startDate = format(today, 'yyyy-MM-dd');
+    const endDate = format(windowEnd, 'yyyy-MM-dd');
+
+    setLoadingSlots(true);
+    setSlotsMap({});
+
+    fetchTimeSlotsRange({
+      companySlug,
+      serviceIds: activeServiceIds,
+      employeeId: selectedEmployeeId,
+      anyPerson,
+      eligibleEmployeeIds,
+      startDate,
+      endDate,
+      resursiIds: requiredResursiIds.length > 0 ? requiredResursiIds : undefined,
+    })
+      .then((res) => setSlotsMap(res.slots))
+      .catch(() => setSlotsMap({}))
+      .finally(() => setLoadingSlots(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    companySlug,
+    // stringify prevents re-fetch on array identity change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(activeServiceIds),
+    selectedEmployeeId,
+    anyPerson,
+  ]);
+
+  // Default to today on mount
+  useEffect(() => {
+    if (!selectedDate) selectDate(today);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const isPrevDisabled = isBefore(endOfMonth(subMonths(currentMonth, 1)), today);
 
   const navigateMonth = (delta: number) => {
     setDirection(delta);
     setCurrentMonth(delta > 0 ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1));
   };
+
+  // Derive time slots from slotsMap — no per-day fetch needed
+  const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
+  const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
+  const timeSlots = Array.isArray(daySlots) ? daySlots : [];
+
+  const handleTimeSelect = useCallback(async (time: string) => {
+    useBookingStore.setState({ selectedTime: time });
+    let shouldShowAddOnModal = false;
+
+    if (!company?.idPodjetja || !selectedService || !selectedDate) {
+      nextStep();
+      return;
+    }
+
+    const storitevId = String(selectedService.id);
+    const hasDiscount = !!serviceDiscounts[storitevId];
+
+    if (!hasDiscount) {
+      try {
+        const hh = await checkHappyHour(company.idPodjetja, storitevId, selectedDate, time);
+        if (hh && selectedService.cena) {
+          const { finalCena, popustZnesek } = calculateDiscount(
+            selectedService.cena, hh.tipPopusta, hh.vrednost
+          );
+          setActiveHappyHour({ ...hh, originalCena: selectedService.cena, finalCena, popustZnesek });
+        } else {
+          setActiveHappyHour(null);
+        }
+      } catch {
+        setActiveHappyHour(null);
+      }
+    }
+
+    computeActivePromotion(storitevId);
+
+    if (selectedEmployeeId) {
+      setLoadingAddOns(true);
+      const [h, m] = time.split(':').map(Number);
+      const totalMin =
+        selectedServices.length > 0
+          ? selectedServices.reduce((sum, s) => sum + s.trajanjeMin, 0)
+          : selectedService.trajanjeMin;
+      const endMinutes = h * 60 + m + totalMin;
+      const endTime = `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+      try {
+        const addOns = await fetchAvailableAddOns(
+          company.idPodjetja, storitevId, selectedEmployeeId, selectedDate, endTime, services
+        );
+        setAvailableAddOns(addOns);
+        shouldShowAddOnModal = addOns.length > 0;
+      } catch {
+        setAvailableAddOns([]);
+      } finally {
+        setLoadingAddOns(false);
+      }
+    }
+
+    if (shouldShowAddOnModal) {
+      setShowAddOnModal(true);
+    } else {
+      nextStep();
+    }
+  }, [
+    company, services, selectedService, selectedServices, selectedDate, selectedEmployeeId,
+    serviceDiscounts, nextStep, setActiveHappyHour, computeActivePromotion,
+    setAvailableAddOns, setLoadingAddOns,
+  ]);
+
+  // Availability check for a calendar day
+  const isDayGrayed = useCallback((day: Date): boolean => {
+    if (isBefore(day, today)) return true;
+    // Beyond booking window
+    if (isBefore(windowEnd, day)) return true;
+    // During loading, only gray past/out-of-range
+    if (isLoadingSlots) return false;
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const data = slotsMap[dateKey];
+    if (!data || data === 'fully_booked' || data === 'unavailable') return true;
+    if (Array.isArray(data) && data.length === 0) return true;
+    return false;
+  }, [today, windowEnd, isLoadingSlots, slotsMap]);
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
@@ -114,7 +282,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '1.75rem',
+            fontSize: '2.1rem',
             fontWeight: 400,
             color: '#111111',
             lineHeight: 1.2,
@@ -182,68 +350,80 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
               </button>
             </div>
 
-            {/* Horizontal date pills */}
-            <div className="elegant-date-strip flex gap-1.5 overflow-x-auto pb-1">
-              {calendarDays.map((day) => {
-                if (!day) return null;
-                const isDisabled = isBefore(day, today);
-                const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-                const isTodayDate = isToday(day);
-                const dow = getDay(day);
-                const weekdayAbbr = WEEK_DAYS[dow === 0 ? 6 : dow - 1];
+            {/* Horizontal date pills — skeleton during loading */}
+            {isLoadingSlots ? (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 rounded-xl animate-pulse"
+                    style={{ width: 52, height: 68, backgroundColor: '#F3F4F6' }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="elegant-date-strip flex gap-1.5 overflow-x-auto pb-1">
+                {calendarDays.map((day) => {
+                  if (!day) return null;
+                  const isGrayed = isDayGrayed(day);
+                  const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                  const isTodayDate = isToday(day);
+                  const dow = getDay(day);
+                  const weekdayAbbr = WEEK_DAYS[dow === 0 ? 6 : dow - 1];
 
-                return (
-                  <button
-                    key={day.toISOString()}
-                    onClick={() => !isDisabled && selectDate(day)}
-                    disabled={isDisabled}
-                    className="elegant-date-pill flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
-                    style={{
-                      backgroundColor: isSelected
-                        ? theme.primaryColor
-                        : isTodayDate
-                        ? `${theme.primaryColor}08`
-                        : 'white',
-                      border: `1px solid ${
-                        isSelected
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => !isGrayed && selectDate(day)}
+                      disabled={isGrayed}
+                      className="elegant-date-pill flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
+                      style={{
+                        backgroundColor: isSelected
                           ? theme.primaryColor
                           : isTodayDate
-                          ? `${theme.primaryColor}30`
-                          : '#EFEFEF'
-                      }`,
-                      color: isDisabled ? '#D1D5DB' : isSelected ? 'white' : '#374151',
-                      boxShadow: isSelected
-                        ? `0 2px 8px ${theme.primaryColor}30`
-                        : '0 1px 2px rgba(0,0,0,0.04)',
-                      opacity: isDisabled ? 0.45 : 1,
-                      cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-inter)',
-                        fontSize: '0.55rem',
-                        letterSpacing: '0.02em',
-                        color: isSelected ? 'rgba(255,255,255,0.7)' : '#9CA3AF',
-                        lineHeight: 1,
+                          ? `${theme.primaryColor}08`
+                          : 'white',
+                        border: `1px solid ${
+                          isSelected
+                            ? theme.primaryColor
+                            : isTodayDate
+                            ? `${theme.primaryColor}30`
+                            : '#EFEFEF'
+                        }`,
+                        color: isGrayed ? '#D1D5DB' : isSelected ? 'white' : '#374151',
+                        boxShadow: isSelected
+                          ? `0 2px 8px ${theme.primaryColor}30`
+                          : '0 1px 2px rgba(0,0,0,0.04)',
+                        opacity: isGrayed ? 0.45 : 1,
+                        cursor: isGrayed ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {weekdayAbbr}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-inter)',
-                        fontSize: '0.9rem',
-                        fontWeight: isSelected || isTodayDate ? 600 : 400,
-                        lineHeight: 1,
-                      }}
-                    >
-                      {format(day, 'd')}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-inter)',
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.02em',
+                          color: isSelected ? 'rgba(255,255,255,0.7)' : '#9CA3AF',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {weekdayAbbr}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-inter)',
+                          fontSize: '1.15rem',
+                          fontWeight: isSelected || isTodayDate ? 600 : 400,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {format(day, 'd')}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* ── Desktop: full calendar card ────────────────── */}
@@ -276,25 +456,35 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 ‹
               </button>
 
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.h3
-                  key={format(currentMonth, 'yyyy-MM')}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="capitalize"
-                  style={{
-                    fontFamily: 'var(--font-inter)',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    color: '#1F2937',
-                  }}
-                >
-                  {format(currentMonth, 'LLLL yyyy', { locale: sl })}
-                </motion.h3>
-              </AnimatePresence>
+              <div className="flex items-center gap-2">
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.h3
+                    key={format(currentMonth, 'yyyy-MM')}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    className="capitalize"
+                    style={{
+                      fontFamily: 'var(--font-inter)',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      color: '#1F2937',
+                    }}
+                  >
+                    {format(currentMonth, 'LLLL yyyy', { locale: sl })}
+                  </motion.h3>
+                </AnimatePresence>
+                {isLoadingSlots && (
+                  <motion.div
+                    className="w-3 h-3 rounded-full border border-t-transparent"
+                    style={{ borderColor: `${theme.primaryColor}60`, borderTopColor: 'transparent' }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' as const }}
+                  />
+                )}
+              </div>
 
               <button
                 onClick={() => navigateMonth(1)}
@@ -345,7 +535,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                   {calendarDays.map((day, i) => {
                     if (!day) return <div key={`e-${i}`} className="aspect-square" />;
 
-                    const isDisabled = isBefore(day, today);
+                    const isGrayed = isDayGrayed(day);
                     const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                     const isTodayDate = isToday(day);
                     const isWeekend = getDay(day) === 0 || getDay(day) === 6;
@@ -353,11 +543,11 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     return (
                       <motion.button
                         key={day.toISOString()}
-                        onClick={() => !isDisabled && selectDate(day)}
-                        disabled={isDisabled}
+                        onClick={() => !isGrayed && selectDate(day)}
+                        disabled={isGrayed}
                         className="elegant-cal-day"
                         style={{
-                          color: isDisabled
+                          color: isGrayed
                             ? '#D1D5DB'
                             : isSelected
                             ? 'white'
@@ -367,20 +557,23 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                           backgroundColor: isSelected ? theme.primaryColor : 'transparent',
                           boxShadow: isSelected ? `0 2px 8px ${theme.primaryColor}40` : 'none',
                           borderColor:
-                            isTodayDate && !isSelected ? theme.primaryColor : 'transparent',
+                            isTodayDate && !isSelected && !isGrayed
+                              ? theme.primaryColor
+                              : 'transparent',
                           borderWidth: '2px',
-                          fontWeight: isTodayDate ? 500 : 400,
-                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          fontWeight: isTodayDate && !isGrayed ? 500 : 400,
+                          cursor: isGrayed ? 'not-allowed' : 'pointer',
+                          opacity: isGrayed ? 0.38 : 1,
                         }}
                         whileHover={
-                          !isDisabled && !isSelected
+                          !isGrayed && !isSelected
                             ? { backgroundColor: `${theme.primaryColor}12`, scale: 1.05 }
                             : {}
                         }
-                        whileTap={!isDisabled ? { scale: 0.94 } : {}}
+                        whileTap={!isGrayed ? { scale: 0.94 } : {}}
                       >
                         {format(day, 'd')}
-                        {isTodayDate && !isSelected && (
+                        {isTodayDate && !isSelected && !isGrayed && (
                           <span
                             className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
                             style={{ backgroundColor: theme.primaryColor }}
@@ -449,19 +642,21 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 )}
               </div>
 
-              {selectedDate && !loadingSlots && timeSlots.length > 0 && (
+              {selectedDate && !isLoadingSlots && timeSlots.length > 0 && (
                 <div
-                  className="px-2 py-0.5 rounded-full"
+                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{
-                    backgroundColor: `${theme.secondaryColor ?? theme.primaryColor}12`,
-                    border: `1px solid ${theme.secondaryColor ?? theme.primaryColor}30`,
+                    backgroundColor: `${theme.secondaryColor ?? theme.primaryColor}15`,
+                    border: `1px solid ${theme.secondaryColor ?? theme.primaryColor}25`,
                   }}
                 >
                   <span
                     style={{
                       fontFamily: 'var(--font-inter)',
-                      fontSize: '0.7rem',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
                       color: theme.secondaryColor ?? theme.primaryColor,
+                      lineHeight: 1,
                     }}
                   >
                     {timeSlots.length}
@@ -485,7 +680,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                   Izberite datum v koledarju
                 </p>
               </div>
-            ) : loadingSlots ? (
+            ) : isLoadingSlots ? (
               <div className="p-4 space-y-2">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
@@ -522,10 +717,11 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             ) : (
               timeSlots.map((slot, i) => {
                 const isSelected = selectedTime === slot;
+                const hhLabel = isHappyHour(slot);
                 return (
                   <motion.button
                     key={slot}
-                    onClick={() => selectTime(slot)}
+                    onClick={() => handleTimeSelect(slot)}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: i * 0.025, ease: 'easeOut' as const }}
@@ -536,16 +732,31 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     }}
                     whileTap={{ scale: 0.995 }}
                   >
-                    <span
-                      className="font-medium"
-                      style={{
-                        fontFamily: 'var(--font-inter)',
-                        fontSize: '0.9rem',
-                        color: isSelected ? theme.primaryColor : '#374151',
-                      }}
-                    >
-                      {slot}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="font-medium"
+                        style={{
+                          fontFamily: 'var(--font-inter)',
+                          fontSize: '0.9rem',
+                          color: isSelected ? theme.primaryColor : '#374151',
+                        }}
+                      >
+                        {slot}
+                      </span>
+                      {hhLabel && (
+                        <span
+                          className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold leading-none border flex-shrink-0"
+                          style={{
+                            background: `${theme.primaryColor}10`,
+                            borderColor: `${theme.primaryColor}30`,
+                            color: theme.primaryColor,
+                            fontFamily: 'var(--font-inter)',
+                          }}
+                        >
+                          {hhLabel}
+                        </span>
+                      )}
+                    </div>
 
                     {/* Radio indicator */}
                     <div
@@ -585,7 +796,18 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: theme.primaryColor }}
             >
-              <span style={{ color: 'white', fontSize: '0.7rem' }}>✓</span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 10"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M1 5L4.5 8.5L11 1" />
+              </svg>
             </div>
             <p
               style={{
@@ -603,6 +825,27 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
               </span>
             </p>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAddOnModal && availableAddOns.length > 0 && (
+          <AddOnModal
+            addOns={availableAddOns}
+            onSelect={(addOn) => {
+              selectAddOn(addOn);
+              setShowAddOnModal(false);
+              nextStep();
+            }}
+            onSkip={() => {
+              selectAddOn(null);
+              setShowAddOnModal(false);
+              nextStep();
+            }}
+            language={language}
+            variantStyle="elegant"
+            accentColor={theme.primaryColor}
+          />
         )}
       </AnimatePresence>
     </motion.div>

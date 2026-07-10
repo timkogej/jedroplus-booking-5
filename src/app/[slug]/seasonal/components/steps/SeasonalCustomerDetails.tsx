@@ -6,6 +6,8 @@ import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { AddOnSelector } from '@/components/shared/AddOnSelector';
 
 interface FormErrors {
   firstName?: string;
@@ -96,6 +98,7 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'seasonal' });
+  const { availableAddOns, isLoadingAddOns } = usePromotionsStore();
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -175,6 +178,16 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
           Izpolnite podatke za rezervacijo
         </p>
+      </motion.div>
+
+      {/* Add-on selector */}
+      <motion.div variants={itemVariants}>
+        <AddOnSelector
+          addOns={availableAddOns}
+          isLoading={isLoadingAddOns}
+          primaryColor={theme.primaryColor}
+          variantStyle="seasonal"
+        />
       </motion.div>
 
       {/* Form card */}

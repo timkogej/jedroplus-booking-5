@@ -5,6 +5,12 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
 import { CustomerDetails as CustomerDetailsType } from '@/types';
 
 export default function CustomerDetails() {
@@ -19,9 +25,13 @@ export default function CustomerDetails() {
     setCustomerDetails,
     nextStep,
   } = useBookingStore();
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   // Find selected employee from employeesUI
   const selectedEmployee = employeesUI.find(e => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   const [formData, setFormData] = useState<CustomerDetailsType>({
     firstName: '',
@@ -378,10 +388,19 @@ export default function CustomerDetails() {
                 <div className="flex justify-between">
                   <span className="text-white/50">Trajanje</span>
                   <span className="font-light text-sm text-white tracking-wider">
-                    {formatDuration(selectedService.trajanjeMin)}
+                    {formatDuration(selectedService.trajanjeMin + (selectedAddOn?.trajanjeMin ?? 0))}
                   </span>
                 </div>
               </>
+            )}
+
+            {selectedAddOn && (
+              <div className="flex justify-between">
+                <span className="text-white/50">Dodatek</span>
+                <span className="font-medium text-right text-white">
+                  {selectedAddOn.naziv} (+€{formatBookingPrice(selectedAddOn.finalCena)})
+                </span>
+              </div>
             )}
 
             {selectedDate && (
@@ -410,7 +429,12 @@ export default function CustomerDetails() {
                 className="font-light text-2xl tracking-wider"
                 style={{ color: theme.primaryColor }}
               >
-                €{selectedService.cena}
+                {pricing.hasDiscount && (
+                  <span className="block text-sm text-white/35 line-through">
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </span>
+                )}
+                €{formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}

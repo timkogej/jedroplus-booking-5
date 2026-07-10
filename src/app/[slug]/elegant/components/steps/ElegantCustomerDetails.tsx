@@ -5,6 +5,8 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { AddOnSelector } from '@/components/shared/AddOnSelector';
 
 interface FormErrors {
   firstName?: string;
@@ -101,6 +103,7 @@ export default function ElegantCustomerDetails() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { isSubmitting, error, fieldErrors, submitBooking, sanitize } = useSecureBooking({ companyId: 'elegant' });
+  const { availableAddOns, isLoadingAddOns } = usePromotionsStore();
 
   const validate = (): boolean => {
     const e: FormErrors = {};
@@ -151,7 +154,7 @@ export default function ElegantCustomerDetails() {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '1.75rem',
+            fontSize: '2.1rem',
             fontWeight: 400,
             color: '#111111',
             lineHeight: 1.2,
@@ -169,6 +172,16 @@ export default function ElegantCustomerDetails() {
         >
           Izpolnite podatke za rezervacijo
         </p>
+      </motion.div>
+
+      {/* Add-on selector */}
+      <motion.div variants={itemVariants}>
+        <AddOnSelector
+          addOns={availableAddOns}
+          isLoading={isLoadingAddOns}
+          primaryColor={theme.primaryColor}
+          variantStyle="elegant"
+        />
       </motion.div>
 
       {/* Form card */}

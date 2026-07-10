@@ -1,5 +1,10 @@
 /* ── Modern Booking Variant ─────────────────────────── */
 
+/* Font variable — Clash Display loaded via <link> in layout.tsx */
+:root {
+  --font-clash: 'Clash Display', system-ui, sans-serif;
+}
+
 /* Background orb animations — CSS only, compositor thread, no React re-renders */
 @keyframes modernOrbFloat1 {
   0%, 100% { transform: translate(-5%, -5%); }
@@ -52,6 +57,37 @@
   animation: modernShimmer 1.4s ease-in-out infinite;
 }
 
+/* Scarcity dots — slow pulse under 3 seconds per cycle */
+@keyframes modernScarcityOrange {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55); }
+  50%       { opacity: 0.65; box-shadow: 0 0 0 5px rgba(249, 115, 22, 0); }
+}
+
+@keyframes modernScarcityRed {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  50%       { opacity: 0.65; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+.modern-scarcity-dot-orange {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #F97316;
+  animation: modernScarcityOrange 2.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.modern-scarcity-dot-red {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #EF4444;
+  animation: modernScarcityRed 2.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
 /* Hide scrollbar but keep scroll functionality */
 .modern-scrollbar-hide {
   -ms-overflow-style: none;
@@ -73,6 +109,27 @@
 
 .modern-scroll::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Vertical time-slot list scroll container */
+.modern-timeslot-scroll {
+  overflow-y: auto;
+  max-height: 17rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.2) transparent;
+}
+
+.modern-timeslot-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.modern-timeslot-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modern-timeslot-scroll::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.2);
   border-radius: 2px;
 }
 

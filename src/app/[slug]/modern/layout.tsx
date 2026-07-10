@@ -1,4 +1,4 @@
-import { Inter, DM_Sans } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './styles/modern.css';
 
 const inter = Inter({
@@ -8,21 +8,22 @@ const inter = Inter({
   display: 'swap',
 });
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-
 export default function ModernRootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${inter.variable} ${dmSans.variable}`}>
-      {children}
-    </div>
+    <>
+      {/* Clash Display — premium heading font from Fontshare (not on Google Fonts) */}
+      <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
+      <link
+        rel="stylesheet"
+        href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap"
+      />
+      <div className={inter.variable}>
+        {children}
+      </div>
+    </>
   );
 }

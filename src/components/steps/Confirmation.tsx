@@ -6,7 +6,14 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { Check, Calendar, User, Sparkles, CalendarPlus, Share2 } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
+import { usePromotionsStore } from '@/store/promotionsStore';
 import { submitBooking } from '@/lib/api';
+import {
+  formatBookingPrice,
+  getBookingPricing,
+  getPromotionPopustTip,
+  resolvePrimaryPromotion,
+} from '@/lib/pricing';
 
 interface ConfirmationProps {
   companySlug?: string;
@@ -32,9 +39,13 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
 
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   // Find selected employee from employeesUI
   const selectedEmployee = employeesUI.find(e => e.id === selectedEmployeeId);
+  const services = selectedService ? [selectedService] : [];
+  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
+  const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
   const handleConfirm = async () => {
     if (!companySlug || !selectedService || !selectedDate || !selectedTime || !customerDetails) {
@@ -61,9 +72,28 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         gender: customerDetails.gender,
         notes: customerDetails.notes,
         gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent,
+        privacyConsent: customerDetails.privacyConsent ?? false,
         marketingConsent: customerDetails.gdprSendMarketing,
         consentTimestamp: new Date().toISOString(),
+        originalCena: pricing.originalTotal,
+        finalCena: pricing.finalTotal,
+        ...(selectedAddOn ? {
+          addOnServiceId: selectedAddOn.id,
+          addOnNaziv: selectedAddOn.naziv,
+          addOnFinalCena: selectedAddOn.finalCena,
+          addOnOriginalCena: selectedAddOn.originalCena,
+          addOnPopust: selectedAddOn.popustZnesek,
+          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
+          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
+        } : {}),
+        ...(promotion ? {
+          promocijaTip: promotion.type,
+          promocijaNaziv: promotion.naziv,
+          popust: pricing.discountAmount,
+          popustTip: getPromotionPopustTip(promotion),
+          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
+          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
+        } : {}),
       });
 
       if (response.success) {
@@ -270,7 +300,12 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
             <div className="flex justify-between py-2">
               <span className="text-white/50">Cena</span>
               <span className="font-light tracking-wider" style={{ color: theme.primaryColor }}>
-                €{selectedService.cena}
+                {pricing.hasDiscount && (
+                  <span className="block text-sm text-white/35 line-through">
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </span>
+                )}
+                €{formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}
@@ -317,7 +352,10 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
 
           {/* Nova rezervacija */}
           <button
-            onClick={reset}
+            onClick={() => {
+              usePromotionsStore.getState().resetSelections();
+              reset();
+            }}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-light tracking-wide transition-all duration-300 text-white/50 hover:text-white"
           >
             Nova rezervacija
@@ -371,7 +409,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
                 <p className="font-serif text-lg text-white">{selectedService.naziv}</p>
                 <p className="text-white/40 text-sm">
                   <span className="font-light tracking-wider">{formatDuration(selectedService.trajanjeMin)}</span>
-                  {' · '}€{selectedService.cena}
+                  {' · '}€{formatBookingPrice(pricing.primaryFinalPrice)}
                 </p>
               </div>
             </div>
@@ -443,7 +481,12 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
                 className="font-light text-3xl tracking-wider"
                 style={{ color: theme.primaryColor }}
               >
-                €{selectedService.cena}
+                {pricing.hasDiscount && (
+                  <span className="block text-sm text-white/35 line-through">
+                    €{formatBookingPrice(pricing.originalTotal)}
+                  </span>
+                )}
+                €{formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}

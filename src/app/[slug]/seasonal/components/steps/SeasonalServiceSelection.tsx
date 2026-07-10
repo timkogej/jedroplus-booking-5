@@ -1,8 +1,10 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
+import { usePromotionsStore } from '@/store/promotionsStore';
+import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
 
 function formatDuration(minutes: number): string {
@@ -36,12 +38,17 @@ function ServiceRow({
   isLast: boolean;
 }) {
   const { theme, selectedService, selectCategoryAndService } = useBookingStore();
+  const { serviceDiscounts } = usePromotionsStore();
   const isSelected = selectedService?.id === service.id;
+  const promo = serviceDiscounts[String(service.id)];
 
   return (
     <motion.button
       variants={itemVariants}
-      onClick={() => selectCategoryAndService(category, service)}
+      onClick={() => {
+        selectCategoryAndService(category, service);
+        usePromotionsStore.getState().computeActivePromotion(String(service.id));
+      }}
       className="w-full text-left px-5 py-4 transition-colors duration-150 relative group"
       style={{
         backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
@@ -83,12 +90,27 @@ function ServiceRow({
         </div>
 
         <div className="flex-shrink-0 text-right">
-          <p
-            className="font-bold"
-            style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
-          >
-            €{service.cena}
-          </p>
+          {promo ? (
+            <AnimatePresence>
+              <PromotionBadge
+                type={promo.type}
+                naziv={promo.naziv}
+                badgeLabel={promo.badgeLabel}
+                originalCena={promo.originalCena}
+                finalCena={promo.finalCena}
+                size="sm"
+                variantStyle="seasonal"
+                accentColor={theme.primaryColor}
+              />
+            </AnimatePresence>
+          ) : (
+            <p
+              className="font-bold"
+              style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
+            >
+              €{service.cena}
+            </p>
+          )}
           <p
             className="flex items-center justify-end gap-1 text-xs mt-0.5"
             style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}

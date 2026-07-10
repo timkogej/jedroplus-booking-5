@@ -5,74 +5,42 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
+import { fetchActiveDiscounts, calculateDiscount } from '@/lib/promotionsApi';
+import type { ServicePromotion } from '@/lib/promotionsApi';
+import { usePromotionsStore } from '@/store/promotionsStore';
 import CasinoLayout from './components/CasinoLayout';
 
-function MonteCarloLoadingScreen() {
+// ── Minimal white loading screen (same pattern as other variants) ─────────────
+function CasinoLoadingScreen() {
   return (
-    <div className="min-h-screen mc-bg flex items-center justify-center px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' as const }}
-        className="text-center max-w-xs"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className="flex flex-col items-center gap-5"
       >
-        {/* Roulette ring */}
-        <div className="relative w-24 h-24 mx-auto mb-10">
-          <div
-            className="absolute inset-0 rounded-full mc-roulette"
-            style={{
-              border: '1px solid rgba(201, 168, 76, 0.3)',
-              boxShadow: `
-                inset 0 0 0 8px transparent,
-                inset 0 0 0 9px rgba(201, 168, 76, 0.15),
-                inset 0 0 0 20px transparent,
-                inset 0 0 0 21px rgba(201, 168, 76, 0.1)
-              `,
-            }}
-          />
-          <div
-            className="absolute inset-4 rounded-full flex items-center justify-center"
-            style={{
-              background: 'rgba(13, 59, 30, 0.8)',
-              border: '1px solid rgba(201, 168, 76, 0.2)',
-            }}
-          >
-            <span style={{ color: '#c9a84c', fontSize: '1.5rem', fontFamily: 'Georgia, serif' }}>◆</span>
-          </div>
+        <div className="flex items-center gap-2">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="block w-2 h-2 rounded-full"
+              style={{ backgroundColor: '#D1D5DB' }}
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{
+                duration: 1.1,
+                repeat: Infinity,
+                delay: i * 0.18,
+                ease: 'easeInOut' as const,
+              }}
+            />
+          ))}
         </div>
-
-        <h1
-          className="text-2xl font-black tracking-[0.18em] uppercase mb-3"
-          style={{ fontFamily: 'var(--font-playfair)', color: '#c9a84c' }}
-        >
-          Monte Carlo
-        </h1>
         <p
-          className="text-xs tracking-[0.35em] uppercase mb-8"
-          style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201, 168, 76, 0.45)' }}
+          className="text-xs tracking-widest uppercase"
+          style={{ color: '#9CA3AF', letterSpacing: '0.12em' }}
         >
-          Booking Suite
-        </p>
-
-        {/* Gold progress bar */}
-        <div
-          className="w-56 h-px mx-auto overflow-hidden"
-          style={{ background: 'rgba(201, 168, 76, 0.15)' }}
-        >
-          <motion.div
-            className="h-full"
-            style={{ background: 'linear-gradient(90deg, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }}
-            initial={{ x: '-100%' }}
-            animate={{ x: '100%' }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' as const }}
-          />
-        </div>
-
-        <p
-          className="mt-6 text-xs tracking-[0.2em] uppercase"
-          style={{ fontFamily: 'var(--font-oswald)', color: 'rgba(201, 168, 76, 0.25)' }}
-        >
-          Preparing your table&hellip;
+          Loading
         </p>
       </motion.div>
     </div>
@@ -88,7 +56,6 @@ function MonteCarloErrorScreen({ error }: { error: string }) {
         transition={{ duration: 0.5 }}
         className="text-center max-w-sm"
       >
-        {/* Diamond icon */}
         <div
           className="w-16 h-16 mx-auto mb-8 rounded-full flex items-center justify-center"
           style={{
@@ -134,17 +101,7 @@ export default function CasinoPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  const {
-    theme,
-    setTheme,
-    setCompany,
-    setEmployeesUI,
-    setCategories,
-    setServices,
-    setServicesByCategory,
-    setEmployeesByServiceId,
-    setLoading,
-  } = useBookingStore();
+  const { setInitData, setLoading } = useBookingStore();
 
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -162,37 +119,43 @@ export default function CasinoPage() {
 
       try {
         const data = await fetchInitData(slug);
+        setInitData(data);
 
-        if (data.theme) setTheme(data.theme as typeof theme);
-        if (data.company) setCompany(data.company);
-        if (data.employees_ui) setEmployeesUI(data.employees_ui);
-        if (data.serviceCategories) setCategories(data.serviceCategories);
-        if (data.services) setServices(data.services);
-        if (data.servicesByCategory) setServicesByCategory(data.servicesByCategory);
-        if (data.employeesByServiceId) setEmployeesByServiceId(data.employeesByServiceId);
+        const companyId = data.company?.idPodjetja;
+        const serviceIds = (data.services ?? []).map((s) => String(s.id));
+
+        if (companyId && serviceIds.length) {
+          try {
+            const discounts = await fetchActiveDiscounts(companyId, serviceIds);
+            const enriched: Record<string, ServicePromotion> = {};
+            for (const [sId, promo] of Object.entries(discounts)) {
+              const service = (data.services ?? []).find((s) => String(s.id) === sId);
+              if (service) {
+                const { finalCena, popustZnesek } = calculateDiscount(
+                  Number(service.cena), promo.tipPopusta, promo.vrednost
+                );
+                enriched[sId] = { ...promo, originalCena: Number(service.cena), finalCena, popustZnesek };
+              }
+            }
+            usePromotionsStore.getState().setServiceDiscounts(enriched);
+          } catch {
+            // Promotions are non-critical
+          }
+        }
       } catch (err) {
         console.error('Casino booking: failed to load init data:', err);
         setError('Napaka pri nalaganju. Prosimo poskusite znova.');
       } finally {
         setLoading(false);
-        setTimeout(() => setHasLoaded(true), 400);
+        setTimeout(() => setHasLoaded(true), 250);
       }
     }
 
     loadInitData();
-  }, [slug, setTheme, setCompany, setEmployeesUI, setCategories, setServices, setServicesByCategory, setEmployeesByServiceId, setLoading]);
+  }, [slug, setInitData, setLoading]);
 
-  useEffect(() => {
-    document.documentElement.style.setProperty('--mc-primary', theme.primaryColor);
-  }, [theme]);
-
-  if (!hasLoaded) {
-    return <MonteCarloLoadingScreen />;
-  }
-
-  if (error) {
-    return <MonteCarloErrorScreen error={error} />;
-  }
+  if (!hasLoaded) return <CasinoLoadingScreen />;
+  if (error) return <MonteCarloErrorScreen error={error} />;
 
   return <CasinoLayout companySlug={slug} />;
 }
