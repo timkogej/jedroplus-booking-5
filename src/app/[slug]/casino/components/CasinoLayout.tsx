@@ -390,10 +390,10 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
                   >
                     {pricing.hasDiscount && (
                       <span style={{ textDecoration: 'line-through', color: '#a89060', marginRight: 6 }}>
-                        €{formatBookingPrice(pricing.originalTotal)}
+                        {formatBookingPrice(pricing.originalTotal)}
                       </span>
                     )}
-                    €{formatBookingPrice(pricing.finalTotal)}
+                    {formatBookingPrice(pricing.finalTotal)}
                   </span>
                 </motion.div>
               )}

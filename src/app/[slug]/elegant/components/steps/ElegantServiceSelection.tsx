@@ -1,6 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
@@ -92,7 +94,7 @@ function ServiceRow({
               className="font-semibold"
               style={{ fontFamily: 'var(--font-inter)', fontSize: '1rem', color: '#111111' }}
             >
-              €{service.cena}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
             </p>
           )}
           <p
@@ -144,10 +146,10 @@ export default function ElegantServiceSelection() {
         <h2
           style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.1rem', fontWeight: 400, color: '#111111', lineHeight: 1.2 }}
         >
-          Izberi <span style={{ color: theme.primaryColor }}>storitev</span>
+          Izberite <span style={{ color: theme.primaryColor }}>storitev</span>
         </h2>
         <p className="mt-2" style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
-          Katera storitev te zanima?
+          Katera storitev vas zanima?
         </p>
       </motion.div>
 

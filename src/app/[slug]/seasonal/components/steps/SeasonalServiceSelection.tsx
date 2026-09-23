@@ -1,6 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
@@ -108,7 +110,7 @@ function ServiceRow({
               className="font-bold"
               style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
             >
-              €{service.cena}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
             </p>
           )}
           <p
@@ -159,7 +161,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
             fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
           }}
         >
-          Izberi{' '}
+          Izberite{' '}
           <span
             className="seasonal-gradient-text"
             style={{ backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
@@ -168,7 +170,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
           </span>
         </h2>
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
-          Katera storitev te zanima?
+          Katera storitev vas zanima?
         </p>
       </motion.div>
 

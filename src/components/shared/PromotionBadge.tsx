@@ -1,4 +1,5 @@
 'use client'
+import { formatBookingPrice } from '@/lib/pricing';
 
 import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
@@ -244,7 +245,7 @@ export function PromotionBadge({
             ...originalPriceStyle,
           }}
         >
-          €{Number(originalCena).toFixed(2)}
+          {formatBookingPrice(originalCena)}
         </span>
         <span
           className={priceClassName}
@@ -254,7 +255,7 @@ export function PromotionBadge({
             ...priceStyle,
           }}
         >
-          €{Number(finalCena).toFixed(2)}
+          {formatBookingPrice(finalCena)}
         </span>
       </div>
     </motion.div>

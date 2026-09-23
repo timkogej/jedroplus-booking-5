@@ -238,10 +238,10 @@ function SuccessView() {
               >
                 {pricing.hasDiscount && (
                   <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </span>
                 )}
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </p>
             </div>
           )}
@@ -504,7 +504,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
                 {selectedService.naziv}
               </p>
               <p className="magazine-caps text-[8px] tracking-[0.14em] text-[#6B6B6B]">
-                {formatDuration(selectedService.trajanjeMin)} · €{formatBookingPrice(pricing.primaryFinalPrice)}
+                {formatDuration(selectedService.trajanjeMin)} · {formatBookingPrice(pricing.primaryFinalPrice)}
               </p>
               {selectedService.opis && (
                 <p className="text-[#6B6B6B] text-[12px] mt-1 leading-relaxed">
@@ -578,14 +578,14 @@ export default function MagazineConfirmation({ companySlug }: Props) {
             <div className="text-right">
               {pricing.hasDiscount && (
                 <p className="magazine-body text-[13px] text-[#6B6B6B] line-through tabular-nums">
-                  €{formatBookingPrice(pricing.originalTotal)}
+                  {formatBookingPrice(pricing.originalTotal)}
                 </p>
               )}
               <p
                 className="magazine-serif text-[1.8rem] font-light tabular-nums"
                 style={{ color: theme.primaryColor }}
               >
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </p>
             </div>
           </div>
@@ -596,7 +596,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               {t(language, 'addon')}
             </p>
             <p className="magazine-body text-[13px] text-[#1A1A1A]">
-              {selectedAddOn.naziv} (+€{Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2)})
+              {selectedAddOn.naziv} (+{formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})
             </p>
           </div>
         )}

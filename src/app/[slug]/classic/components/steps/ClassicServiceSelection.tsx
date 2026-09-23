@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import type { Category, Service } from '@/types';
@@ -146,13 +148,13 @@ function ServiceCard({
                   className="text-xs line-through text-gray-300"
                   style={{ fontFamily: 'var(--font-nunito-sans)' }}
                 >
-                  {Number(promo.originalCena).toFixed(2).replace('.', ',')} €
+                  {formatBookingPrice(promo.originalCena)}
                 </span>
                 <span
                   className="text-lg font-bold"
                   style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryColor }}
                 >
-                  {Number(promo.finalCena).toFixed(2).replace('.', ',')} €
+                  {formatBookingPrice(promo.finalCena)}
                 </span>
               </>
             ) : (
@@ -162,7 +164,7 @@ function ServiceCard({
               >
                 {isNaN(price)
                   ? String(service.cena)
-                  : `${price.toFixed(2).replace('.', ',')} €`}
+                  : `${servicePriceLabel(price, formatBookingPrice) ?? 'Po dogovoru'}`}
               </span>
             )}
 

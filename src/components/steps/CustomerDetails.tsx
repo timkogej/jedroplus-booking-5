@@ -188,12 +188,12 @@ export default function CustomerDetails() {
       {/* Header */}
       <motion.div variants={itemVariants} className="mb-12">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
-          Tvoji{' '}
+          Vaši{' '}
           <span style={{ color: theme.primaryColor }}>
             podatki
           </span>
         </h1>
-        <p className="text-white/60">Prosim vnesi svoje kontaktne podatke</p>
+        <p className="text-white/60">Vnesite svoje kontaktne podatke</p>
       </motion.div>
 
       <div className="flex flex-col lg:flex-row gap-16">
@@ -303,7 +303,7 @@ export default function CustomerDetails() {
                     className="underline hover:text-white transition-colors"
                     style={{ color: theme.primaryColor }}
                   >
-                    Preberi politiko zasebnosti
+                    Preberite politiko zasebnosti
                   </a>
                 </label>
                 {errors.privacyConsent && (
@@ -351,7 +351,7 @@ export default function CustomerDetails() {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
-              Nadaljuj na potrditev
+              Naprej na potrditev
             </button>
           </motion.div>
         </form>
@@ -398,7 +398,7 @@ export default function CustomerDetails() {
               <div className="flex justify-between">
                 <span className="text-white/50">Dodatek</span>
                 <span className="font-medium text-right text-white">
-                  {selectedAddOn.naziv} (+€{formatBookingPrice(selectedAddOn.finalCena)})
+                  {selectedAddOn.naziv} (+{formatBookingPrice(selectedAddOn.finalCena)})
                 </span>
               </div>
             )}
@@ -431,10 +431,10 @@ export default function CustomerDetails() {
               >
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </span>
                 )}
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}

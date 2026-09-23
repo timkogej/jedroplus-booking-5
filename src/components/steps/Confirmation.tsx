@@ -247,7 +247,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           transition={{ delay: 0.5 }}
           className="text-white/50 mb-8"
         >
-          Veselimo se tvojega obiska!
+          Veselimo se vašega obiska!
         </motion.p>
 
         {/* Summary */}
@@ -302,10 +302,10 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
               <span className="font-light tracking-wider" style={{ color: theme.primaryColor }}>
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </span>
                 )}
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}
@@ -380,7 +380,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
             rezervacijo
           </span>
         </h1>
-        <p className="text-white/60">Prosim preglej podrobnosti termina</p>
+        <p className="text-white/60">Preglejte podrobnosti termina</p>
       </div>
 
       {/* Error message */}
@@ -409,7 +409,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
                 <p className="font-serif text-lg text-white">{selectedService.naziv}</p>
                 <p className="text-white/40 text-sm">
                   <span className="font-light tracking-wider">{formatDuration(selectedService.trajanjeMin)}</span>
-                  {' · '}€{formatBookingPrice(pricing.primaryFinalPrice)}
+                  {' · '}{formatBookingPrice(pricing.primaryFinalPrice)}
                 </p>
               </div>
             </div>
@@ -457,7 +457,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           {/* Customer Info */}
           {customerDetails && (
             <div className="py-2">
-              <p className="text-white/50 text-sm mb-3">Tvoji podatki</p>
+              <p className="text-white/50 text-sm mb-3">Vaši podatki</p>
               <p className="font-medium text-white">
                 {customerDetails.firstName} {customerDetails.lastName}
               </p>
@@ -483,10 +483,10 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
               >
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </span>
                 )}
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}
@@ -516,7 +516,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
             <span>Potrjujem...</span>
           </motion.div>
         ) : (
-          'Potrdi rezervacijo'
+          'Potrdite rezervacijo'
         )}
       </motion.button>
 

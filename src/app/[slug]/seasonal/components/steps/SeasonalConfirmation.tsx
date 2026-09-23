@@ -323,7 +323,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
   }
 
   const t = {
-    title: language === 'en' ? 'Confirm booking' : 'Potrdi rezervacijo',
+    title: language === 'en' ? 'Confirm booking' : 'Potrdite rezervacijo',
     subtitle: language === 'en' ? 'Review your details before confirming' : 'Preverite podatke pred potrditvijo',
     service: language === 'en' ? 'Service' : 'Storitev',
     duration: language === 'en' ? 'Duration' : 'Trajanje',
@@ -336,7 +336,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     phone: language === 'en' ? 'Phone' : 'Telefon',
     addon: language === 'en' ? 'Add-on' : 'Dodatek',
     total: language === 'en' ? 'Total' : 'Skupaj',
-    confirm: language === 'en' ? 'Confirm booking' : 'Potrdi rezervacijo',
+    confirm: language === 'en' ? 'Confirm booking' : 'Potrdite rezervacijo',
     sending: language === 'en' ? 'Sending…' : 'Pošiljam rezervacijo…',
     redirectingToPayment: language === 'en' ? 'Redirecting to payment…' : 'Preusmerjamo na plačilo…',
     paymentStartFailed:
@@ -458,7 +458,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     { label: t.name, value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
     { label: t.email, value: customerDetails?.email },
     { label: t.phone, value: customerDetails?.phone },
-    { label: t.addon, value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
+    { label: t.addon, value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -510,14 +510,14 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
               <div className="text-right">
                 {pricing.hasDiscount && (
                   <div className="text-sm line-through text-gray-400" style={{ fontFamily: 'var(--font-inter)' }}>
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </div>
                 )}
                 <span
                   className="text-2xl font-bold text-gray-900"
                   style={{ fontFamily: 'var(--font-inter)' }}
                 >
-                  €{formatBookingPrice(pricing.finalTotal)}
+                  {formatBookingPrice(pricing.finalTotal)}
                 </span>
               </div>
             </div>

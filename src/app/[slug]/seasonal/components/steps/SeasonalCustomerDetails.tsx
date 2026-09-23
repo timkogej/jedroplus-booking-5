@@ -383,7 +383,7 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
                   className="underline transition-colors"
                   style={{ color: theme.primaryColor }}
                 >
-                  Preberi politiko zasebnosti
+                  Preberite politiko zasebnosti
                 </a>
                 <span className="text-red-400 ml-0.5">*</span>
               </span>

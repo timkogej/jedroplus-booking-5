@@ -254,7 +254,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
   const isSlotLoading = isLoadingSlots;
 
   const label = {
-    title: language === 'en' ? 'Choose a date' : 'Izberi datum',
+    title: language === 'en' ? 'Choose a date' : 'Izberite datum',
     subtitle: language === 'en' ? 'Select your preferred date and time' : 'Izberite željeni datum in uro',
     available: language === 'en' ? 'Available slots' : 'Prosti termini',
     noSlots: language === 'en' ? 'No available slots for this day' : 'Ni prostih terminov za izbrani dan',

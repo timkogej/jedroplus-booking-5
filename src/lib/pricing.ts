@@ -14,8 +14,23 @@ export interface BookingPricing {
   promotion: ServicePromotion | null;
 }
 
-export function formatBookingPrice(value: number): string {
-  return Number(value || 0).toFixed(2).replace('.', ',');
+/**
+ * Money the way it is written here: "50,00 €" (amount first, comma decimals).
+ * Callers must NOT add a currency sign themselves.
+ */
+export function formatBookingPrice(value: number | string | null | undefined, currency = 'EUR'): string {
+  const amount = typeof value === 'string' ? Number(value) : Number(value || 0);
+  const safe = Number.isFinite(amount) ? amount : 0;
+  try {
+    return new Intl.NumberFormat('sl-SI', {
+      style: 'currency',
+      currency: (currency || 'EUR').toUpperCase(),
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(safe);
+  } catch {
+    return `${safe.toFixed(2).replace('.', ',')} €`;
+  }
 }
 
 export function getPromotionPopustTip(

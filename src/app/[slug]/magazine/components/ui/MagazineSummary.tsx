@@ -61,7 +61,7 @@ export default function MagazineSummary() {
   if (selectedAddOn) {
     rows.push({
       label: 'Dodatek',
-      value: `${selectedAddOn.naziv} (+€${formatBookingPrice(selectedAddOn.finalCena)})`,
+      value: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)})`,
     });
   }
 
@@ -110,10 +110,10 @@ export default function MagazineSummary() {
             >
               {pricing.hasDiscount && (
                 <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
-                  €{formatBookingPrice(pricing.originalTotal)}
+                  {formatBookingPrice(pricing.originalTotal)}
                 </span>
               )}
-              €{formatBookingPrice(pricing.finalTotal)}
+              {formatBookingPrice(pricing.finalTotal)}
             </p>
           </div>
         </>

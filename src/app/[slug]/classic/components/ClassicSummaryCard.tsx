@@ -149,7 +149,7 @@ export default function ClassicSummaryCard({
             <SummaryRow
               key="addon"
               label={t(language, 'fieldAddon')}
-              value={`${addOn.name} (+${formatBookingPrice(addOn.price)} €)`}
+              value={`${addOn.name} (+${formatBookingPrice(addOn.price)})`}
               primaryColor={primaryColor}
             />
           )}
@@ -215,14 +215,14 @@ export default function ClassicSummaryCard({
                 className="text-xs line-through text-gray-300"
                 style={{ fontFamily: 'var(--font-nunito-sans)' }}
               >
-                {formatBookingPrice(originalPrice)} €
+                {formatBookingPrice(originalPrice)}
               </p>
             )}
             <p
               className="text-xl font-bold"
               style={{ fontFamily: 'var(--font-nunito)', color: primaryColor }}
             >
-              {formatBookingPrice(totalPrice)} €
+              {formatBookingPrice(totalPrice)}
             </p>
           </div>
         </div>

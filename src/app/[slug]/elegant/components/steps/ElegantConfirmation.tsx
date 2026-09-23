@@ -409,7 +409,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     },
     { label: 'Email', value: customerDetails?.email },
     { label: 'Telefon', value: customerDetails?.phone },
-    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
+    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -490,7 +490,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
               <div className="text-right">
                 {pricing.hasDiscount && (
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'line-through' }}>
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </div>
                 )}
                 <span
@@ -501,7 +501,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
                     color: '#111111',
                   }}
                 >
-                  €{formatBookingPrice(pricing.finalTotal)}
+                  {formatBookingPrice(pricing.finalTotal)}
                 </span>
               </div>
             </div>
@@ -571,7 +571,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             </span>
           </div>
         ) : (
-          'Potrdi rezervacijo'
+          'Potrdite rezervacijo'
         )}
       </motion.button>
 

@@ -132,10 +132,10 @@ export default function DateTimeSelection({ companySlug }: DateTimeSelectionProp
       {/* Header */}
       <div className="text-center mb-10">
         <h2 className="text-3xl md:text-4xl font-light text-white">
-          Izberi{' '}
+          Izberite{' '}
           <span style={{ color: themeColor }}>datum in uro</span>
         </h2>
-        <p className="text-white/60 mt-2 font-light">Izberi želeni termin</p>
+        <p className="text-white/60 mt-2 font-light">Izberite želeni termin</p>
       </div>
 
       {/* Two-column layout */}

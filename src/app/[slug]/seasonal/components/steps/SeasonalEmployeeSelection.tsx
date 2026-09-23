@@ -148,7 +148,7 @@ export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
             fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
           }}
         >
-          Izberi{' '}
+          Izberite{' '}
           <span
             className="seasonal-gradient-text"
             style={{

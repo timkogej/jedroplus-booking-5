@@ -165,7 +165,7 @@ function BookingSummaryCard({ primaryColor }: { primaryColor: string }) {
                 <path d="M12 5v14M5 12h14" />
               </svg>
             ),
-            text: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)} €)`,
+            text: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)})`,
           },
         ]
       : []),
@@ -235,14 +235,14 @@ function BookingSummaryCard({ primaryColor }: { primaryColor: string }) {
               className="text-xs line-through text-gray-300"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
-              {formatBookingPrice(pricing.originalTotal)} €
+              {formatBookingPrice(pricing.originalTotal)}
             </p>
           )}
           <p
             className="text-xl font-bold"
             style={{ fontFamily: 'var(--font-nunito)', color: primaryColor }}
           >
-            {formatBookingPrice(pricing.finalTotal)} €
+            {formatBookingPrice(pricing.finalTotal)}
           </p>
         </div>
       </div>

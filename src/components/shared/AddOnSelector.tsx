@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { formatBookingPrice } from '@/lib/pricing';
 import { motion } from 'framer-motion'
 import { Plus, Clock, Check } from 'lucide-react'
 import { usePromotionsStore } from '@/store/promotionsStore'
@@ -556,11 +557,11 @@ export function AddOnSelector({
                     <div className="flex items-center gap-1.5">
                       {hasDiscount && (
                         <span className="line-through" style={theme.originalPriceStyle}>
-                          €{addOn.originalCena.toFixed(2)}
+                          {formatBookingPrice(addOn.originalCena)}
                         </span>
                       )}
                       <span style={theme.finalPriceStyle}>
-                        €{addOn.finalCena.toFixed(2)}
+                        {formatBookingPrice(addOn.finalCena)}
                       </span>
                     </div>
                   </div>

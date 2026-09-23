@@ -5,6 +5,7 @@ import { ChevronLeft, Clock } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { formatBookingPrice } from '@/lib/pricing';
+import { servicePriceLabel } from '@/lib/text';
 
 export default function ServiceSelection() {
   const {
@@ -72,7 +73,7 @@ export default function ServiceSelection() {
             </span>
           </h1>
         </div>
-        <p className="text-white/60">Izberi storitev</p>
+        <p className="text-white/60">Izberite storitev</p>
       </motion.div>
 
       {/* Service list */}
@@ -128,7 +129,7 @@ export default function ServiceSelection() {
                     {promo ? (
                       <>
                         <span className="text-white/35 text-sm line-through">
-                          €{formatBookingPrice(promo.originalCena)}
+                          {formatBookingPrice(promo.originalCena)}
                         </span>
                         <span
                           className="font-light text-xl tracking-wider"
@@ -136,7 +137,7 @@ export default function ServiceSelection() {
                             color: isSelected ? theme.primaryColor : 'white',
                           }}
                         >
-                          €{formatBookingPrice(promo.finalCena)}
+                          {formatBookingPrice(promo.finalCena)}
                         </span>
                       </>
                     ) : (
@@ -146,7 +147,7 @@ export default function ServiceSelection() {
                           color: isSelected ? theme.primaryColor : 'white',
                         }}
                       >
-                        €{formatBookingPrice(Number(service.cena))}
+                        {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
                       </span>
                     )}
                     <span className="text-white/40 text-sm flex items-center gap-1 mt-1">

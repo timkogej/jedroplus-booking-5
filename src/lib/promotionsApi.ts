@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { formatBookingPrice } from '@/lib/pricing';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -73,7 +74,7 @@ function buildPromotion(
     popustZnesek,
     badgeLabel: tipPopusta === 'percentage'
       ? `-${vrednost}%`
-      : `-€${vrednost.toFixed(2)}`,
+      : `-${formatBookingPrice(vrednost)}`,
   }
 }
 
@@ -189,7 +190,7 @@ export async function fetchHappyHoursForDay(
       const label =
         hh.tip_popusta === 'percentage'
           ? `-${hh.vrednost}%`
-          : `-€${Number(hh.vrednost).toFixed(2)}`
+          : `-${formatBookingPrice(Number(hh.vrednost))}`
 
       result.push({ startMin: sh * 60 + sm, endMin: eh * 60 + em, label })
     }
@@ -337,7 +338,7 @@ export async function fetchAvailableAddOns(
       vrednost: addOn.vrednost_popusta,
       badgeLabel: addOn.tip_popusta === 'percentage'
         ? `-${addOn.vrednost_popusta}%`
-        : `-€${addOn.vrednost_popusta.toFixed(2)}`,
+        : `-${formatBookingPrice(addOn.vrednost_popusta)}`,
     })
   }
 

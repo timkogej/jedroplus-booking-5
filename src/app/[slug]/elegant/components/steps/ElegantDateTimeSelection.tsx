@@ -288,7 +288,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Izberi <span style={{ color: theme.primaryColor }}>termin</span>
+          Izberite <span style={{ color: theme.primaryColor }}>termin</span>
         </h2>
         <p
           className="mt-2"

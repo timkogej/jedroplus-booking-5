@@ -294,10 +294,10 @@ function SuccessView() {
               <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
                 {pricing.hasDiscount && (
                   <span style={{ display: 'block', fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </span>
                 )}
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           )}
@@ -476,7 +476,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     { label: 'Ime',   value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
     { label: 'Email', value: customerDetails?.email },
     { label: 'Tel.',  value: customerDetails?.phone },
-    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
+    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -531,11 +531,11 @@ export default function CasinoConfirmation({ companySlug }: Props) {
             <div className="text-right">
                 {pricing.hasDiscount && (
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
-                  €{formatBookingPrice(pricing.originalTotal)}
+                  {formatBookingPrice(pricing.originalTotal)}
                 </div>
               )}
               <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
-                €{formatBookingPrice(pricing.finalTotal)}
+                {formatBookingPrice(pricing.finalTotal)}
               </span>
             </div>
           </div>

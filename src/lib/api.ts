@@ -10,6 +10,7 @@
  *       Company.multiple_services_online in the store.
  */
 
+import { ensureReadable } from '@/lib/color';
 import {
   InitResponse,
   RangeSlotsResponse,
@@ -112,6 +113,11 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
 
   // Merge returned theme on top of defaults (API values win)
   data.theme = { ...DEFAULT_THEME, ...(data.theme || {}) };
+
+  // A very light company colour (e.g. #aaaaaa) left headings and buttons
+  // unreadable on the white/pastel backgrounds the designs use.
+  if (data.theme.primaryColor) data.theme.primaryColor = ensureReadable(data.theme.primaryColor);
+  if (data.theme.secondaryColor) data.theme.secondaryColor = ensureReadable(data.theme.secondaryColor, '#FFFFFF', 3);
 
   return data as InitResponse;
 }

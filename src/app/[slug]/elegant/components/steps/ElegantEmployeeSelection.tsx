@@ -207,7 +207,7 @@ export default function ElegantEmployeeSelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberi <span style={{ color: theme.primaryColor }}>specialista</span>
+          Izberite <span style={{ color: theme.primaryColor }}>specialista</span>
         </h2>
         <p
           className="mt-2"
