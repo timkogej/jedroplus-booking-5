@@ -505,7 +505,7 @@ export default function ClassicCustomerDetails() {
                     fontFamily: 'var(--font-nunito-sans)',
                     background: isActive ? `${theme.primaryColor}12` : '#F8F9FA',
                     border: isActive
-                      ? `2px solid ${theme.primaryColor}`
+                      ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
                       : errors.gender
                       ? '2px solid #EF4444'
                       : '2px solid #E9ECEF',
@@ -609,7 +609,7 @@ export default function ClassicCustomerDetails() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline transition-opacity hover:opacity-70"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primaryOnLight ?? theme.primaryColor }}
               >
                 {t(language, 'privacyLinkLabel')}
               </a>
@@ -655,7 +655,7 @@ export default function ClassicCustomerDetails() {
           className="px-8 py-3.5 rounded-2xl font-bold text-white flex items-center gap-2"
           style={{
             fontFamily: 'var(--font-nunito)',
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid ?? theme.primaryColor,
             boxShadow: `0 6px 24px ${theme.primaryColor}38`,
             opacity: isSubmitting ? 0.65 : 1,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',

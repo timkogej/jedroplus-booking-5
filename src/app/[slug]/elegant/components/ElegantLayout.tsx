@@ -178,7 +178,7 @@ export default function ElegantLayout({ companySlug }: Props) {
               {!isSuccess && (
                 <span
                   className="text-sm font-medium"
-                  style={{ color: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+                  style={{ color: theme.primaryOnLight ?? theme.primaryColor, fontFamily: 'var(--font-inter)' }}
                 >
                   {STEP_LABELS[currentStep]}
                 </span>
@@ -200,7 +200,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                       height: 6,
                       background:
                         v === visualStep
-                          ? `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                          ? `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
                           : v < visualStep
                           ? theme.primaryColor
                           : '#E5E7EB',

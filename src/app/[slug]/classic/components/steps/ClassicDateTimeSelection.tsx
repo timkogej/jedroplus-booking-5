@@ -425,7 +425,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                           border: isTodayDate && !isSelected
                             ? `2px solid ${theme.primaryColor}50`
                             : isSelected
-                            ? `2px solid ${theme.primaryColor}`
+                            ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
                             : '2px solid transparent',
                           boxShadow: isSelected
                             ? `0 5px 18px ${theme.primaryColor}42`
@@ -571,7 +571,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                     className="px-3 py-1 rounded-full text-xs font-semibold"
                     style={{
                       background: `${theme.primaryColor}14`,
-                      color: theme.primaryColor,
+                      color: theme.primaryOnLight ?? theme.primaryColor,
                       fontFamily: 'var(--font-nunito-sans)',
                     }}
                   >
@@ -729,7 +729,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: theme.primaryColor }}
+              style={{ background: theme.primarySolid ?? theme.primaryColor }}
             >
               <svg
                 width="11"
@@ -757,7 +757,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
               ob{' '}
               <span
                 className="font-semibold"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primaryOnLight ?? theme.primaryColor }}
               >
                 {selectedTime}
               </span>

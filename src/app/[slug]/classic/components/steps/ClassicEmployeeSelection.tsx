@@ -102,7 +102,7 @@ export default function ClassicEmployeeSelection() {
               ? 'rgba(255,255,255,0.97)'
               : 'rgba(255,255,255,0.88)',
             border: localAnyPerson
-              ? `2px solid ${theme.primaryColor}`
+              ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
               : '2px dashed rgba(255,255,255,0.35)',
             boxShadow: localAnyPerson
               ? `0 6px 24px ${theme.primaryColor}28`
@@ -121,7 +121,7 @@ export default function ClassicEmployeeSelection() {
                 height="20"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke={theme.primaryColor}
+                stroke={theme.primaryOnLight ?? theme.primaryColor}
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -153,7 +153,7 @@ export default function ClassicEmployeeSelection() {
                   exit={{ scale: 0 }}
                   transition={{ type: 'spring', stiffness: 380, damping: 18 }}
                   className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: theme.primaryColor }}
+                  style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
                 >
                   <svg
                     width="11"
@@ -207,7 +207,7 @@ export default function ClassicEmployeeSelection() {
                 style={{
                   background: 'rgba(255,255,255,0.97)',
                   border: isSelected
-                    ? `2px solid ${theme.primaryColor}`
+                    ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
                     : '2px solid rgba(0,0,0,0.04)',
                   boxShadow: isSelected
                     ? `0 6px 24px ${theme.primaryColor}25`
@@ -221,7 +221,7 @@ export default function ClassicEmployeeSelection() {
                   <div
                     className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0"
                     style={{
-                      backgroundColor: theme.primaryColor,
+                      backgroundColor: theme.primarySolid ?? theme.primaryColor,
                       fontFamily: 'var(--font-nunito)',
                     }}
                   >
@@ -255,7 +255,7 @@ export default function ClassicEmployeeSelection() {
                           damping: 18,
                         }}
                         className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: theme.primaryColor }}
+                        style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
                       >
                         <svg
                           width="11"

@@ -288,7 +288,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryColor }}>termin</span>
+          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>termin</span>
         </h2>
         <p
           className="mt-2"
@@ -576,7 +576,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                         {isTodayDate && !isSelected && !isGrayed && (
                           <span
                             className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                            style={{ backgroundColor: theme.primaryColor }}
+                            style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
                           />
                         )}
                       </motion.button>
@@ -749,7 +749,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                           style={{
                             background: `${theme.primaryColor}10`,
                             borderColor: `${theme.primaryColor}30`,
-                            color: theme.primaryColor,
+                            color: theme.primaryOnLight ?? theme.primaryColor,
                             fontFamily: 'var(--font-inter)',
                           }}
                         >
@@ -766,7 +766,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       {isSelected && (
                         <div
                           className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: theme.primaryColor }}
+                          style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
                         />
                       )}
                     </div>
@@ -794,7 +794,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
           >
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
             >
               <svg
                 width="12"
@@ -820,7 +820,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
               </span>{' '}
               ob{' '}
-              <span className="font-medium" style={{ color: theme.primaryColor }}>
+              <span className="font-medium" style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>
                 {selectedTime}
               </span>
             </p>

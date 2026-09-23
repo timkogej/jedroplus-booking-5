@@ -55,3 +55,13 @@ export function ensureReadable(color: string, background = '#FFFFFF', minRatio =
   }
   return rgbToHex(r, g, b);
 }
+
+/**
+ * Text colour for a light background. A colour with almost no contrast of its
+ * own (a pale grey company colour, say) is not worth "darkening" — the page
+ * reads better in near-black ink, with the company colour left for accents.
+ */
+export function readableInkOnLight(color: string, ink = '#111827'): string {
+  if (contrastRatio(color, '#FFFFFF') < 3) return ink;
+  return ensureReadable(color, '#FFFFFF', 4.5);
+}

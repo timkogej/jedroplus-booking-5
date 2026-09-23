@@ -52,7 +52,7 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
             height="18"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={theme.primaryColor}
+            stroke={theme.primaryOnLight ?? theme.primaryColor}
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -108,7 +108,7 @@ export default function ClassicCategorySelection() {
           style={{ fontFamily: 'var(--font-nunito)', color: textPrimary }}
         >
           Izberite{' '}
-          <span style={{ color: theme.primaryColor }}>kategorijo</span>
+          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>kategorijo</span>
         </h2>
         <p style={{ fontFamily: 'var(--font-nunito-sans)', color: textSecondary }}>
           Katero vrsto storitve iščete?

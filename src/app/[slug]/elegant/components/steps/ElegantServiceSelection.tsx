@@ -111,14 +111,14 @@ function ServiceRow({
       </div>
 
       {isSelected && (
-        <div className="mt-2 flex items-center gap-1.5" style={{ color: theme.primaryColor }}>
+        <div className="mt-2 flex items-center gap-1.5" style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>
           <div
             className="w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
           >
             <span style={{ color: 'white', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: theme.primaryColor }}>
+          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: theme.primaryOnLight ?? theme.primaryColor }}>
             Izbrano
           </span>
         </div>
@@ -146,7 +146,7 @@ export default function ElegantServiceSelection() {
         <h2
           style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.1rem', fontWeight: 400, color: '#111111', lineHeight: 1.2 }}
         >
-          Izberite <span style={{ color: theme.primaryColor }}>storitev</span>
+          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>storitev</span>
         </h2>
         <p className="mt-2" style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
           Katera storitev vas zanima?
@@ -168,7 +168,7 @@ export default function ElegantServiceSelection() {
                   fontSize: '0.72rem',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: theme.primaryColor,
+                  color: theme.primaryOnLight ?? theme.primaryColor,
                   fontWeight: 600,
                 }}
               >

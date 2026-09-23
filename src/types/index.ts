@@ -6,6 +6,17 @@ export interface Theme {
   secondaryColor: string;
   bgFrom: string;
   bgTo: string;
+  /**
+   * The company colour darkened until it is readable as TEXT on the light
+   * backgrounds of the classic and elegant designs. Decorative uses (borders,
+   * shadows, tinted fills) keep `primaryColor`.
+   */
+  primaryOnLight?: string;
+  /**
+   * The company colour darkened just enough to carry white text (buttons and
+   * other solid fills). Keeps the hue, unlike `primaryOnLight`.
+   */
+  primarySolid?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -76,7 +76,7 @@ function ServiceCard({
         style={{
           background: 'rgba(255,255,255,0.97)',
           border: isSelected
-            ? `2px solid ${theme.primaryColor}`
+            ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
             : '2px solid rgba(0,0,0,0.04)',
           boxShadow: isSelected
             ? `0 6px 24px ${theme.primaryColor}28`
@@ -152,7 +152,7 @@ function ServiceCard({
                 </span>
                 <span
                   className="text-lg font-bold"
-                  style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryColor }}
+                  style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
                 >
                   {formatBookingPrice(promo.finalCena)}
                 </span>
@@ -160,7 +160,7 @@ function ServiceCard({
             ) : (
               <span
                 className="text-lg font-bold"
-                style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryColor }}
+                style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
               >
                 {isNaN(price)
                   ? String(service.cena)

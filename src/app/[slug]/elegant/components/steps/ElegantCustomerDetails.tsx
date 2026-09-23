@@ -160,7 +160,7 @@ export default function ElegantCustomerDetails() {
             lineHeight: 1.2,
           }}
         >
-          Vaši <span style={{ color: theme.primaryColor }}>podatki</span>
+          Vaši <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>podatki</span>
         </h2>
         <p
           className="mt-2"
@@ -449,7 +449,7 @@ export default function ElegantCustomerDetails() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline transition-colors"
-                  style={{ color: theme.primaryColor }}
+                  style={{ color: theme.primaryOnLight ?? theme.primaryColor }}
                 >
                   Preberite politiko zasebnosti
                 </a>

@@ -709,7 +709,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
         <div
           className="h-1"
           style={{
-            background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.primaryColor}55)`,
+            background: `linear-gradient(90deg, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}55)`,
           }}
         />
 
@@ -770,7 +770,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
                 className="text-2xl font-bold"
                 style={{
                   fontFamily: 'var(--font-nunito)',
-                  color: theme.primaryColor,
+                  color: theme.primaryOnLight ?? theme.primaryColor,
                 }}
               >
                 {formatBookingPrice(finalPrice)}

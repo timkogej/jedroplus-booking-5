@@ -10,7 +10,7 @@
  *       Company.multiple_services_online in the store.
  */
 
-import { ensureReadable } from '@/lib/color';
+import { ensureReadable, readableInkOnLight } from '@/lib/color';
 import {
   InitResponse,
   RangeSlotsResponse,
@@ -114,10 +114,12 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
   // Merge returned theme on top of defaults (API values win)
   data.theme = { ...DEFAULT_THEME, ...(data.theme || {}) };
 
-  // A very light company colour (e.g. #aaaaaa) left headings and buttons
-  // unreadable on the white/pastel backgrounds the designs use.
-  if (data.theme.primaryColor) data.theme.primaryColor = ensureReadable(data.theme.primaryColor);
-  if (data.theme.secondaryColor) data.theme.secondaryColor = ensureReadable(data.theme.secondaryColor, '#FFFFFF', 3);
+  // A very light company colour (e.g. #aaaaaa) is unreadable as text on the
+  // light designs, so they use this darkened variant. Dark designs keep the
+  // original colour.
+  const rawPrimary = data.theme.primaryColor || DEFAULT_THEME.primaryColor;
+  data.theme.primaryOnLight = readableInkOnLight(rawPrimary);
+  data.theme.primarySolid = ensureReadable(rawPrimary);
 
   return data as InitResponse;
 }

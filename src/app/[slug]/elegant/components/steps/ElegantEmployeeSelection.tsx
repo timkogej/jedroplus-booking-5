@@ -29,7 +29,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
       whileTap={{ scale: 0.99 }}
       className="w-full p-4 rounded-xl transition-all duration-200"
       style={{
-        border: anyPerson ? `2px solid ${theme.primaryColor}` : '2px dashed #D1D5DB',
+        border: anyPerson ? `2px solid ${theme.primarySolid ?? theme.primaryColor}` : '2px dashed #D1D5DB',
         backgroundColor: anyPerson ? `${theme.primaryColor}06` : 'white',
       }}
     >
@@ -44,7 +44,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={theme.primaryColor}
+            stroke={theme.primaryOnLight ?? theme.primaryColor}
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -87,7 +87,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
             >
               <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
             </motion.div>
@@ -126,7 +126,7 @@ function EmployeeCard({
         <div
           className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-medium"
           style={{
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid ?? theme.primaryColor,
             fontFamily: 'var(--font-inter)',
             fontSize: '0.9rem',
           }}
@@ -167,7 +167,7 @@ function EmployeeCard({
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
             >
               <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
             </motion.div>
@@ -207,7 +207,7 @@ export default function ElegantEmployeeSelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryColor }}>specialista</span>
+          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>specialista</span>
         </h2>
         <p
           className="mt-2"
