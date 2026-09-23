@@ -14,6 +14,8 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     supabaseUrlSet: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    anonKeySet: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    n8nUrlSet: Boolean(process.env.NEXT_PUBLIC_N8N_BOOKING_URL),
     serviceKeySet: Boolean(key),
     serviceKeyLength: key ? key.length : 0,
     lookup: slug
