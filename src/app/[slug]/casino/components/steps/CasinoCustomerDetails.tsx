@@ -129,7 +129,7 @@ function BookingSummary() {
       ? [
           {
             label: t(language, 'fieldAddon'),
-            value: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)} €)`,
+            value: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)})`,
           },
         ]
       : []),
@@ -197,10 +197,10 @@ function BookingSummary() {
         >
           {pricing.hasDiscount && (
             <span style={{ display: 'block', fontSize: '0.85rem', color: '#a89060', textDecoration: 'line-through' }}>
-              €{formatBookingPrice(pricing.originalTotal)}
+              {formatBookingPrice(pricing.originalTotal)}
             </span>
           )}
-          €{formatBookingPrice(pricing.finalTotal)}
+          {formatBookingPrice(pricing.finalTotal)}
         </span>
       </div>
     </div>

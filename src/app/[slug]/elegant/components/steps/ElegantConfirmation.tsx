@@ -121,7 +121,7 @@ function SuccessView() {
             border: `2px solid ${theme.primaryColor}30`,
           }}
         >
-          <span style={{ color: theme.primaryColor, fontSize: '1.5rem' }}>✓</span>
+          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor, fontSize: '1.5rem' }}>✓</span>
         </motion.div>
 
         <h2
@@ -157,7 +157,7 @@ function SuccessView() {
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: '0.9rem',
-              color: theme.primaryColor,
+              color: theme.primaryOnLight ?? theme.primaryColor,
               fontWeight: 500,
             }}
           >
@@ -181,7 +181,7 @@ function SuccessView() {
         {/* Top accent line */}
         <div
           className="h-0.5"
-          style={{ background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.primaryColor}40)` }}
+          style={{ background: `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}40)` }}
         />
 
         <div className="px-6 py-5">
@@ -241,7 +241,7 @@ function SuccessView() {
           onClick={() => { usePromotionsStore.getState().resetSelections(); window.location.reload(); }}
           className="w-full py-4 rounded-xl text-white font-medium text-sm transition-opacity hover:opacity-90"
           style={{
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid ?? theme.primaryColor,
             fontFamily: 'var(--font-inter)',
             boxShadow: `0 4px 14px ${theme.primaryColor}30`,
           }}
@@ -409,7 +409,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     },
     { label: 'Email', value: customerDetails?.email },
     { label: 'Telefon', value: customerDetails?.phone },
-    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)` : undefined },
+    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -425,7 +425,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Potrditev <span style={{ color: theme.primaryColor }}>rezervacije</span>
+          Potrditev <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>rezervacije</span>
         </h2>
         <p
           className="mt-2"
@@ -454,7 +454,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         {/* Top accent */}
         <div
           className="h-0.5"
-          style={{ background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.primaryColor}30)` }}
+          style={{ background: `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}30)` }}
         />
 
         <div className="px-5 py-1">
@@ -490,7 +490,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
               <div className="text-right">
                 {pricing.hasDiscount && (
                   <div style={{ fontFamily: 'var(--font-inter)', fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'line-through' }}>
-                    €{formatBookingPrice(pricing.originalTotal)}
+                    {formatBookingPrice(pricing.originalTotal)}
                   </div>
                 )}
                 <span
@@ -501,7 +501,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
                     color: '#111111',
                   }}
                 >
-                  €{formatBookingPrice(pricing.finalTotal)}
+                  {formatBookingPrice(pricing.finalTotal)}
                 </span>
               </div>
             </div>
@@ -547,7 +547,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         whileTap={!isSubmitting ? { scale: 0.99 } : {}}
         className="w-full py-4 rounded-xl text-white font-medium transition-all relative overflow-hidden"
         style={{
-          backgroundColor: theme.primaryColor,
+          backgroundColor: theme.primarySolid ?? theme.primaryColor,
           fontFamily: 'var(--font-inter)',
           fontSize: '0.975rem',
           cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -571,7 +571,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             </span>
           </div>
         ) : (
-          'Potrdi rezervacijo'
+          'Potrdite rezervacijo'
         )}
       </motion.button>
 

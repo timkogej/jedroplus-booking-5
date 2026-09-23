@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
 
@@ -51,7 +52,7 @@ function CategoryCard({
           height="18"
           viewBox="0 0 24 24"
           fill="none"
-          stroke={theme.primaryColor}
+          stroke={theme.primaryOnLight ?? theme.primaryColor}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -80,7 +81,7 @@ function CategoryCard({
           color: '#9CA3AF',
         }}
       >
-        {serviceCount} {serviceCount === 1 ? 'storitev' : 'storitve'}
+        {servicesCountLabel(serviceCount)}
       </p>
 
       {/* Arrow */}
@@ -120,8 +121,8 @@ export default function ElegantCategorySelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberi{' '}
-          <span style={{ color: theme.primaryColor }}>kategorijo</span>
+          Izberite{' '}
+          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>kategorijo</span>
         </h2>
         <p
           className="mt-2"
@@ -131,7 +132,7 @@ export default function ElegantCategorySelection() {
             color: '#6B7280',
           }}
         >
-          Katero vrsto storitve iščeš?
+          Katero vrsto storitve iščete?
         </p>
       </motion.div>
 

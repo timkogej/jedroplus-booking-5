@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
@@ -123,7 +124,7 @@ export default function ElegantLayout({ companySlug }: Props) {
               lineHeight: 1.3,
             }}
           >
-            {company?.naziv ?? 'Booking'}
+            <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} maxHeight={34} />
           </h1>
           <div
             className="mt-3 h-px"
@@ -178,7 +179,7 @@ export default function ElegantLayout({ companySlug }: Props) {
               {!isSuccess && (
                 <span
                   className="text-sm font-medium"
-                  style={{ color: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+                  style={{ color: theme.primaryOnLight ?? theme.primaryColor, fontFamily: 'var(--font-inter)' }}
                 >
                   {STEP_LABELS[currentStep]}
                 </span>
@@ -200,7 +201,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                       height: 6,
                       background:
                         v === visualStep
-                          ? `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                          ? `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
                           : v < visualStep
                           ? theme.primaryColor
                           : '#E5E7EB',

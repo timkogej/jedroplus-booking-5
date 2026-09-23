@@ -62,12 +62,12 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                 className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
                 style={{
                   background: isDone
-                    ? `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                    ? `linear-gradient(135deg, ${theme.primarySolid ?? theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
                     : 'transparent',
                   border: isDone
                     ? 'none'
                     : isActive
-                    ? `2px solid ${theme.primaryColor}`
+                    ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
                     : '1.5px solid #D1D5DB',
                   color: isActive ? theme.primaryColor : '#9CA3AF',
                   fontSize: '0.7rem',

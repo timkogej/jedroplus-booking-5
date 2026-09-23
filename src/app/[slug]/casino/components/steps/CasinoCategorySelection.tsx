@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
 
@@ -104,7 +105,7 @@ function CategoryCard({
               color: '#a89060',
             }}
           >
-            {category.service_count} {category.service_count === 1 ? 'storitev' : 'storitev'}
+            {servicesCountLabel(category.service_count)}
           </p>
         </div>
 

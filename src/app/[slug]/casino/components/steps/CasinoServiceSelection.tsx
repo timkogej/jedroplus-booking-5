@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import type { Category, Service } from '@/types';
@@ -162,7 +164,7 @@ function ServiceCard({
               className="flex-shrink-0 font-bold"
               style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.05rem', color: '#e8c96d' }}
             >
-              €{service.cena}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
             </span>
           )}
         </div>

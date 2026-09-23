@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 
 const containerVariants: Variants = {
@@ -87,8 +88,7 @@ export default function MagazineCategorySelection() {
 
                 {/* Subtitle / service count */}
                 <p className="text-[#6B6B6B] text-[12px] mt-1.5 pl-2 leading-relaxed">
-                  {category.service_count}{' '}
-                  {category.service_count === 1 ? 'storitev' : 'storitev'} na voljo
+                  {servicesCountLabel(category.service_count)} na voljo
                 </p>
 
                 {/* Hover underline on name */}

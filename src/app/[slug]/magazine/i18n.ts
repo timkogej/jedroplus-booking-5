@@ -57,10 +57,10 @@ export const translations = {
     notes: 'Dodatne želje',
     notesPlaceholder: 'Posebne želje ali napotki...',
     privacyLabel: 'Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.',
-    privacyLink: 'Preberi politiko zasebnosti',
+    privacyLink: 'Preberite politiko zasebnosti',
     marketingLabel: 'Želim prejemati obvestila o promocijah in novostih.',
     sending: 'Pošiljam...',
-    continueToConfirm: 'Nadaljuj na potrditev',
+    continueToConfirm: 'Naprej na potrditev',
     // Validation
     firstNameRequired: 'Ime je obvezno',
     lastNameRequired: 'Priimek je obvezen',

@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { useBookingStore } from '@/store/bookingStore';
 import type { SupportedLanguage } from '@/types';
 
@@ -100,7 +101,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
                 color: 'var(--t-primary)',
               }}
             >
-              {company?.naziv ?? 'Rezervacije'}
+              <CompanyLogo name={company?.naziv ?? 'Rezervacije'} logoUrl={company?.logo_url} variant="dark" />
             </h1>
             <p
               className="mt-1.5 text-sm"

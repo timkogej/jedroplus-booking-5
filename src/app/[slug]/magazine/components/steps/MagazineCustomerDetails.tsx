@@ -580,7 +580,7 @@ export default function MagazineCustomerDetails() {
                   {t(language, 'addon')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A]">
-                  {selectedAddOn.naziv} (+€{formatBookingPrice(selectedAddOn.finalCena)})
+                  {selectedAddOn.naziv} (+{formatBookingPrice(selectedAddOn.finalCena)})
                 </p>
               </div>
             )}
@@ -599,10 +599,10 @@ export default function MagazineCustomerDetails() {
                 >
                   {pricing.hasDiscount && (
                     <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
-                      €{formatBookingPrice(pricing.originalTotal)}
+                      {formatBookingPrice(pricing.originalTotal)}
                     </span>
                   )}
-                  €{formatBookingPrice(pricing.finalTotal)}
+                  {formatBookingPrice(pricing.finalTotal)}
                 </p>
               </div>
             </>

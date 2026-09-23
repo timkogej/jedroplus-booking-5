@@ -369,10 +369,10 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
                     className="block text-sm line-through text-gray-300 mb-0.5"
                     style={{ fontFamily: 'var(--font-nunito-sans)' }}
                   >
-                    {formatBookingPrice(successPricing.originalTotal)} €
+                    {formatBookingPrice(successPricing.originalTotal)}
                   </span>
                 )}
-                {formatBookingPrice(successPricing.finalTotal)} €
+                {formatBookingPrice(successPricing.finalTotal)}
               </span>
             </div>
           )}
@@ -671,7 +671,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
     {
       label: t(language, 'fieldAddon'),
       value: selectedAddOn
-        ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena).toFixed(2).replace('.', ',')} €)`
+        ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)})`
         : undefined,
     },
   ].filter((r) => r.value);
@@ -709,7 +709,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
         <div
           className="h-1"
           style={{
-            background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.primaryColor}55)`,
+            background: `linear-gradient(90deg, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}55)`,
           }}
         />
 
@@ -763,17 +763,17 @@ export default function ClassicConfirmation({ companySlug }: Props) {
                   className="text-sm line-through text-gray-300 mb-0.5"
                   style={{ fontFamily: 'var(--font-nunito-sans)' }}
                 >
-                  {formatBookingPrice(baseTotalPrice)} €
+                  {formatBookingPrice(baseTotalPrice)}
                 </p>
               )}
               <span
                 className="text-2xl font-bold"
                 style={{
                   fontFamily: 'var(--font-nunito)',
-                  color: theme.primaryColor,
+                  color: theme.primaryOnLight ?? theme.primaryColor,
                 }}
               >
-                {formatBookingPrice(finalPrice)} €
+                {formatBookingPrice(finalPrice)}
               </span>
             </div>
           </div>

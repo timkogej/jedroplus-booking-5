@@ -73,7 +73,7 @@ function ElegantLoadingScreen() {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: theme.primaryColor,
+              color: theme.primaryOnLight ?? theme.primaryColor,
               opacity: 0.75,
               textDecoration: 'none',
               fontWeight: 500,
@@ -135,7 +135,7 @@ function ElegantErrorScreen({ error }: { error: string }) {
         <button
           onClick={() => window.location.reload()}
           className="px-6 py-3 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ backgroundColor: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+          style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor, fontFamily: 'var(--font-inter)' }}
         >
           Poskusi znova
         </button>

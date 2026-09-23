@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
 import SeasonalCard from '../SeasonalCard';
@@ -66,7 +67,7 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
           {category.name}
         </h3>
         <p className="text-sm" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}>
-          {serviceCount} {serviceCount === 1 ? 'storitev' : serviceCount < 5 ? 'storitve' : 'storitev'}
+          {servicesCountLabel(serviceCount)}
         </p>
       </SeasonalCard>
     </motion.div>
@@ -105,7 +106,7 @@ export default function SeasonalCategorySelection({ seasonalTheme }: Props) {
             fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
           }}
         >
-          Izberi{' '}
+          Izberite{' '}
           <span
             className="seasonal-gradient-text"
             style={{
@@ -116,7 +117,7 @@ export default function SeasonalCategorySelection({ seasonalTheme }: Props) {
           </span>
         </h2>
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
-          Katero vrsto storitve iščeš?
+          Katero vrsto storitve iščete?
         </p>
       </motion.div>
 

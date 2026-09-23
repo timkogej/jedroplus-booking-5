@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { useBookingStore } from '@/store/bookingStore';
 import { SeasonalTheme } from './decorations/SeasonDetector';
 
@@ -73,7 +74,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
             className="truncate font-semibold text-xs md:text-sm"
             style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)' }}
           >
-            {company?.naziv ?? 'Booking'}
+            <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} maxHeight={28} />
           </h1>
 
           {/* Season badge */}

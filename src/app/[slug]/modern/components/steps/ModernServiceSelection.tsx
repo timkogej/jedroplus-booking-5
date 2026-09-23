@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
@@ -175,7 +177,7 @@ function ServiceRow({
             <p
               style={{ fontFamily: 'var(--font-clash)', fontWeight: 500, fontSize: '1.05rem', color: 'var(--t-primary)' }}
             >
-              €{service.cena}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
             </p>
           )}
           <p

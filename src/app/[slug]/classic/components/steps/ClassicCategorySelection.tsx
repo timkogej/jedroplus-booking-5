@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
 import { getContrastMode } from '../ClassicLayout';
@@ -51,7 +52,7 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
             height="18"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={theme.primaryColor}
+            stroke={theme.primaryOnLight ?? theme.primaryColor}
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -71,7 +72,7 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
             className="text-sm text-gray-400"
             style={{ fontFamily: 'var(--font-nunito-sans)' }}
           >
-            {serviceCount} {serviceCount === 1 ? 'storitev' : 'storitve'}
+            {servicesCountLabel(serviceCount)}
           </p>
         </div>
 
@@ -106,11 +107,11 @@ export default function ClassicCategorySelection() {
           className="text-3xl font-bold mb-2"
           style={{ fontFamily: 'var(--font-nunito)', color: textPrimary }}
         >
-          Izberi{' '}
-          <span style={{ color: theme.primaryColor }}>kategorijo</span>
+          Izberite{' '}
+          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>kategorijo</span>
         </h2>
         <p style={{ fontFamily: 'var(--font-nunito-sans)', color: textSecondary }}>
-          Katero vrsto storitve iščeš?
+          Katero vrsto storitve iščete?
         </p>
       </motion.div>
 

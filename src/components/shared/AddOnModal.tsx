@@ -1,6 +1,7 @@
 'use client'
 
 import { type CSSProperties, useMemo, useState } from 'react'
+import { formatBookingPrice } from '@/lib/pricing';
 import { motion } from 'framer-motion'
 import { Check, Clock, Sparkles } from 'lucide-react'
 import type { AddOnOption } from '@/lib/promotionsApi'
@@ -783,7 +784,7 @@ function getModalTheme(variantStyle: BookingVariantStyle, accent: string): Modal
 }
 
 function formatPrice(value: number) {
-  return `€${value.toFixed(2)}`
+  return formatBookingPrice(value)
 }
 
 export function AddOnModal({

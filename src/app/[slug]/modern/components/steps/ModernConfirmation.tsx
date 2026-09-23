@@ -8,6 +8,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { BookingConfirmation } from '@/types';
 import {
+  formatBookingPrice,
   getBookingPricing,
   getPromotionPopustTip,
   resolvePrimaryPromotion,
@@ -601,7 +602,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
     {
       label: t(language, 'fieldAddon'),
       value: selectedAddOn
-        ? `${selectedAddOn.naziv} (+${Number(selectedAddOn.finalCena ?? selectedAddOn.originalCena).toFixed(2).replace('.', ',')} €)`
+        ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})`
         : undefined,
     },
   ].filter((r) => r.value);
@@ -679,7 +680,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
                     className="text-sm line-through"
                     style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
                   >
-                    €{totalPrice}
+                    {formatBookingPrice(totalPrice)}
                   </div>
                 )}
                 <span
@@ -691,7 +692,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  €{finalPrice}
+                  {formatBookingPrice(finalPrice)}
                 </span>
               </div>
             </div>

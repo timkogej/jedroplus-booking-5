@@ -32,7 +32,7 @@ export const translations = {
     noStaff: 'Za to storitev ni razpoložljivega osebja.',
     // Date / time
     chooseDateTime: 'Datum in čas',
-    chooseAppointment: 'Izberi željeni termin',
+    chooseAppointment: 'Izberite želeni termin',
     availableSlots: 'Prosti termini',
     noSlotsForDay: 'Ni prostih terminov za ta dan',
     tryOtherDate: 'Prosimo izberite drug datum',
@@ -51,7 +51,7 @@ export const translations = {
     notesPlaceholder: 'Posebne opombe ali zahteve...',
     marketingLabel: 'Želim prejemati ekskluzivne ponudbe in novosti',
     privacyLabel: 'Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.',
-    privacyLinkLabel: 'Preberi politiko zasebnosti',
+    privacyLinkLabel: 'Preberite politiko zasebnosti',
     sending: 'Pošiljam...',
     nextToConfirm: 'Naprej na potrditev',
     salutationMr: 'Gospod',
@@ -68,7 +68,7 @@ export const translations = {
     // Confirmation (review)
     reviewBooking: 'Pregled rezervacije',
     checkDetails: 'Preverite podatke pred potrditvijo',
-    confirmBooking: 'Potrdi rezervacijo',
+    confirmBooking: 'Potrdite rezervacijo',
     confirmingSending: 'Pošiljam rezervacijo…',
     confirmationSentEmail: 'Potrditev bo poslana na vaš email',
     total: 'Skupaj',

@@ -99,7 +99,7 @@ export default function EmployeeSelection() {
             </h3>
             <p className="text-white/60 text-sm">
               {isAnyOption
-                ? 'Izberi najboljši termin zame'
+                ? 'Poiščemo prvi prosti termin'
                 : employee?.subtitle}
             </p>
           </div>
@@ -137,13 +137,13 @@ export default function EmployeeSelection() {
       {/* Header */}
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
-          Izberi{' '}
+          Izberite{' '}
           <span style={{ color: theme.primaryColor }}>
             specialista
           </span>
         </h1>
         <p className="text-white/60">
-          Izberi osebo, ki te bo postregel/a
+          Izberite osebo, ki vas bo postregla
         </p>
       </motion.div>
 

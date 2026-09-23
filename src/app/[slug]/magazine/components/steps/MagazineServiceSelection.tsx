@@ -1,6 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { servicePriceLabel } from '@/lib/text';
+import { formatBookingPrice } from '@/lib/pricing';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
@@ -94,7 +96,7 @@ function ServiceCard({
                 className="magazine-serif text-[1.4rem] leading-none font-light tabular-nums transition-colors duration-300"
                 style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
               >
-                €{service.cena}
+                {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
               </span>
             )}
           </div>

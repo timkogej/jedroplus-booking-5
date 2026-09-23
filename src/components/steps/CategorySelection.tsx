@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { Layers } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
 
@@ -32,13 +33,13 @@ export default function CategorySelection() {
       {/* Header */}
       <motion.div variants={itemVariants} className="mb-16">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
-          Izberi{' '}
+          Izberite{' '}
           <span style={{ color: theme.primaryColor }}>
             kategorijo
           </span>
         </h1>
         <p className="text-white/60">
-          Katero vrsto storitve iščeš?
+          Katero vrsto storitve iščete?
         </p>
       </motion.div>
 
@@ -97,7 +98,7 @@ export default function CategorySelection() {
 
               {/* Service count */}
               <p className="text-sm text-white/50 mb-4">
-                {category.service_count} storitev
+                {servicesCountLabel(category.service_count)}
               </p>
 
               {/* Underline indicator */}

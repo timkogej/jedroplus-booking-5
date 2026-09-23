@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
 import ModernCard from '../ModernCard';
@@ -65,7 +66,7 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
           {category.name}
         </h3>
         <p className="text-sm" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}>
-          {serviceCount} {serviceCount === 1 ? 'storitev' : serviceCount < 5 ? 'storitve' : 'storitev'}
+          {servicesCountLabel(serviceCount)}
         </p>
       </ModernCard>
     </motion.div>
@@ -105,7 +106,7 @@ export default function ModernCategorySelection() {
             lineHeight: 1.1,
           }}
         >
-          Izberi{' '}
+          Izberite{' '}
           <span
             className="modern-gradient-text"
             style={{
@@ -116,7 +117,7 @@ export default function ModernCategorySelection() {
           </span>
         </h2>
         <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          Katero vrsto storitve iščeš?
+          Katero vrsto storitve iščete?
         </p>
       </motion.div>
 

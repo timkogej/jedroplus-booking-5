@@ -77,7 +77,7 @@ export default function ClassicPaymentStep() {
         </p>
         <p
           className="text-4xl font-bold mb-1"
-          style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryColor }}
+          style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
         >
           {(amount / 100).toFixed(2).replace('.', ',')} {currency}
         </p>
@@ -117,7 +117,7 @@ export default function ClassicPaymentStep() {
         className="w-full py-4 rounded-2xl font-bold text-white mb-3"
         style={{
           fontFamily: 'var(--font-nunito)',
-          backgroundColor: theme.primaryColor,
+          backgroundColor: theme.primarySolid ?? theme.primaryColor,
           boxShadow: `0 6px 22px ${theme.primaryColor}38`,
         }}
         whileHover={{ scale: 1.02 }}
