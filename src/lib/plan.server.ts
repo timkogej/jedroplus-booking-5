@@ -10,7 +10,8 @@
 // allow the page rather than locking every company out by accident.
 
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+import { SUPABASE_URL } from '@/lib/supabaseEnv';
+
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const PRO_PLAN_CODES = new Set(['JEDRO_PRO', 'JEDRO_PREMIUM', 'ENTERPRISE']);

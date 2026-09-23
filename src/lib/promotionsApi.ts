@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { formatBookingPrice } from '@/lib/pricing';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabaseEnv'
 
 const supabaseHeaders = {
   'apikey': SUPABASE_ANON_KEY || '',
