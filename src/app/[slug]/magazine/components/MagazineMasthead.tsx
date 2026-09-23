@@ -1,6 +1,7 @@
 'use client';
 
 import { useBookingStore } from '@/store/bookingStore';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { t } from '../i18n';
 
 export default function MagazineMasthead() {
@@ -14,7 +15,7 @@ export default function MagazineMasthead() {
           <h1
             className="magazine-serif text-[1.75rem] md:text-[2.25rem] text-[#1A1A1A] tracking-[-0.02em] leading-none"
           >
-            {company?.naziv || 'Rezervacije'}
+            <CompanyLogo name={company?.naziv || 'Rezervacije'} logoUrl={company?.logo_url} maxHeight={44} />
           </h1>
           <p className="magazine-caps text-[9px] tracking-[0.28em] text-[#6B6B6B] mt-2">
             {company?.panoga ? `${company.panoga} · ` : ''}

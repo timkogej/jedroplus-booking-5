@@ -1,6 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { SupportedLanguage } from '@/types';
@@ -146,7 +147,7 @@ function MCHeader() {
           color: '#c9a84c',
         }}
       >
-        {company?.naziv ?? 'Booking'}
+        <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} variant="dark" />
       </motion.h1>
 
       {/* Panoga (industry) beneath company name */}

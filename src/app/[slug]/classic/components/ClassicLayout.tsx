@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
@@ -376,7 +377,7 @@ export default function ClassicLayout({ companySlug }: Props) {
           className="text-xl font-bold tracking-tight"
           style={{ fontFamily: 'var(--font-nunito)', color: textPrimary }}
         >
-          {company?.naziv ?? 'Booking'}
+          <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} />
         </motion.h1>
 
         <LanguageToggle

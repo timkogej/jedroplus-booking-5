@@ -131,6 +131,8 @@ export interface Company {
   country?: string;
   /** Subscription plan identifier. Must be 'active' to allow bookings */
   plan?: string;
+  /** Public URL of the company logo, added by /api/branding. */
+  logo_url?: string | null;
   /**
    * When false, employee selection step is hidden and all bookings use any_person=true.
    * NEW COLUMN — run ALTER TABLE

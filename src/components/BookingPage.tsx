@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import CompanyLogo from '@/components/shared/CompanyLogo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchInitData } from '@/lib/api';
@@ -225,9 +226,12 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
       <header className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-serif text-xl font-bold text-white">
-              {company?.naziv || 'Rezervacija'}
-            </h1>
+            <CompanyLogo
+              name={company?.naziv || 'Rezervacija'}
+              logoUrl={company?.logo_url}
+              variant="dark"
+              nameClassName="font-serif text-xl font-bold text-white"
+            />
           </div>
 
           <div className="hidden lg:block text-sm text-white/60 font-light tracking-wide">

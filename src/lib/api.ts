@@ -117,6 +117,19 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
   // A very light company colour (e.g. #aaaaaa) is unreadable as text on the
   // light designs, so they use this darkened variant. Dark designs keep the
   // original colour.
+  // Logo lives in a table the anon key cannot read; our own route returns it.
+  if (data.company) {
+    try {
+      const res = await fetch(`/api/branding?slug=${encodeURIComponent(companySlug)}`);
+      if (res.ok) {
+        const branding = (await res.json()) as { logoUrl?: string | null };
+        data.company.logo_url = branding.logoUrl ?? null;
+      }
+    } catch {
+      // a missing logo must never break the booking page
+    }
+  }
+
   const rawPrimary = data.theme.primaryColor || DEFAULT_THEME.primaryColor;
   data.theme.primaryOnLight = readableInkOnLight(rawPrimary);
   data.theme.primarySolid = ensureReadable(rawPrimary);
