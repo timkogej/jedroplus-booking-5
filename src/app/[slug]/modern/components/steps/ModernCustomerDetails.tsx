@@ -319,7 +319,10 @@ export default function ModernCustomerDetails() {
         <div className="space-y-3">
           {/* Marketing — optional */}
           <label className="flex items-start gap-3 cursor-pointer">
-            <motion.div
+            <motion.button
+              type="button"
+              role="checkbox"
+              aria-checked={gdprMarketing}
               className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
               style={{
                 backgroundColor: gdprMarketing ? theme.primarySolid : 'var(--s1)',
@@ -341,7 +344,7 @@ export default function ModernCustomerDetails() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </motion.svg>
               )}
-            </motion.div>
+            </motion.button>
             <span
               className="text-sm leading-relaxed"
               style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
@@ -353,7 +356,10 @@ export default function ModernCustomerDetails() {
           {/* Privacy consent — required */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer">
-              <motion.div
+              <motion.button
+                type="button"
+                role="checkbox"
+                aria-checked={privacyConsent}
                 className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                 style={{
                   backgroundColor: privacyConsent ? theme.primarySolid : 'var(--s1)',
@@ -385,7 +391,7 @@ export default function ModernCustomerDetails() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </motion.svg>
                 )}
-              </motion.div>
+              </motion.button>
               <span
                 className="text-sm leading-relaxed"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}

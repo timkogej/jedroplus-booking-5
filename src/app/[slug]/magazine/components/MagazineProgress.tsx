@@ -4,12 +4,16 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { t } from '../i18n';
 
-export default function MagazineProgress() {
-  const { currentStep, theme, language, prikazZaposlenih } = useBookingStore();
+const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
 
-  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
-  // The specialist step is skipped when the company hides employees online.
-  const STEPS = [
+/**
+ * The visible steps and which one is current. Shared by the progress bar and
+ * the side panel so both count the same way; the specialist step is skipped
+ * when the company hides employees online.
+ */
+export function useMagazineSteps() {
+  const { currentStep, prikazZaposlenih, bookingConfirmation } = useBookingStore();
+  const steps = [
     { labelKey: 'stepService' as const, storeStep: 1 },
     { labelKey: 'stepSpecialist' as const, storeStep: 3 },
     { labelKey: 'stepAppointment' as const, storeStep: 4 },
@@ -19,8 +23,20 @@ export default function MagazineProgress() {
     .filter((s) => prikazZaposlenih || s.storeStep !== 3)
     .map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0'), roman: ROMAN[i] }));
 
-  const idx = STEPS.findIndex(s => s.storeStep >= currentStep);
-  const safeIdx = idx === -1 ? STEPS.length - 1 : idx;
+  const idx = bookingConfirmation?.success
+    ? steps.length - 1
+    : steps.findIndex((s) => s.storeStep >= currentStep);
+  const currentIdx = idx === -1 ? steps.length - 1 : idx;
+  return { steps, currentIdx, total: String(steps.length).padStart(2, '0') };
+}
+
+// Past steps darker, future steps lighter but still readable (≥4.5:1).
+const PAST = '#4B4B4B';
+const FUTURE = '#757575';
+
+export default function MagazineProgress() {
+  const { theme, language } = useBookingStore();
+  const { steps: STEPS, currentIdx: safeIdx } = useMagazineSteps();
 
   return (
     <div className="px-8 py-5 md:px-12">
@@ -39,8 +55,8 @@ export default function MagazineProgress() {
                     color: isActive
                       ? theme.primarySolid
                       : isPast
-                      ? '#6B6B6B'
-                      : 'rgba(0,0,0,0.2)',
+                      ? PAST
+                      : FUTURE,
                   }}
                 >
                   {t(language, step.labelKey)}
@@ -51,8 +67,8 @@ export default function MagazineProgress() {
                     color: isActive
                       ? theme.primarySolid
                       : isPast
-                      ? '#6B6B6B'
-                      : 'rgba(0,0,0,0.18)',
+                      ? PAST
+                      : FUTURE,
                     fontStyle: isActive ? 'italic' : 'normal',
                   }}
                 >

@@ -122,7 +122,7 @@ function CategoryCard({
 }
 
 export default function CasinoCategorySelection() {
-  const { categories, selectCategory } = useBookingStore();
+  const { categories, selectCategory, language } = useBookingStore();
 
   if (!categories || categories.length === 0) {
     return (
@@ -155,7 +155,7 @@ export default function CasinoCategorySelection() {
           lineHeight: 1.7,
         }}
       >
-        Vsaka kategorija je vstopnica na naše igrišče. Izberite svojo pot.
+        {language === 'en' ? 'Choose a category.' : 'Izberite kategorijo storitev.'}
       </motion.p>
 
       {/* Category cards */}

@@ -7,6 +7,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
+import { t } from '../../i18n';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -38,7 +39,7 @@ function ServiceRow({
   category: Category;
   isLast: boolean;
 }) {
-  const { theme, selectedService, selectCategoryAndService } = useBookingStore();
+  const { theme, selectedService, selectCategoryAndService, language } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
   const isSelected = selectedService?.id === service.id;
   const promo = serviceDiscounts[String(service.id)];
@@ -94,7 +95,7 @@ function ServiceRow({
               className="font-semibold"
               style={{ fontFamily: 'var(--font-inter)', fontSize: '1rem', color: '#111111' }}
             >
-              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? t(language, 'priceOnRequest')}
             </p>
           )}
           <p
@@ -119,7 +120,7 @@ function ServiceRow({
             <span style={{ color: 'white', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
           </div>
           <span style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: theme.primaryOnLight }}>
-            Izbrano
+            {t(language, 'selected')}
           </span>
         </div>
       )}
@@ -128,13 +129,13 @@ function ServiceRow({
 }
 
 export default function ElegantServiceSelection() {
-  const { theme, categories, servicesByCategory } = useBookingStore();
+  const { theme, categories, servicesByCategory, language } = useBookingStore();
 
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
         <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
-          Ni razpoložljivih storitev.
+          {t(language, 'noServices')}
         </p>
       </div>
     );
@@ -146,10 +147,10 @@ export default function ElegantServiceSelection() {
         <h2
           style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.1rem', fontWeight: 400, color: '#111111', lineHeight: 1.2 }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight }}>storitev</span>
+          {t(language, 'chooseServiceA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseServiceB')}</span>
         </h2>
         <p className="mt-2" style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
-          Katera storitev vas zanima?
+          {t(language, 'serviceQuestion')}
         </p>
       </motion.div>
 

@@ -14,7 +14,10 @@ export default function SeasonalSuccessAnimation({ isActive, seasonalTheme }: Pr
 
   const getParticles = (): string[] => {
     if (holiday === 'christmas') return ['🎄', '⭐', '🎁', '❄️', '🔔'];
-    if (holiday === 'halloween') return ['🎃', '👻', '🦇', '⭐', '✨'];
+    if (holiday === 'pust') return ['🎭', '🎊', '🎉', '✨', '🎈'];
+    if (holiday === 'womensday' || holiday === 'mothersday') return ['💐', '🌷', '💗', '🌸', '✨'];
+    if (holiday === 'martinovo') return ['🍇', '🍂', '🍁', '⭐', '✨'];
+    if (holiday === 'miklavz') return ['🎁', '❄️', '⭐', '🍬', '✨'];
     if (holiday === 'valentine') return ['💕', '💖', '💗', '❤️', '💘'];
     if (holiday === 'easter') return ['🥚', '🐰', '🌷', '🐣', '✨'];
     if (holiday === 'newyear') return ['🎉', '🥂', '✨', '🎊', '⭐'];

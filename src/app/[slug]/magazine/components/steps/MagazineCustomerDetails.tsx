@@ -70,7 +70,7 @@ function MagField({
         style={{ color: isFocused ? theme.primarySolid : '#6B6B6B' }}
       >
         {label}
-        {required && <span className="ml-1 text-black/20">*</span>}
+        {required && <span className="ml-1 text-[#757575]">*</span>}
       </label>
 
       <div className="mag-input-wrap relative">
@@ -93,7 +93,7 @@ function MagField({
           onChange={onChange}
           onFocus={() => onFocus(name)}
           onBlur={onBlur}
-          className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none transition-colors duration-200 text-[#1A1A1A] placeholder:text-black/20"
+          className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none transition-colors duration-200 text-[#1A1A1A] placeholder:text-black/40"
           style={{ fontFamily: 'var(--font-source-serif), Georgia, serif' }}
         />
       </div>
@@ -124,6 +124,7 @@ export default function MagazineCustomerDetails() {
     setCustomerDetails,
     nextStep,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
@@ -293,7 +294,7 @@ export default function MagazineCustomerDetails() {
           <motion.div variants={itemVariants} className="mt-8">
             <p className="magazine-caps text-[9px] tracking-[0.2em] text-[#6B6B6B] mb-4">
               {t(language, 'salutation')}{' '}
-              <span className="text-black/25 ml-1">({t(language, 'optional')})</span>
+              <span className="text-[#757575] ml-1">({t(language, 'optional')})</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {[
@@ -338,7 +339,7 @@ export default function MagazineCustomerDetails() {
               style={{ color: focused === 'notes' ? theme.primarySolid : '#6B6B6B' }}
             >
               {t(language, 'notes')}{' '}
-              <span className="text-black/25 ml-1">({t(language, 'optional')})</span>
+              <span className="text-[#757575] ml-1">({t(language, 'optional')})</span>
             </label>
             <div className="relative">
               <div
@@ -359,7 +360,7 @@ export default function MagazineCustomerDetails() {
                 onBlur={() => setFocused(null)}
                 rows={3}
                 placeholder={t(language, 'notesPlaceholder')}
-                className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none resize-none text-[#1A1A1A] placeholder:text-black/20"
+                className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none resize-none text-[#1A1A1A] placeholder:text-black/40"
                 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               />
             </div>
@@ -532,7 +533,7 @@ export default function MagazineCustomerDetails() {
           <div className="h-[1px] bg-black/10 mb-5" />
 
           <div className="space-y-4">
-            {(selectedEmployee || anyPerson) && (
+            {showEmployee && (selectedEmployee || anyPerson) && (
               <div>
                 <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                   {t(language, 'specialist')}

@@ -9,9 +9,10 @@ import { fetchActiveDiscounts, calculateDiscount } from '@/lib/promotionsApi';
 import type { ServicePromotion } from '@/lib/promotionsApi';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import ElegantLayout from './components/ElegantLayout';
+import { t } from './i18n';
 
 function ElegantLoadingScreen() {
-  const { theme } = useBookingStore();
+  const { theme, language } = useBookingStore();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: '#FAFAFA' }}>
@@ -46,7 +47,7 @@ function ElegantLoadingScreen() {
             color: '#1F2937',
           }}
         >
-          Pripravljamo rezervacijo
+          {t(language, 'preparing')}
         </h1>
         <p
           className="mt-2"
@@ -56,7 +57,7 @@ function ElegantLoadingScreen() {
             color: '#6B7280',
           }}
         >
-          Prosimo počakajte&hellip;
+          {t(language, 'pleaseWait')}
         </p>
 
         <p
@@ -88,7 +89,7 @@ function ElegantLoadingScreen() {
 }
 
 function ElegantErrorScreen({ error }: { error: string }) {
-  const { theme } = useBookingStore();
+  const { theme, language } = useBookingStore();
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: '#FAFAFA' }}>
@@ -117,7 +118,7 @@ function ElegantErrorScreen({ error }: { error: string }) {
             color: '#1F2937',
           }}
         >
-          Napaka pri nalaganju
+          {t(language, 'loadingErrorTitle')}
         </h1>
 
         <p
@@ -137,7 +138,7 @@ function ElegantErrorScreen({ error }: { error: string }) {
           className="px-6 py-3 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90"
           style={{ backgroundColor: theme.primarySolid, fontFamily: 'var(--font-inter)' }}
         >
-          Poskusi znova
+          {t(language, 'tryAgain')}
         </button>
       </motion.div>
     </div>
@@ -194,7 +195,7 @@ export default function ElegantPage() {
         }
       } catch (err) {
         console.error('Elegant booking: failed to load init data:', err);
-        setError('Napaka pri nalaganju. Prosimo, poskusite znova.');
+        setError(t(useBookingStore.getState().language, 'loadingError'));
       } finally {
         setLoading(false);
         setTimeout(() => setHasLoaded(true), 300);

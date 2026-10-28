@@ -108,6 +108,7 @@ function BookingSummary() {
     totalDurationMin,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
@@ -123,7 +124,7 @@ function BookingSummary() {
 
   const rows = [
     { label: t(language, 'fieldService'),    value: displayServices },
-    { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : (selectedEmployee?.label ?? '—') },
+    { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : (selectedEmployee?.label ?? '—')) : undefined },
     { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'd. MMM yyyy', { locale: sl }) : '—' },
     { label: t(language, 'fieldTime'),       value: selectedTime ?? '—' },
     {
@@ -169,7 +170,7 @@ function BookingSummary() {
       </div>
 
       <div className="px-4 py-3 space-y-0">
-        {rows.map((row, i) => (
+        {rows.filter((r) => r.value).map((row, i) => (
           <div key={i} className="mc-summary-row">
             <span className="mc-summary-label">{row.label}</span>
             <span className="mc-summary-value text-sm">{row.value}</span>
@@ -427,7 +428,10 @@ export default function CasinoCustomerDetails() {
         {/* Privacy consent */}
         <div className="mb-4">
           <label className="flex items-start gap-3 cursor-pointer">
-            <div
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={privacyConsent}
               className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
               style={{
                 background: privacyConsent ? '#c9a84c' : 'transparent',
@@ -439,7 +443,7 @@ export default function CasinoCustomerDetails() {
               {privacyConsent && (
                 <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
               )}
-            </div>
+            </button>
             <span
               style={{
                 fontFamily: 'var(--font-cormorant)',
@@ -472,7 +476,10 @@ export default function CasinoCustomerDetails() {
 
         {/* Marketing consent */}
         <label className="flex items-start gap-3 cursor-pointer">
-          <div
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={gdprMarketing}
             className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
             style={{
               background: gdprMarketing ? '#c9a84c' : 'transparent',
@@ -484,7 +491,7 @@ export default function CasinoCustomerDetails() {
             {gdprMarketing && (
               <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
             )}
-          </div>
+          </button>
           <span
             className="italic"
             style={{

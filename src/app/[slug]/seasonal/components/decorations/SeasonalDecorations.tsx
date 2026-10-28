@@ -8,7 +8,6 @@ import SpringFlowers from './SpringFlowers';
 import EasterElements from './EasterElements';
 import SummerElements from './SummerElements';
 import FallingLeaves from './FallingLeaves';
-import HalloweenElements from './HalloweenElements';
 import NewYearElements from './NewYearElements';
 
 interface Props {
@@ -31,9 +30,6 @@ export default function SeasonalDecorations({ seasonalTheme, primaryColor, reduc
       {config.eggs && <EasterElements primaryColor={primaryColor} />}
       {config.sunRays && <SummerElements primaryColor={primaryColor} />}
       {config.leaves && <FallingLeaves primaryColor={primaryColor} count={count} />}
-      {config.pumpkins && <HalloweenElements showPumpkins />}
-      {config.ghosts && <HalloweenElements showGhosts />}
-      {config.bats && <HalloweenElements showBats />}
     </div>
   );
 }

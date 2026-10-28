@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
@@ -12,6 +11,7 @@ import {
   getBookingPricing,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
+import { dateLocale, datePattern, t } from '../../i18n';
 
 interface Props {
   companySlug?: string;
@@ -45,6 +45,7 @@ function SuccessView() {
     employeesUI,
     customerDetails,
     theme,
+    language,
   } = useBookingStore();
 
   const [copied, setCopied] = useState(false);
@@ -82,10 +83,10 @@ function SuccessView() {
   };
 
   const handleShare = async () => {
-    const text = `Moja rezervacija:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ob ${bookingConfirmation?.cas}`;
+    const text = `${t(language, 'myBooking')}:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ${t(language, 'at')} ${bookingConfirmation?.cas}`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
-        await navigator.share({ title: 'Rezervacija potrjena', text });
+        await navigator.share({ title: t(language, 'bookingConfirmed'), text });
       } catch { /* cancelled */ }
     } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       try {
@@ -126,7 +127,7 @@ function SuccessView() {
             color: '#111111',
           }}
         >
-          Rezervacija potrjena!
+          {t(language, 'bookingConfirmedTitle')}
         </h2>
 
         {selectedService && (
@@ -140,7 +141,7 @@ function SuccessView() {
           >
             {selectedService.naziv}
             {(anyPerson || selectedEmployee) && (
-              <> z {anyPerson ? 'razpoložljivim specialistom' : selectedEmployee?.label}</>
+              <> {t(language, 'withSpecialist')} {anyPerson ? t(language, 'withAnyone') : selectedEmployee?.label}</>
             )}
           </p>
         )}
@@ -155,7 +156,7 @@ function SuccessView() {
               fontWeight: 500,
             }}
           >
-            {format(selectedDate, 'd. MMMM yyyy', { locale: sl })} ob {selectedTime}
+            {format(selectedDate, datePattern(language, 'd. MMMM yyyy'), { locale: dateLocale(language) })} {t(language, 'at')} {selectedTime}
           </p>
         )}
       </motion.div>
@@ -215,7 +216,7 @@ function SuccessView() {
               backgroundColor: 'white',
             }}
           >
-            Dodaj v koledar
+            {t(language, 'addToCalendar')}
           </button>
           <button
             onClick={handleShare}
@@ -240,7 +241,7 @@ function SuccessView() {
             boxShadow: `0 4px 14px ${theme.primaryColor}30`,
           }}
         >
-          Nova rezervacija
+          {t(language, 'newBooking')}
         </button>
       </motion.div>
     </div>
@@ -264,6 +265,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     theme,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
@@ -279,7 +281,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
 
   const handleConfirm = async () => {
     if (!companySlug || !selectedService || !selectedDate || !selectedTime || !customerDetails) {
-      setError('Manjkajo podatki za rezervacijo');
+      setError(t(language, 'missingData'));
       return;
     }
     setSubmitting(true);
@@ -291,7 +293,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
 
       if (response.success) {
         const serviceName = result.serviceName;
-        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+        const datumDisplay = format(selectedDate, datePattern(language, 'd. MMMM yyyy'), { locale: dateLocale(language) });
 
         if (response.requiresPayment === true) {
           setRedirecting(true);
@@ -303,9 +305,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             console.error('Elegant booking: failed to start payment:', err);
             setRedirecting(false);
             setError(
-              language === 'en'
-                ? 'We could not start the payment. Your booking is saved but not yet confirmed. Please try again.'
-                : 'Plačila ni bilo mogoče začeti. Vaša rezervacija je shranjena, a še ni potrjena. Prosimo, poskusite znova.'
+              t(language, 'paymentStartFailed')
             );
             return;
           }
@@ -313,42 +313,42 @@ export default function ElegantConfirmation({ companySlug }: Props) {
 
         setBookingConfirmation({
           success: true,
-          message: response.message || 'Rezervacija uspešna!',
+          message: response.message || t(language, 'bookingSuccess'),
           storitev: serviceName,
           datum: datumDisplay,
           cas: selectedTime,
         });
       } else {
-        setError(response.message || 'Rezervacija ni uspela');
+        setError(response.message || t(language, 'bookingFailed'));
       }
     } catch (err) {
       console.error('Elegant booking: submit failed:', err);
-      setError(bookingErrorMessage(err, 'Rezervacija ni uspela. Prosimo, poskusite znova.'));
+      setError(bookingErrorMessage(err, t(language, 'bookingFailedRetry')));
     } finally {
       setSubmitting(false);
     }
   };
 
   const rows = [
-    { label: 'Storitev', value: selectedService?.naziv },
-    { label: 'Trajanje', value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
-    { label: 'Specialist', value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label },
+    { label: t(language, 'fieldService'), value: selectedService?.naziv },
+    { label: t(language, 'fieldDuration'), value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
+    { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined },
     {
-      label: 'Datum',
+      label: t(language, 'fieldDate'),
       value: selectedDate
-        ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl })
+        ? format(selectedDate, datePattern(language, 'EEEE, d. MMMM yyyy'), { locale: dateLocale(language) })
         : undefined,
     },
-    { label: 'Ura', value: selectedTime },
+    { label: t(language, 'fieldTime'), value: selectedTime },
     {
-      label: 'Ime in priimek',
+      label: t(language, 'fieldName'),
       value: customerDetails
         ? `${customerDetails.firstName} ${customerDetails.lastName}`
         : undefined,
     },
-    { label: 'Email', value: customerDetails?.email },
-    { label: 'Telefon', value: customerDetails?.phone },
-    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
+    { label: t(language, 'fieldEmail'), value: customerDetails?.email },
+    { label: t(language, 'fieldPhone'), value: customerDetails?.phone },
+    { label: t(language, 'fieldAddOn'), value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
   ].filter((r) => r.value);
 
   return (
@@ -364,7 +364,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Potrditev <span style={{ color: theme.primaryOnLight }}>rezervacije</span>
+          {t(language, 'confirmTitleA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'confirmTitleB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -374,7 +374,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             color: '#6B7280',
           }}
         >
-          Preverite podatke pred potrditvijo
+          {t(language, 'confirmSubtitle')}
         </p>
       </motion.div>
 
@@ -424,7 +424,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
                   color: '#6B7280',
                 }}
               >
-                Skupaj
+                {t(language, 'total')}
               </span>
               <div className="text-right">
                 {pricing.hasDiscount && (
@@ -503,14 +503,12 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             />
             <span>
               {redirecting
-                ? language === 'en'
-                  ? 'Redirecting to payment...'
-                  : 'Preusmerjamo na plačilo...'
-                : 'Pošiljam rezervacijo...'}
+                ? t(language, 'redirectingToPayment')
+                : t(language, 'sendingBooking')}
             </span>
           </div>
         ) : (
-          'Potrdite rezervacijo'
+          t(language, 'confirmBooking')
         )}
       </motion.button>
 
@@ -522,7 +520,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
           color: '#6B7280',
         }}
       >
-        Potrditev bo poslana na vaš email
+        {t(language, 'confirmationByEmail')}
       </p>
     </div>
   );

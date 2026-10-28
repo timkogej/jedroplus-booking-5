@@ -157,7 +157,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
             className="text-xs"
             style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}
           >
-            {seasonalTheme.config.name} sezona
+            {seasonalTheme.config.name}
           </p>
         </div>
       </nav>

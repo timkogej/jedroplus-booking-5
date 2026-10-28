@@ -4,6 +4,7 @@ import { motion, type Variants } from 'framer-motion';
 import { servicesCountLabel } from '@/lib/text';
 import { useBookingStore } from '@/store/bookingStore';
 import { Category } from '@/types';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -96,13 +97,13 @@ function CategoryCard({
 }
 
 export default function ElegantCategorySelection() {
-  const { categories, selectCategory, theme } = useBookingStore();
+  const { categories, selectCategory, theme, language } = useBookingStore();
 
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
         <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
-          Ni razpoložljivih kategorij.
+          {t(language, 'noCategories')}
         </p>
       </div>
     );
@@ -121,8 +122,8 @@ export default function ElegantCategorySelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberite{' '}
-          <span style={{ color: theme.primaryOnLight }}>kategorijo</span>
+          {t(language, 'chooseCategoryA')}{' '}
+          <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseCategoryB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -132,7 +133,7 @@ export default function ElegantCategorySelection() {
             color: '#6B7280',
           }}
         >
-          Katero vrsto storitve iščete?
+          {t(language, 'categoryQuestion')}
         </p>
       </motion.div>
 

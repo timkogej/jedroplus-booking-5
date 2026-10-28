@@ -3,6 +3,7 @@
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
+import { t } from '../../i18n';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -19,7 +20,7 @@ const itemVariants: Variants = {
 };
 
 function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
-  const { theme, anyPerson } = useBookingStore();
+  const { theme, anyPerson, language } = useBookingStore();
 
   return (
     <motion.button
@@ -65,7 +66,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               color: anyPerson ? theme.primarySolid : '#1F2937',
             }}
           >
-            Kdorkoli
+            {t(language, 'anyone')}
           </p>
           <p
             style={{
@@ -74,7 +75,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               color: '#6B7280',
             }}
           >
-            Dodelimo vam prvega prostega specialista
+            {t(language, 'anyoneDesc')}
           </p>
         </div>
 
@@ -179,7 +180,7 @@ function EmployeeCard({
 }
 
 export default function ElegantEmployeeSelection() {
-  const { employeesUI, eligibleEmployeeIds, selectEmployee, theme } = useBookingStore();
+  const { employeesUI, eligibleEmployeeIds, selectEmployee, theme, language } = useBookingStore();
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter((e) => eligibleSet.has(String(e.id)));
@@ -188,7 +189,7 @@ export default function ElegantEmployeeSelection() {
     return (
       <div className="text-center py-16">
         <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
-          Za to storitev ni razpoložljivega osebja.
+          {t(language, 'noStaff')}
         </p>
       </div>
     );
@@ -207,7 +208,7 @@ export default function ElegantEmployeeSelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight }}>specialista</span>
+          {t(language, 'chooseSpecialistA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseSpecialistB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -217,7 +218,7 @@ export default function ElegantEmployeeSelection() {
             color: '#6B7280',
           }}
         >
-          Kdo naj vas postreže?
+          {t(language, 'specialistQuestion')}
         </p>
       </motion.div>
 

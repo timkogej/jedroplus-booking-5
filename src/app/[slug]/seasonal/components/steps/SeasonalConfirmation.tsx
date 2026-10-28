@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
-import type { SeasonalTheme } from '../decorations/SeasonDetector';
+import { getSeasonEmoji, type SeasonalTheme } from '../decorations/SeasonDetector';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
@@ -50,18 +50,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
   const [copied, setCopied] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
-  const successEmoji = (() => {
-    const { holiday, season } = seasonalTheme;
-    if (holiday === 'christmas') return '🎄';
-    if (holiday === 'newyear') return '🎉';
-    if (holiday === 'valentine') return '💕';
-    if (holiday === 'easter') return '🐣';
-    if (holiday === 'halloween') return '🎃';
-    if (season === 'spring') return '🌸';
-    if (season === 'summer') return '☀️';
-    if (season === 'autumn') return '🍁';
-    return '❄️';
-  })();
+  const successEmoji = getSeasonEmoji(seasonalTheme);
 
   const handleAddToCalendar = () => {
     if (!selectedDate || !selectedTime || !selectedService) return;
@@ -302,6 +291,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     theme,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
@@ -391,7 +381,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
   const rows = [
     { label: t.service, value: selectedService?.naziv },
     { label: t.duration, value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
-    { label: t.expert, value: anyPerson ? t.anyone : selectedEmployee?.label },
+    { label: t.expert, value: showEmployee ? (anyPerson ? t.anyone : selectedEmployee?.label) : undefined },
     { label: t.date, value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },
     { label: t.time, value: selectedTime },
     { label: t.name, value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },

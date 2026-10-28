@@ -3,7 +3,6 @@
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import CompanyLogo from '@/components/shared/CompanyLogo';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import ElegantSidebar from './ElegantSidebar';
 import ElegantServiceSelection from './steps/ElegantServiceSelection';
@@ -11,6 +10,9 @@ import ElegantEmployeeSelection from './steps/ElegantEmployeeSelection';
 import ElegantDateTimeSelection from './steps/ElegantDateTimeSelection';
 import ElegantCustomerDetails from './steps/ElegantCustomerDetails';
 import ElegantConfirmation from './steps/ElegantConfirmation';
+import ElegantSummary from './ElegantSummary';
+import { dateLocale, datePattern, t } from '../i18n';
+import type { SupportedLanguage } from '@/types';
 
 interface Props {
   companySlug: string;
@@ -30,13 +32,48 @@ const pageVariants: Variants = {
   },
 };
 
-const STEP_LABELS: Record<number, string> = {
-  1: 'Storitev',
-  3: 'Specialist',
-  4: 'Datum in ura',
-  5: 'Podatki',
-  6: 'Potrditev',
-};
+const STEP_LABEL_KEYS = {
+  1: 'stepService',
+  2: 'stepService',
+  3: 'stepSpecialist',
+  4: 'stepDateTime',
+  5: 'stepDetails',
+  6: 'stepConfirm',
+} as const;
+
+function LanguageToggle({
+  language,
+  onChange,
+  color,
+}: {
+  language: SupportedLanguage;
+  onChange: (lang: SupportedLanguage) => void;
+  color: string;
+}) {
+  return (
+    <div className="flex rounded-full border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
+      {(['sl', 'en'] as const).map((lang) => {
+        const active = language === lang;
+        return (
+          <button
+            key={lang}
+            type="button"
+            onClick={() => onChange(lang)}
+            aria-pressed={active}
+            className="px-2.5 py-1 text-xs font-medium uppercase transition-colors"
+            style={{
+              fontFamily: 'var(--font-inter)',
+              background: active ? color : 'transparent',
+              color: active ? '#FFFFFF' : '#4B5563',
+            }}
+          >
+            {lang}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function storeToVisualElegant(storeStep: number, showEmployees: boolean): number {
   // Without the specialist step everything after it moves up by one.
@@ -63,6 +100,8 @@ export default function ElegantLayout({ companySlug }: Props) {
     employeesUI,
     customerDetails,
     prikazZaposlenih,
+    language,
+    setLanguage,
   } = useBookingStore();
 
   const isSuccess = !!bookingConfirmation?.success;
@@ -92,11 +131,11 @@ export default function ElegantLayout({ companySlug }: Props) {
   // Sidebar step values (keys match store step numbers used in ElegantSidebar)
   const stepValues: Record<number, string | undefined> = {
     1: selectedService?.naziv,
-    3: anyPerson ? 'Kdorkoli' : selectedEmployee?.label,
+    3: anyPerson ? t(language, 'anyone') : selectedEmployee?.label,
     4: selectedDate
       ? selectedTime
-        ? `${format(selectedDate, 'd. MMM', { locale: sl })} ob ${selectedTime}`
-        : format(selectedDate, 'd. MMMM yyyy', { locale: sl })
+        ? `${format(selectedDate, datePattern(language, 'd. MMM'), { locale: dateLocale(language) })} ${t(language, 'at')} ${selectedTime}`
+        : format(selectedDate, datePattern(language, 'd. MMMM yyyy'), { locale: dateLocale(language) })
       : undefined,
     5: customerDetails
       ? `${customerDetails.firstName} ${customerDetails.lastName}`
@@ -177,7 +216,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                   className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-600 transition-colors"
                   style={{ fontFamily: 'var(--font-inter)' }}
                 >
-                  ← Nazaj
+                  {t(language, 'back')}
                 </motion.button>
               )}
               {!isSuccess && (
@@ -185,13 +224,14 @@ export default function ElegantLayout({ companySlug }: Props) {
                   className="text-sm font-medium"
                   style={{ color: theme.primaryOnLight, fontFamily: 'var(--font-inter)' }}
                 >
-                  {STEP_LABELS[currentStep]}
+                  {t(language, STEP_LABEL_KEYS[currentStep as keyof typeof STEP_LABEL_KEYS] ?? 'stepService')}
                 </span>
               )}
             </div>
           </div>
 
-          {/* Right: step indicator */}
+          {/* Right: step indicator + language */}
+          <div className="flex items-center gap-4 flex-shrink-0">
           {!isSuccess ? (
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Mobile: pill dots */}
@@ -218,17 +258,20 @@ export default function ElegantLayout({ companySlug }: Props) {
                 className="hidden md:block text-sm"
                 style={{ color: '#6B7280', fontFamily: 'var(--font-inter)' }}
               >
-                Korak {visualStep} od {totalSteps}
+                {t(language, 'stepOf')(visualStep, totalSteps)}
               </span>
             </div>
           ) : (
             <div />
           )}
+            <LanguageToggle language={language} onChange={setLanguage} color={theme.primarySolid} />
+          </div>
         </header>
 
         {/* Content */}
         <main className="flex-1 overflow-x-clip px-6 md:px-12 py-8 md:py-10">
-          <div className="max-w-2xl">
+          <div className="flex gap-10 xl:gap-14">
+          <div className="max-w-2xl flex-1 min-w-0">
             {/* Mobile: back button */}
             {canGoBack && (
               <motion.button
@@ -237,7 +280,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                 className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 mb-6"
                 style={{ fontFamily: 'var(--font-inter)' }}
               >
-                ← Nazaj
+                {t(language, 'back')}
               </motion.button>
             )}
 
@@ -254,6 +297,8 @@ export default function ElegantLayout({ companySlug }: Props) {
               </motion.div>
             </AnimatePresence>
           </div>
+          {!isSuccess && currentStep < 6 && <ElegantSummary />}
+          </div>
         </main>
 
         {/* Footer */}
@@ -268,7 +313,7 @@ export default function ElegantLayout({ companySlug }: Props) {
               color: '#D1D5DB',
             }}
           >
-            © {new Date().getFullYear()} · Jedro+ · Rezervacijski Sistem
+            © {new Date().getFullYear()} · Jedro+ · {t(language, 'footer')}
           </p>
         </footer>
       </div>

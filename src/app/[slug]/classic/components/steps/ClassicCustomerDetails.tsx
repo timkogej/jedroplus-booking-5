@@ -131,6 +131,7 @@ function BookingSummaryCard({ primaryColor }: { primaryColor: string }) {
     employeesUI,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const services =
@@ -174,7 +175,7 @@ function BookingSummaryCard({ primaryColor }: { primaryColor: string }) {
           },
         ]
       : []),
-    ...(selectedEmployee || anyPerson
+    ...(showEmployee && (selectedEmployee || anyPerson)
       ? [
           {
             icon: (

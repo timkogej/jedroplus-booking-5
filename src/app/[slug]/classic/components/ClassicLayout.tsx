@@ -255,6 +255,7 @@ export default function ClassicLayout({ companySlug }: Props) {
     setLanguage,
     prikazZaposlenih,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const isSuccess = !!bookingConfirmation?.success;
@@ -311,7 +312,7 @@ export default function ClassicLayout({ companySlug }: Props) {
   // Summary card values
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
   const summaryEmployee =
-    selectedEmployeeId !== null || anyPerson
+    showEmployee && (selectedEmployeeId !== null || anyPerson)
       ? anyPerson
         ? t(language, 'anyone')
         : selectedEmployee?.label

@@ -2,14 +2,15 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
+import { t } from '../i18n';
 
 const STEPS = [
-  { number: 1, label: 'Storitev' },
-  { number: 3, label: 'Specialist' },
-  { number: 4, label: 'Datum in ura' },
-  { number: 5, label: 'Podatki' },
-  { number: 6, label: 'Potrditev' },
-];
+  { number: 1, labelKey: 'stepService' },
+  { number: 3, labelKey: 'stepSpecialist' },
+  { number: 4, labelKey: 'stepDateTime' },
+  { number: 5, labelKey: 'stepDetails' },
+  { number: 6, labelKey: 'stepConfirm' },
+] as const;
 
 interface Props {
   currentStep: number;
@@ -43,7 +44,7 @@ function ElegantCheck({ color }: { color: string }) {
 }
 
 export default function ElegantSidebar({ currentStep, stepValues }: Props) {
-  const { theme, prikazZaposlenih } = useBookingStore();
+  const { theme, prikazZaposlenih, language } = useBookingStore();
   // The specialist step is skipped when the company hides employees online.
   const steps = STEPS.filter((s) => prikazZaposlenih || s.number !== 3);
 
@@ -119,7 +120,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   color: isDone ? '#6B7280' : isActive ? theme.primarySolid : '#6B7280',
                 }}
               >
-                {step.label}
+                {t(language, step.labelKey)}
               </p>
               {value && (
                 <p

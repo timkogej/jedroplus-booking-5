@@ -84,6 +84,7 @@ function SuccessView() {
     customerDetails,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const [copied, setCopied] = useState(false);
   const [showParticles, setShowParticles] = useState(false);
@@ -253,7 +254,7 @@ function SuccessView() {
           <div className="px-5 py-4">
             {[
               { label: t(language, 'fieldService'),    value: bookingConfirmation?.storitev ?? displayServices },
-              { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label },
+              { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined },
               { label: t(language, 'fieldDate'),       value: bookingConfirmation?.datum },
               { label: t(language, 'fieldTime'),       value: bookingConfirmation?.cas },
               { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
@@ -340,6 +341,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     setBookingConfirmation,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
@@ -407,7 +409,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
   };
 
   const rows = [
-    { label: t(language, 'fieldSpecialist'), value: anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label },
+    { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined },
     { label: t(language, 'fieldService'),    value: displayServices },
     { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
     { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },

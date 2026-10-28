@@ -32,6 +32,7 @@ export default function MagazineSummary() {
     selectedDate,
     selectedTime,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
@@ -41,7 +42,7 @@ export default function MagazineSummary() {
 
   const rows: SummaryRow[] = [];
 
-  if (selectedEmployee || anyPerson) {
+  if (showEmployee && (selectedEmployee || anyPerson)) {
     rows.push({
       label: 'Specialist',
       value: selectedEmployee ? selectedEmployee.label : 'Kdorkoli prost',

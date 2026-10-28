@@ -322,7 +322,10 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
         <div className="space-y-3">
           {/* Marketing consent (optional) */}
           <label className="flex items-start gap-3 cursor-pointer">
-            <motion.div
+            <motion.button
+              type="button"
+              role="checkbox"
+              aria-checked={gdprMarketing}
               className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
               style={{
                 backgroundColor: gdprMarketing ? theme.primarySolid : 'var(--s1)',
@@ -344,7 +347,7 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </motion.svg>
               )}
-            </motion.div>
+            </motion.button>
             <span
               className="text-sm leading-relaxed"
               style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}
@@ -356,7 +359,10 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
           {/* Privacy consent (required) */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer">
-              <motion.div
+              <motion.button
+                type="button"
+                role="checkbox"
+                aria-checked={privacyConsent}
                 className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{
                   backgroundColor: privacyConsent ? theme.primarySolid : 'var(--s1)',
@@ -378,7 +384,7 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </motion.svg>
                 )}
-              </motion.div>
+              </motion.button>
               <span
                 className="text-sm leading-relaxed"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}

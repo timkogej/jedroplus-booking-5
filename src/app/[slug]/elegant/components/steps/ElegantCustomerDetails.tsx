@@ -9,6 +9,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import { t } from '../../i18n';
 
 interface FormErrors {
   firstName?: string;
@@ -94,7 +95,7 @@ function ElegantInput({
 }
 
 export default function ElegantCustomerDetails() {
-  const { setCustomerDetails, nextStep, theme } = useBookingStore();
+  const { setCustomerDetails, nextStep, theme, language } = useBookingStore();
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -112,12 +113,12 @@ export default function ElegantCustomerDetails() {
 
   const validate = (): boolean => {
     const e: FormErrors = {};
-    if (!firstName.trim()) e.firstName = 'Ime je obvezno';
-    if (!lastName.trim()) e.lastName = 'Priimek je obvezen';
-    if (!email.trim()) e.email = 'Email je obvezen';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Email ni veljaven';
-    if (!phone.trim()) e.phone = 'Telefon je obvezen';
-    if (!privacyConsent) e.privacyConsent = 'Strinjanje s pogoji je obvezno';
+    if (!firstName.trim()) e.firstName = t(language, 'firstNameRequired');
+    if (!lastName.trim()) e.lastName = t(language, 'lastNameRequired');
+    if (!email.trim()) e.email = t(language, 'emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t(language, 'emailInvalid');
+    if (!phone.trim()) e.phone = t(language, 'phoneRequired');
+    if (!privacyConsent) e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -164,7 +165,7 @@ export default function ElegantCustomerDetails() {
             lineHeight: 1.2,
           }}
         >
-          Vaši <span style={{ color: theme.primaryOnLight }}>podatki</span>
+          {t(language, 'yourDetailsA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'yourDetailsB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -174,7 +175,7 @@ export default function ElegantCustomerDetails() {
             color: '#6B7280',
           }}
         >
-          Izpolnite podatke za rezervacijo
+          {t(language, 'fillDetails')}
         </p>
       </motion.div>
 
@@ -201,7 +202,7 @@ export default function ElegantCustomerDetails() {
         {/* Name row */}
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <ElegantLabel required>Ime</ElegantLabel>
+            <ElegantLabel required>{t(language, 'firstName')}</ElegantLabel>
             <ElegantInput
               field="firstName"
               value={firstName}
@@ -229,7 +230,7 @@ export default function ElegantCustomerDetails() {
             </AnimatePresence>
           </div>
           <div>
-            <ElegantLabel required>Priimek</ElegantLabel>
+            <ElegantLabel required>{t(language, 'lastName')}</ElegantLabel>
             <ElegantInput
               field="lastName"
               value={lastName}
@@ -260,7 +261,7 @@ export default function ElegantCustomerDetails() {
 
         {/* Email */}
         <div className="mb-5">
-          <ElegantLabel required>Email</ElegantLabel>
+          <ElegantLabel required>{t(language, 'email')}</ElegantLabel>
           <ElegantInput
             field="email"
             value={email}
@@ -291,7 +292,7 @@ export default function ElegantCustomerDetails() {
 
         {/* Phone */}
         <div className="mb-5">
-          <ElegantLabel required>Telefon</ElegantLabel>
+          <ElegantLabel required>{t(language, 'phone')}</ElegantLabel>
           <ElegantInput
             field="phone"
             value={phone}
@@ -322,12 +323,12 @@ export default function ElegantCustomerDetails() {
 
         {/* Gender */}
         <div className="mb-5">
-          <ElegantLabel>Nagovor (neobvezno)</ElegantLabel>
+          <ElegantLabel>{t(language, 'salutation')}</ElegantLabel>
           <div className="flex gap-2 mt-1">
             {[
-              { value: 'male', label: 'Gospod' },
-              { value: 'female', label: 'Gospa' },
-              { value: 'other', label: 'Nevtralno' },
+              { value: 'male', label: t(language, 'salutationMr') },
+              { value: 'female', label: t(language, 'salutationMs') },
+              { value: 'other', label: t(language, 'salutationOther') },
             ].map((opt) => {
               const isSelected = gender === opt.value;
               return (
@@ -372,11 +373,11 @@ export default function ElegantCustomerDetails() {
 
         {/* Notes */}
         <div className="mb-6">
-          <ElegantLabel>Opombe</ElegantLabel>
+          <ElegantLabel>{t(language, 'notes')}</ElegantLabel>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Posebne želje ali opombe..."
+            placeholder={t(language, 'notesPlaceholder')}
             rows={3}
             className="elegant-textarea"
           />
@@ -398,7 +399,10 @@ export default function ElegantCustomerDetails() {
         <div className="space-y-3">
           {/* GDPR marketing */}
           <label className="flex items-start gap-3 cursor-pointer group">
-            <div
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={gdprMarketing}
               className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
               style={{
                 backgroundColor: gdprMarketing ? theme.primarySolid : 'white',
@@ -409,7 +413,7 @@ export default function ElegantCustomerDetails() {
               {gdprMarketing && (
                 <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
               )}
-            </div>
+            </button>
             <span
               style={{
                 fontFamily: 'var(--font-inter)',
@@ -418,14 +422,17 @@ export default function ElegantCustomerDetails() {
                 lineHeight: 1.5,
               }}
             >
-              Želim prejemati obvestila o ponudbah in novostih
+              {t(language, 'marketing')}
             </span>
           </label>
 
           {/* Privacy consent */}
           <div>
             <label className="flex items-start gap-3 cursor-pointer group">
-              <div
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={privacyConsent}
                 className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                 style={{
                   backgroundColor: privacyConsent ? theme.primarySolid : 'white',
@@ -442,7 +449,7 @@ export default function ElegantCustomerDetails() {
                 {privacyConsent && (
                   <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
                 )}
-              </div>
+              </button>
               <span
                 style={{
                   fontFamily: 'var(--font-inter)',
@@ -451,7 +458,7 @@ export default function ElegantCustomerDetails() {
                   lineHeight: 1.5,
                 }}
               >
-                Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.{' '}
+                {t(language, 'privacyConsent')}{' '}
                 <a
                   href="https://jedroplus.com/privacy"
                   target="_blank"
@@ -459,7 +466,7 @@ export default function ElegantCustomerDetails() {
                   className="underline transition-colors"
                   style={{ color: theme.primaryOnLight }}
                 >
-                  Preberite politiko zasebnosti
+                  {t(language, 'privacyLink')}
                 </a>
                 <span className="text-red-400 ml-0.5">*</span>
               </span>
@@ -517,7 +524,7 @@ export default function ElegantCustomerDetails() {
             boxShadow: isFormComplete ? `0 4px 14px ${theme.primaryColor}30` : 'none',
           }}
         >
-          {isSubmitting ? 'Pošiljam...' : 'Nadaljuj'}
+          {isSubmitting ? t(language, 'sending') : t(language, 'continue')}
         </motion.button>
       </motion.div>
     </motion.div>

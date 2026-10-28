@@ -105,6 +105,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     language,
     reset,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const [copied, setCopied] = useState(false);
@@ -194,7 +195,9 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     },
     {
       label: t(language, 'fieldSpecialist'),
-      value: anyPerson
+      value: !showEmployee
+        ? undefined
+        : anyPerson
         ? t(language, 'anyone')
         : selectedEmployee?.label ?? undefined,
     },
@@ -441,6 +444,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
     setBookingConfirmation,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const contrastMode = getContrastMode(theme.bgFrom, theme.bgTo);
   const textPrimary =
@@ -531,7 +535,9 @@ export default function ClassicConfirmation({ companySlug }: Props) {
   const rows = [
     {
       label: t(language, 'fieldSpecialist'),
-      value: anyPerson
+      value: !showEmployee
+        ? undefined
+        : anyPerson
         ? t(language, 'anyone')
         : selectedEmployee?.label,
     },
