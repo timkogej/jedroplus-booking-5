@@ -6,12 +6,11 @@ import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { Check, Calendar, User, Sparkles, CalendarPlus, Share2 } from 'lucide-react';
 import { useBookingStore } from '@/store/bookingStore';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
-import { submitBooking } from '@/lib/api';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 
@@ -25,7 +24,6 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -57,50 +55,25 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
     setError(null);
 
     try {
-      const response = await submitBooking({
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceId: selectedService.id,
-        employeeId: selectedEmployeeId,
-        anyPerson,
-        eligibleEmployeeIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender,
-        notes: customerDetails.notes,
-        gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent ?? false,
-        marketingConsent: customerDetails.gdprSendMarketing,
-        consentTimestamp: new Date().toISOString(),
-        originalCena: pricing.originalTotal,
-        finalCena: pricing.finalTotal,
-        ...(selectedAddOn ? {
-          addOnServiceId: selectedAddOn.id,
-          addOnNaziv: selectedAddOn.naziv,
-          addOnFinalCena: selectedAddOn.finalCena,
-          addOnOriginalCena: selectedAddOn.originalCena,
-          addOnPopust: selectedAddOn.popustZnesek,
-          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
-          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
-        } : {}),
-        ...(promotion ? {
-          promocijaTip: promotion.type,
-          promocijaNaziv: promotion.naziv,
-          popust: pricing.discountAmount,
-          popustTip: getPromotionPopustTip(promotion),
-          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
-          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
-        } : {}),
-      });
+      const result = await submitCurrentBooking(companySlug);
+      const response = result.confirmation;
 
       if (response.success) {
+        if (response.requiresPayment === true) {
+          const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+          try {
+            await startCheckout(result, companySlug, 'default', datumDisplay);
+            return;
+          } catch (err) {
+            console.error('Failed to start payment:', err);
+            setError('Plačila ni bilo mogoče začeti. Rezervacija je shranjena, a še ni potrjena. Prosimo, poskusite znova.');
+            return;
+          }
+        }
         setBookingConfirmation({
           success: true,
           message: response.message || 'Rezervacija uspešna!',
-          storitev: selectedService.naziv,
+          storitev: result.serviceName,
           datum: format(selectedDate, 'd. MMMM yyyy', { locale: sl }),
           cas: selectedTime,
         });
@@ -109,7 +82,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
       }
     } catch (err) {
       console.error('Failed to submit booking:', err);
-      setError('Rezervacija ni uspela. Prosim poskusi znova.');
+      setError(bookingErrorMessage(err, 'Rezervacija ni uspela. Prosimo, poskusite znova.'));
     } finally {
       setSubmitting(false);
     }
@@ -202,7 +175,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         >
           <motion.div
             className="w-24 h-24 rounded-full border-2 mx-auto flex items-center justify-center"
-            style={{ borderColor: theme.primaryColor }}
+            style={{ borderColor: theme.primarySolid }}
             animate={{
               boxShadow: [
                 `0 0 0 0 ${theme.primaryColor}40`,
@@ -221,7 +194,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
             >
               <Check
                 className="w-12 h-12"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
                 strokeWidth={2}
               />
             </motion.div>
@@ -236,7 +209,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           className="font-serif text-3xl md:text-4xl mb-3 text-white"
         >
           Rezervacija{' '}
-          <span style={{ color: theme.primaryColor }}>
+          <span style={{ color: theme.primarySolid }}>
             potrjena
           </span>
         </motion.h1>
@@ -299,7 +272,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           {selectedService && (
             <div className="flex justify-between py-2">
               <span className="text-white/50">Cena</span>
-              <span className="font-light tracking-wider" style={{ color: theme.primaryColor }}>
+              <span className="font-light tracking-wider" style={{ color: theme.primarySolid }}>
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">
                     {formatBookingPrice(pricing.originalTotal)}
@@ -324,7 +297,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           <button
             onClick={handleAddToCalendar}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-full font-light tracking-wide transition-all duration-300 text-white"
-            style={{ backgroundColor: theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid }}
             onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
             onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
           >
@@ -336,14 +309,14 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
           <button
             onClick={handleShare}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 font-light tracking-wide transition-all duration-300"
-            style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
+            style={{ borderColor: theme.primarySolid, color: theme.primarySolid }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.primaryColor;
+              e.currentTarget.style.backgroundColor = theme.primarySolid;
               e.currentTarget.style.color = 'white';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = theme.primaryColor;
+              e.currentTarget.style.color = theme.primarySolid;
             }}
           >
             <Share2 className="w-4 h-4" />
@@ -376,7 +349,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
       <div className="mb-12">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
           Potrdi{' '}
-          <span style={{ color: theme.primaryColor }}>
+          <span style={{ color: theme.primarySolid }}>
             rezervacijo
           </span>
         </h1>
@@ -479,7 +452,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
               <span className="text-white/50">Skupaj</span>
               <span
                 className="font-light text-3xl tracking-wider"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">
@@ -498,7 +471,7 @@ export default function Confirmation({ companySlug }: ConfirmationProps) {
         onClick={handleConfirm}
         disabled={isSubmitting}
         className="px-12 py-4 rounded-full font-medium text-lg transition-all duration-300 text-white relative overflow-hidden"
-        style={{ backgroundColor: theme.primaryColor }}
+        style={{ backgroundColor: theme.primarySolid }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { Theme } from '@/types';
+import { isLightBackground } from '@/lib/color';
 import ModernHeader from './ModernHeader';
 import ModernServiceSelection from './steps/ModernServiceSelection';
 import ModernEmployeeSelection from './steps/ModernEmployeeSelection';
@@ -27,33 +28,12 @@ interface CssVars {
   '--b3': string;
   '--header-bg': string;
   '--nav-bg': string;
-}
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : { r: 128, g: 128, b: 128 };
-}
-
-function luminance(r: number, g: number, b: number): number {
-  const [rs, gs, bs] = [r, g, b].map((c) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+  /** Company colour for text, readable on this background. */
+  '--t-accent': string;
 }
 
 function computeCssVars(theme: Theme): CssVars {
-  const rgb1 = hexToRgb(theme.bgFrom);
-  const rgb2 = hexToRgb(theme.bgTo);
-  const avgLuminance =
-    (luminance(rgb1.r, rgb1.g, rgb1.b) + luminance(rgb2.r, rgb2.g, rgb2.b)) / 2;
-  const isBgLight = avgLuminance > 0.5;
+  const isBgLight = isLightBackground(theme.bgFrom, theme.bgTo);
 
   if (isBgLight) {
     return {
@@ -71,6 +51,7 @@ function computeCssVars(theme: Theme): CssVars {
       '--b3': 'rgba(0, 0, 0, 0.18)',
       '--header-bg': 'rgba(255, 255, 255, 0.75)',
       '--nav-bg': 'rgba(255, 255, 255, 0.85)',
+      '--t-accent': theme.primarySolid,
     };
   } else {
     return {
@@ -88,6 +69,7 @@ function computeCssVars(theme: Theme): CssVars {
       '--b3': 'rgba(255, 255, 255, 0.18)',
       '--header-bg': 'rgba(0, 0, 0, 0.05)',
       '--nav-bg': 'rgba(0, 0, 0, 0.1)',
+      '--t-accent': theme.primaryOnDark,
     };
   }
 }
@@ -119,7 +101,6 @@ export default function ModernLayout({ companySlug }: Props) {
     currentStep,
     prevStep,
     bookingConfirmation,
-    prikazZaposlenih,
   } = useBookingStore();
 
   const cssVars = useMemo(() => computeCssVars(theme), [theme]);
@@ -137,10 +118,8 @@ export default function ModernLayout({ companySlug }: Props) {
       case 2:
         return <ModernServiceSelection />;
       case 3:
-        // When prikazZaposlenih=false, employee step is hidden — skip straight to date/time
-        return prikazZaposlenih
-          ? <ModernEmployeeSelection />
-          : <ModernDateTimeSelection companySlug={companySlug} />;
+        // Never reached when prikazZaposlenih=false: the store skips to step 4.
+        return <ModernEmployeeSelection />;
       case 4:
         return <ModernDateTimeSelection companySlug={companySlug} />;
       case 5:
@@ -156,7 +135,7 @@ export default function ModernLayout({ companySlug }: Props) {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden"
+      className="min-h-screen relative overflow-clip"
       style={{
         background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
         ...(cssVars as React.CSSProperties),
@@ -195,7 +174,7 @@ export default function ModernLayout({ companySlug }: Props) {
           onBack={prevStep}
         />
 
-        <main className="flex-1 overflow-y-auto py-8 px-4">
+        <main className="flex-1 overflow-x-clip py-8 px-4">
           <div className="max-w-2xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div

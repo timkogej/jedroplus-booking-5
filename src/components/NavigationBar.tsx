@@ -78,13 +78,13 @@ export default function NavigationBar() {
               }
             `}
             style={{
-              borderColor: theme.primaryColor,
-              color: theme.primaryColor,
+              borderColor: theme.primarySolid,
+              color: theme.primarySolid,
             }}
             whileHover={
               canProceed()
                 ? {
-                    backgroundColor: theme.primaryColor,
+                    backgroundColor: theme.primarySolid,
                     color: 'white',
                   }
                 : {}

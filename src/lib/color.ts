@@ -65,3 +65,48 @@ export function readableInkOnLight(color: string, ink = '#111827'): string {
   if (contrastRatio(color, '#FFFFFF') < 3) return ink;
   return ensureReadable(color, '#FFFFFF', 4.5);
 }
+
+/**
+ * The colour mixed toward white until it has at least `minRatio` contrast
+ * against a dark `background`. Used for brand-coloured text on dark designs.
+ */
+export function readableOnDark(color: string, background = '#111827', minRatio = 4.5): string {
+  const rgb = hexToRgb(color);
+  if (!rgb) return color;
+  let [r, g, b] = rgb;
+  let guard = 0;
+  while (contrastRatio(rgbToHex(r, g, b), background) < minRatio && guard < 40) {
+    r += (255 - r) * 0.15;
+    g += (255 - g) * 0.15;
+    b += (255 - b) * 0.15;
+    guard += 1;
+  }
+  return rgbToHex(r, g, b);
+}
+
+/** True when dark text reads better than white text on this background. */
+export function isLightBackground(from: string, to: string = from): boolean {
+  const avg = (luminance(from) + luminance(to)) / 2;
+  // 0.179 is where black and white text have equal contrast.
+  return avg > 0.179;
+}
+
+/**
+ * Rules for the company colour, used by every design:
+ *  - `primaryColor`  — the owner's colour as entered. Only for soft tints
+ *                      (`${primaryColor}20`), glows and decorations.
+ *  - `primarySolid`  — same hue, dark enough to carry white text: buttons,
+ *                      selected states, borders, icons, brand text on light.
+ *  - `primaryOnLight`— text on white; a colour too pale to darken nicely
+ *                      falls back to near-black ink.
+ *  - `primaryOnDark` — text on dark backgrounds.
+ */
+export function withReadableColors<T extends { primaryColor: string }>(theme: T) {
+  const raw = theme.primaryColor;
+  return {
+    ...theme,
+    primarySolid: ensureReadable(raw),
+    primaryOnLight: readableInkOnLight(raw),
+    primaryOnDark: readableOnDark(raw),
+  };
+}

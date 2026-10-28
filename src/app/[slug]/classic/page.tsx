@@ -43,11 +43,11 @@ function ClassicLoadingScreen() {
           className="text-xs tracking-widest uppercase"
           style={{
             fontFamily: 'var(--font-nunito-sans)',
-            color: '#9CA3AF',
+            color: '#6B7280',
             letterSpacing: '0.12em',
           }}
         >
-          Loading
+          Nalaganje
         </p>
       </motion.div>
     </div>
@@ -183,7 +183,7 @@ export default function ClassicPage() {
         }
       } catch (err) {
         console.error('Classic booking: failed to load init data:', err);
-        setError('Napaka pri nalaganju. Prosimo poskusite znova.');
+        setError('Napaka pri nalaganju. Prosimo, poskusite znova.');
       } finally {
         setLoading(false);
         setTimeout(() => setHasLoaded(true), 250);

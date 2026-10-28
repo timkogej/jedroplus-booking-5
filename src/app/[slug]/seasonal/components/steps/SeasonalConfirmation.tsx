@@ -5,20 +5,14 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { submitBooking } from '@/lib/api';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import type { SeasonalTheme } from '../decorations/SeasonDetector';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
-import {
-  buildCancelUrl,
-  buildSuccessUrl,
-  redirectToCheckout,
-} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -152,7 +146,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           {/* Middle ring */}
           <motion.div
             className="absolute inset-0 rounded-full"
-            style={{ border: `1.5px solid ${theme.primaryColor}` }}
+            style={{ border: `1.5px solid ${theme.primarySolid}` }}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.12, type: 'spring', stiffness: 240, damping: 18 }}
@@ -200,7 +194,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
             </p>
           )}
           {selectedDate && selectedTime && (
-            <p className="font-semibold text-sm capitalize" style={{ color: theme.primaryColor, fontFamily: 'var(--font-inter)' }}>
+            <p className="font-semibold text-sm first-cap" style={{ color: theme.primarySolid, fontFamily: 'var(--font-inter)' }}>
               {format(selectedDate, 'd. MMMM yyyy', { locale: sl })} {language === 'en' ? 'at' : 'ob'} {selectedTime}
             </p>
           )}
@@ -220,13 +214,13 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           }}
         >
           {/* Accent top line */}
-          <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
+          <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
           <div className="px-5 py-4 flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ background: `${theme.primaryColor}12` }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={theme.primaryColor} strokeWidth={1.8}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={theme.primarySolid} strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
@@ -270,7 +264,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           onClick={handleNewBooking}
           className="w-full py-4 rounded-2xl text-white font-semibold text-sm relative overflow-hidden"
           style={{
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             fontFamily: 'var(--font-inter)',
             boxShadow: `0 8px 28px ${theme.primaryColor}38`,
           }}
@@ -297,7 +291,6 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -356,72 +349,18 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     setError(null);
 
     try {
-      const response = await submitBooking({
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceId: selectedService.id,
-        employeeId: selectedEmployeeId,
-        anyPerson,
-        eligibleEmployeeIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender,
-        notes: customerDetails.notes,
-        gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent ?? false,
-        marketingConsent: customerDetails.gdprSendMarketing ?? false,
-        consentTimestamp: new Date().toISOString(),
-        originalCena: pricing.originalTotal,
-        finalCena: pricing.finalTotal,
-        ...(promotion ? {
-          promocijaTip: promotion.type,
-          promocijaNaziv: promotion.naziv,
-          popust: pricing.discountAmount,
-          popustTip: getPromotionPopustTip(promotion),
-          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
-          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
-        } : {}),
-        ...(selectedAddOn ? {
-          addOnServiceId: selectedAddOn.id,
-          addOnNaziv: selectedAddOn.naziv,
-          addOnFinalCena: selectedAddOn.finalCena,
-          addOnOriginalCena: selectedAddOn.originalCena,
-          addOnPopust: selectedAddOn.popustZnesek,
-          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
-          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
-        } : {}),
-      });
+      const result = await submitCurrentBooking(companySlug);
+      const response = result.confirmation;
 
       if (response.success) {
-        const serviceName = response.storitev || selectedService.naziv;
+        const serviceName = result.serviceName;
         const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
         if (response.requiresPayment === true) {
-          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
           setRedirecting(true);
 
           try {
-            await redirectToCheckout({
-              companySlug,
-              appointmentId,
-              amount: response.paymentAmount ?? pricing.finalTotal,
-              currency: response.currency ?? 'EUR',
-              serviceName,
-              customerEmail: customerDetails.email,
-              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-              language,
-              paymentMode: response.paymentMode ?? 'full',
-              successUrl: buildSuccessUrl(companySlug, 'seasonal', {
-                lang: language,
-                serviceName,
-                date: response.datum || datumDisplay,
-                time: response.cas || selectedTime,
-              }),
-              cancelUrl: buildCancelUrl(companySlug, 'seasonal'),
-            });
+            await startCheckout(result, companySlug, 'seasonal', datumDisplay);
             return;
           } catch (err) {
             console.error('Seasonal booking: failed to start payment:', err);
@@ -443,7 +382,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
       }
     } catch (err) {
       console.error('Seasonal booking: submit failed:', err);
-      setError(language === 'en' ? 'Booking failed. Please try again.' : 'Rezervacija ni uspela. Prosim poskusite znova.');
+      setError(bookingErrorMessage(err, language === 'en' ? 'Booking failed. Please try again.' : 'Rezervacija ni uspela. Prosimo, poskusite znova.'));
     } finally {
       setSubmitting(false);
     }
@@ -484,13 +423,13 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
         style={{ background: '#FAFAFA', border: '1px solid rgba(0,0,0,0.07)' }}
       >
         {/* Accent top bar */}
-        <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
+        <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
 
         <div className="px-5 py-2">
           {rows.map((row, i) => (
             <div key={i} className="seasonal-summary-row">
               <span className="seasonal-summary-label">{row.label}</span>
-              <span className="seasonal-summary-value capitalize" style={{ maxWidth: '65%' }}>
+              <span className={`seasonal-summary-value ${String(row.value).includes('@') ? '' : 'first-cap'}`} style={{ maxWidth: '65%' }}>
                 {row.value}
               </span>
             </div>
@@ -502,14 +441,14 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
             <div className="mx-5 h-px bg-gray-100" />
             <div className="px-5 py-4 flex items-center justify-between">
               <span
-                className="text-xs font-semibold tracking-widest uppercase text-gray-400"
+                className="text-xs font-semibold tracking-widest uppercase text-gray-500"
                 style={{ fontFamily: 'var(--font-inter)' }}
               >
                 {t.total}
               </span>
               <div className="text-right">
                 {pricing.hasDiscount && (
-                  <div className="text-sm line-through text-gray-400" style={{ fontFamily: 'var(--font-inter)' }}>
+                  <div className="text-sm line-through text-gray-500" style={{ fontFamily: 'var(--font-inter)' }}>
                     {formatBookingPrice(pricing.originalTotal)}
                   </div>
                 )}
@@ -552,7 +491,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
         disabled={isSubmitting}
         className="w-full py-4 rounded-2xl text-white font-semibold relative overflow-hidden"
         style={{
-          backgroundColor: theme.primaryColor,
+          backgroundColor: theme.primarySolid,
           fontFamily: 'var(--font-inter)',
           fontSize: '0.975rem',
           cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -582,7 +521,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
         ) : t.confirm}
       </motion.button>
 
-      <p className="text-center mt-3 text-xs text-gray-400" style={{ fontFamily: 'var(--font-inter)' }}>
+      <p className="text-center mt-3 text-xs text-gray-500" style={{ fontFamily: 'var(--font-inter)' }}>
         {t.emailNote}
       </p>
     </div>

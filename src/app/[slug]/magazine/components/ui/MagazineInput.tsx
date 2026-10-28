@@ -32,7 +32,7 @@ export default function MagazineInput({
     <div className="relative">
       <label
         className="block magazine-caps text-[9px] tracking-[0.2em] mb-2 transition-colors duration-200"
-        style={{ color: focused ? theme.primaryColor : '#6B6B6B' }}
+        style={{ color: focused ? theme.primarySolid : '#6B6B6B' }}
       >
         {label}
         {required && <span className="ml-1 text-black/25">*</span>}
@@ -49,7 +49,7 @@ export default function MagazineInput({
           className="absolute bottom-0 left-0 h-[1px] pointer-events-none"
           animate={{ width: focused ? '100%' : '0%' }}
           transition={{ duration: 0.35 }}
-          style={{ backgroundColor: error ? '#EF4444' : theme.primaryColor }}
+          style={{ backgroundColor: error ? '#EF4444' : theme.primarySolid }}
         />
 
         <input

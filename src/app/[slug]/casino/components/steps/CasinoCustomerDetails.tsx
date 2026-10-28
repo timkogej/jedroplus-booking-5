@@ -15,6 +15,8 @@ import {
 } from '@/lib/pricing';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
+import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 
 interface FormErrors {
   firstName?: string;
@@ -56,12 +58,14 @@ function MCLabel({ children }: { children: React.ReactNode }) {
 }
 
 function MCInput({
+  field,
   value,
   onChange,
   placeholder,
   type = 'text',
   hasError,
 }: {
+  field?: ContactField;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -72,6 +76,7 @@ function MCInput({
 
   return (
     <input
+      {...contactFieldAttrs(field)}
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -315,7 +320,7 @@ export default function CasinoCustomerDetails() {
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
             <MCLabel>{t(language, 'firstNameLabel')}</MCLabel>
-            <MCInput value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} />
+            <MCInput field="firstName" value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} />
             <AnimatePresence>
               {errors.firstName && (
                 <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
@@ -326,7 +331,7 @@ export default function CasinoCustomerDetails() {
           </div>
           <div>
             <MCLabel>{t(language, 'lastNameLabel')}</MCLabel>
-            <MCInput value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} />
+            <MCInput field="lastName" value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} />
             <AnimatePresence>
               {errors.lastName && (
                 <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
@@ -340,7 +345,7 @@ export default function CasinoCustomerDetails() {
         {/* Email */}
         <div className="mb-5">
           <MCLabel>{t(language, 'emailLabel')}</MCLabel>
-          <MCInput value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
+          <MCInput field="email" value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
           <AnimatePresence>
             {(errors.email || fieldErrors.email) && (
               <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
@@ -353,7 +358,7 @@ export default function CasinoCustomerDetails() {
         {/* Phone */}
         <div className="mb-5">
           <MCLabel>{t(language, 'phoneLabel')}</MCLabel>
-          <MCInput value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} />
+          <MCInput field="phone" value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} />
           <AnimatePresence>
             {errors.phone && (
               <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
@@ -495,7 +500,11 @@ export default function CasinoCustomerDetails() {
       </motion.div>
 
       {/* CTA */}
-      <motion.div variants={itemVariants} className="mt-6 flex justify-center">
+      <motion.div
+        variants={itemVariants}
+        className="booking-sticky-cta mt-6 flex justify-center"
+        style={stickyCtaStyle('#060f08', 16)}
+      >
         <button
           onClick={handleSubmit}
           disabled={!privacyConsent || isSubmitting}

@@ -59,3 +59,27 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+/* Contact form: on phones the Next button stays at the bottom of the screen
+   while the client fills the form. Each design sets --cta-bg to the colour
+   behind the button and --cta-bleed to its side padding. */
+@media (max-width: 639px) {
+  .booking-sticky-cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    margin-left: calc(var(--cta-bleed, 0px) * -1);
+    margin-right: calc(var(--cta-bleed, 0px) * -1);
+    padding: 16px var(--cta-bleed, 0px) calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent, var(--cta-bg, #ffffff) 16px);
+  }
+}
+
+/* Capital first letter only ("Sreda, 28. oktober"). Tailwind's `capitalize`
+   capitalises every word, which is wrong for Slovenian dates and names. */
+.first-cap::first-letter {
+  text-transform: uppercase;
+}
+span.first-cap {
+  display: inline-block;
+}

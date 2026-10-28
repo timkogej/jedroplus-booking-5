@@ -70,7 +70,7 @@ export default function MagazineCalendar() {
             animate="center"
             exit="exit"
             transition={{ duration: 0.2 }}
-            className="magazine-serif text-base text-[#1A1A1A] capitalize"
+            className="magazine-serif text-base text-[#1A1A1A] first-cap"
           >
             {format(currentMonth, 'LLLL yyyy', { locale: sl })}
           </motion.h3>
@@ -129,7 +129,7 @@ export default function MagazineCalendar() {
                   <motion.span
                     layoutId="magCalSelected"
                     className="absolute inset-1 rounded-full"
-                    style={{ backgroundColor: theme.primaryColor }}
+                    style={{ backgroundColor: theme.primarySolid }}
                     transition={{ duration: 0.2 }}
                   />
                 )}

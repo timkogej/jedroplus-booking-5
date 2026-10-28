@@ -23,14 +23,14 @@ export default function MagazineButton({
 
   const styles: Record<Variant, React.CSSProperties> = {
     primary: {
-      backgroundColor: theme.primaryColor,
+      backgroundColor: theme.primarySolid,
       color: 'white',
-      border: `1px solid ${theme.primaryColor}`,
+      border: `1px solid ${theme.primarySolid}`,
     },
     outline: {
       backgroundColor: 'transparent',
-      color: theme.primaryColor,
-      border: `1px solid ${theme.primaryColor}`,
+      color: theme.primarySolid,
+      border: `1px solid ${theme.primarySolid}`,
     },
     ghost: {
       backgroundColor: 'transparent',

@@ -77,7 +77,10 @@ export default function SeasonalLayout({ companySlug }: Props) {
     bookingConfirmation,
     language,
     setLanguage,
+    prikazZaposlenih,
   } = useBookingStore();
+  // The specialist step is skipped when the company hides employees online.
+  const visibleSteps = STEPS.filter((s) => prikazZaposlenih || s.storeStep !== 3);
 
   const seasonalTheme = useMemo(() => getCurrentSeasonalTheme(), []);
   const { config } = seasonalTheme;
@@ -236,7 +239,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                 onClick={() => setLanguage(lang)}
                 className="px-2.5 py-1 text-xs font-medium transition-colors"
                 style={{
-                  backgroundColor: language === lang ? theme.primaryColor : 'transparent',
+                  backgroundColor: language === lang ? theme.primarySolid : 'transparent',
                   color: language === lang ? '#ffffff' : '#6B7280',
                   fontFamily: 'var(--font-inter)',
                   borderRadius: '0.6rem',
@@ -251,10 +254,10 @@ export default function SeasonalLayout({ companySlug }: Props) {
         {/* ── Progress indicator ── */}
         <div className="px-5 pb-4 max-w-2xl mx-auto w-full">
           <div className="flex items-start">
-            {STEPS.map((step, i) => {
+            {visibleSteps.map((step, i) => {
               const isDone = displayStep > step.storeStep;
               const isActive = displayStep === step.storeStep;
-              const isLast = i === STEPS.length - 1;
+              const isLast = i === visibleSteps.length - 1;
               const label = language === 'en' ? step.labelEn : step.label;
 
               return (
@@ -267,16 +270,16 @@ export default function SeasonalLayout({ companySlug }: Props) {
                         width: 28,
                         height: 28,
                         backgroundColor: isDone
-                          ? theme.primaryColor
+                          ? theme.primarySolid
                           : isActive
                           ? '#ffffff'
                           : 'rgba(255,255,255,0.6)',
                         border: isActive
-                          ? `2px solid ${theme.primaryColor}`
+                          ? `2px solid ${theme.primarySolid}`
                           : isDone
-                          ? `2px solid ${theme.primaryColor}`
+                          ? `2px solid ${theme.primarySolid}`
                           : `1.5px solid ${config.cardBorder}`,
-                        color: isDone ? '#ffffff' : isActive ? theme.primaryColor : '#9CA3AF',
+                        color: isDone ? '#ffffff' : isActive ? theme.primarySolid : '#6B7280',
                         boxShadow: isActive
                           ? `0 0 0 3px ${theme.primaryColor}20, 0 2px 8px ${theme.primaryColor}25`
                           : isDone
@@ -303,7 +306,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                           <motion.path d="M2 7l4 4 6-6" />
                         </motion.svg>
                       ) : (
-                        <span style={{ fontSize: '0.65rem' }}>{step.number}</span>
+                        <span style={{ fontSize: '0.65rem' }}>{i + 1}</span>
                       )}
                     </motion.div>
 
@@ -314,7 +317,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                         fontSize: '0.58rem',
                         fontFamily: 'var(--font-inter)',
                         fontWeight: isActive ? 600 : 400,
-                        color: isActive ? '#374151' : isDone ? '#9CA3AF' : '#C0C8D4',
+                        color: isActive ? '#374151' : isDone ? '#6B7280' : '#C0C8D4',
                         maxWidth: 52,
                         lineHeight: 1.2,
                         letterSpacing: '0.02em',
@@ -330,7 +333,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                       className="flex-1"
                       style={{ height: 1.5, marginTop: 13, borderRadius: 2 }}
                       animate={{
-                        backgroundColor: isDone ? theme.primaryColor : config.cardBorder,
+                        backgroundColor: isDone ? theme.primarySolid : config.cardBorder,
                       }}
                       transition={{ duration: 0.4 }}
                     />
@@ -364,7 +367,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
 
             {/* White content card */}
             <div
-              className="rounded-3xl overflow-hidden"
+              className="rounded-3xl overflow-clip"
               style={{
                 backgroundColor: '#ffffff',
                 boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 6px rgba(0,0,0,0.04)',

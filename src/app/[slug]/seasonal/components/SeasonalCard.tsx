@@ -20,7 +20,7 @@ export default function SeasonalCard({ children, selected, onClick, className = 
       style={{
         backgroundColor: selected ? `${theme.primaryColor}22` : 'var(--s2)',
         border: selected
-          ? `2px solid ${theme.primaryColor}`
+          ? `2px solid ${theme.primarySolid}`
           : '1px solid var(--b2)',
         boxShadow: selected
           ? `0 0 0 1px ${theme.primaryColor}30, 0 8px 24px rgba(0,0,0,0.3)`
@@ -39,7 +39,7 @@ export default function SeasonalCard({ children, selected, onClick, className = 
       {selected && (
         <motion.div
           className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           initial={{ scale: 0, rotate: -45 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 500, damping: 22 }}

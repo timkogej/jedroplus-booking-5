@@ -342,11 +342,11 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                         style={{
                           width: CARD_W,
                           scrollSnapAlign: 'center',
-                          background: isSelected ? theme.primaryColor : 'rgba(255,255,255,0.94)',
+                          background: isSelected ? theme.primarySolid : 'rgba(255,255,255,0.94)',
                           border: isTodayDate && !isSelected
                             ? `2px solid ${theme.primaryColor}50`
                             : isSelected
-                            ? `2px solid ${theme.primaryColor}`
+                            ? `2px solid ${theme.primarySolid}`
                             : '2px solid transparent',
                           boxShadow: isSelected
                             ? `0 5px 18px ${theme.primaryColor}40`
@@ -449,12 +449,12 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                 style={{ borderColor: 'rgba(0,0,0,0.05)' }}
               >
                 <div>
-                  <p className="uppercase tracking-wide text-gray-400 mb-0.5"
+                  <p className="uppercase tracking-wide text-gray-500 mb-0.5"
                     style={{ fontFamily: 'var(--font-inter)', fontSize: '0.58rem', letterSpacing: '0.1em' }}
                   >
                     {label.available}
                   </p>
-                  <p className="font-semibold text-gray-800 capitalize"
+                  <p className="font-semibold text-gray-800 first-cap"
                     style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem' }}
                   >
                     {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
@@ -465,7 +465,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                     className="px-2.5 py-1 rounded-full text-xs font-semibold"
                     style={{
                       background: `${theme.primaryColor}12`,
-                      color: theme.primaryColor,
+                      color: theme.primarySolid,
                       fontFamily: 'var(--font-inter)',
                     }}
                   >
@@ -490,7 +490,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                         <path d="M12 8v4M12 16h.01" />
                       </svg>
                     </div>
-                    <p className="text-sm text-gray-400" style={{ fontFamily: 'var(--font-inter)' }}>
+                    <p className="text-sm text-gray-500" style={{ fontFamily: 'var(--font-inter)' }}>
                       {label.noSlots}
                     </p>
                     <p className="text-xs text-gray-300 mt-1" style={{ fontFamily: 'var(--font-inter)' }}>
@@ -515,9 +515,9 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                           className="py-2.5 px-2 rounded-xl text-center font-semibold text-sm flex flex-col items-center justify-center gap-0.5"
                           style={{
                             fontFamily: 'var(--font-inter)',
-                            background: isSelected ? theme.primaryColor : '#F8F9FA',
+                            background: isSelected ? theme.primarySolid : '#F8F9FA',
                             color: isSelected ? '#ffffff' : '#374151',
-                            border: `2px solid ${isSelected ? theme.primaryColor : hhLabel ? `${theme.primaryColor}30` : 'transparent'}`,
+                            border: `2px solid ${isSelected ? theme.primarySolid : hhLabel ? `${theme.primaryColor}30` : 'transparent'}`,
                             boxShadow: isSelected ? `0 4px 12px ${theme.primaryColor}38` : '0 1px 3px rgba(0,0,0,0.04)',
                             transition: 'background 0.13s, color 0.13s, box-shadow 0.13s',
                             minHeight: 44,
@@ -530,7 +530,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                             <span
                               className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold leading-none"
                               style={{
-                                background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primaryColor,
+                                background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primarySolid,
                                 color: '#ffffff',
                                 fontFamily: 'var(--font-quicksand), var(--font-inter)',
                               }}
@@ -565,18 +565,18 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: theme.primaryColor }}
+              style={{ background: theme.primarySolid }}
             >
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1.5 5.5l3 3 5-5" />
               </svg>
             </div>
-            <p className="text-sm capitalize" style={{ fontFamily: 'var(--font-inter)', color: '#374151' }}>
+            <p className="text-sm first-cap" style={{ fontFamily: 'var(--font-inter)', color: '#374151' }}>
               <span className="font-semibold">
                 {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
               </span>{' '}
               {language === 'en' ? 'at' : 'ob'}{' '}
-              <span className="font-semibold" style={{ color: theme.primaryColor }}>
+              <span className="font-semibold" style={{ color: theme.primarySolid }}>
                 {selectedTime}
               </span>
             </p>
@@ -600,7 +600,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
             }}
             language={language}
             variantStyle="seasonal"
-            accentColor={theme.primaryColor}
+            accentColor={theme.primarySolid}
           />
         )}
       </AnimatePresence>

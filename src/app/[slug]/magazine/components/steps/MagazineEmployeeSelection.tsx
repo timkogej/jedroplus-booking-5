@@ -36,7 +36,7 @@ export default function MagazineEmployeeSelection() {
           <div
             className="relative overflow-hidden p-6 border transition-all duration-400"
             style={{
-              borderColor: isSelected ? theme.primaryColor : 'rgba(0,0,0,0.1)',
+              borderColor: isSelected ? theme.primarySolid : 'rgba(0,0,0,0.1)',
               backgroundColor: isSelected ? `${theme.primaryColor}06` : 'transparent',
             }}
           >
@@ -56,7 +56,7 @@ export default function MagazineEmployeeSelection() {
               <div className="relative z-10">
                 <p
                   className="magazine-caps text-[9px] tracking-[0.22em] mb-2"
-                  style={{ color: isSelected ? theme.primaryColor : '#6B6B6B' }}
+                  style={{ color: isSelected ? theme.primarySolid : '#6B6B6B' }}
                 >
                   {t(language, 'anyoneRecommend')}
                 </p>
@@ -75,8 +75,8 @@ export default function MagazineEmployeeSelection() {
               <div
                 className="w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ml-4 transition-all duration-300"
                 style={{
-                  borderColor: isSelected ? theme.primaryColor : 'rgba(0,0,0,0.2)',
-                  backgroundColor: isSelected ? theme.primaryColor : 'transparent',
+                  borderColor: isSelected ? theme.primarySolid : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isSelected ? theme.primarySolid : 'transparent',
                 }}
               >
                 {isSelected && (
@@ -119,7 +119,7 @@ export default function MagazineEmployeeSelection() {
           className="absolute left-0 top-0 bottom-0 w-[2px] origin-top"
           animate={{ scaleY: isSelected ? 1 : 0 }}
           transition={{ duration: 0.3 }}
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
         />
 
         <div
@@ -133,9 +133,9 @@ export default function MagazineEmployeeSelection() {
           <div
             className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 magazine-serif text-sm"
             style={{
-              border: `1.5px solid ${isSelected ? theme.primaryColor : 'rgba(0,0,0,0.12)'}`,
+              border: `1.5px solid ${isSelected ? theme.primarySolid : 'rgba(0,0,0,0.12)'}`,
               backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
-              color: isSelected ? theme.primaryColor : '#6B6B6B',
+              color: isSelected ? theme.primarySolid : '#6B6B6B',
             }}
           >
             {employee!.initials || '?'}
@@ -145,7 +145,7 @@ export default function MagazineEmployeeSelection() {
           <div className="flex-1 min-w-0">
             <h3
               className="magazine-serif text-lg text-[#1A1A1A] leading-snug transition-colors duration-300"
-              style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+              style={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
             >
               {employee!.label}
             </h3>
@@ -162,7 +162,7 @@ export default function MagazineEmployeeSelection() {
               x: isSelected ? 0 : -6,
             }}
             className="flex-shrink-0 text-[10px]"
-            style={{ color: theme.primaryColor }}
+            style={{ color: theme.primarySolid }}
           >
             →
           </motion.div>
@@ -182,7 +182,7 @@ export default function MagazineEmployeeSelection() {
       <motion.div variants={itemVariants} className="mb-10">
         <div
           className="w-8 h-[1px] mb-5"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
         />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
           {t(language, 'specialistsTitle')}

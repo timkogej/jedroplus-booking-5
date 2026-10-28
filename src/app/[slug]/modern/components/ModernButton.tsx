@@ -29,7 +29,7 @@ export default function ModernButton({
       disabled={isDisabled}
       className={`relative overflow-hidden px-8 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2 w-full ${className}`}
       style={{
-        backgroundColor: variant === 'primary' ? theme.primaryColor : 'var(--s2)',
+        backgroundColor: variant === 'primary' ? theme.primarySolid : 'var(--s2)',
         color: variant === 'primary' ? '#ffffff' : 'var(--t-primary)',
         fontFamily: 'var(--font-inter)',
         fontSize: '0.975rem',

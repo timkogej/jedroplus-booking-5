@@ -8,6 +8,8 @@ import { useSecureBooking } from '@/hooks/useSecureBooking';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
+import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 
 interface FormErrors {
   firstName?: string;
@@ -45,6 +47,7 @@ function ModernLabel({ children, required }: { children: React.ReactNode; requir
 }
 
 function ModernInput({
+  field,
   value,
   onChange,
   placeholder,
@@ -52,6 +55,7 @@ function ModernInput({
   hasError,
   primaryColor,
 }: {
+  field?: ContactField;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -63,6 +67,7 @@ function ModernInput({
 
   return (
     <input
+      {...contactFieldAttrs(field)}
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -103,7 +108,6 @@ export default function ModernCustomerDetails() {
     if (!email.trim()) e.email = t(language, 'emailRequired');
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t(language, 'emailInvalid');
     if (!phone.trim()) e.phone = t(language, 'phoneRequired');
-    if (!gender) e.gender = t(language, 'genderRequired');
     if (!privacyConsent) e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -136,7 +140,7 @@ export default function ModernCustomerDetails() {
     }
   };
 
-  const isFormComplete = firstName && lastName && email && phone && gender && privacyConsent && !isSubmitting;
+  const isFormComplete = firstName && lastName && email && phone && privacyConsent && !isSubmitting;
 
   const errorText = (msg?: string) =>
     msg ? (
@@ -184,7 +188,7 @@ export default function ModernCustomerDetails() {
         <AddOnSelector
           addOns={availableAddOns}
           isLoading={isLoadingAddOns}
-          primaryColor={theme.primaryColor}
+          primaryColor={theme.primarySolid}
           variantStyle="modern"
         />
       </motion.div>
@@ -205,22 +209,24 @@ export default function ModernCustomerDetails() {
           <div>
             <ModernLabel required>{t(language, 'firstNameLabel')}</ModernLabel>
             <ModernInput
+              field="firstName"
               value={firstName}
               onChange={setFirstName}
               placeholder="Janez"
               hasError={!!errors.firstName}
-              primaryColor={theme.primaryColor}
+              primaryColor={theme.primarySolid}
             />
             <AnimatePresence>{errorText(errors.firstName)}</AnimatePresence>
           </div>
           <div>
             <ModernLabel required>{t(language, 'lastNameLabel')}</ModernLabel>
             <ModernInput
+              field="lastName"
               value={lastName}
               onChange={setLastName}
               placeholder="Novak"
               hasError={!!errors.lastName}
-              primaryColor={theme.primaryColor}
+              primaryColor={theme.primarySolid}
             />
             <AnimatePresence>{errorText(errors.lastName)}</AnimatePresence>
           </div>
@@ -230,12 +236,13 @@ export default function ModernCustomerDetails() {
         <div className="mb-5">
           <ModernLabel required>{t(language, 'emailLabel')}</ModernLabel>
           <ModernInput
+            field="email"
             value={email}
             onChange={setEmail}
             placeholder="janez@email.com"
             type="email"
             hasError={!!errors.email}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
           <AnimatePresence>{errorText(errors.email || fieldErrors.email)}</AnimatePresence>
         </div>
@@ -244,19 +251,20 @@ export default function ModernCustomerDetails() {
         <div className="mb-5">
           <ModernLabel required>{t(language, 'phoneLabel')}</ModernLabel>
           <ModernInput
+            field="phone"
             value={phone}
             onChange={setPhone}
             placeholder="041 123 456"
             type="tel"
             hasError={!!errors.phone}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
           <AnimatePresence>{errorText(errors.phone)}</AnimatePresence>
         </div>
 
         {/* Salutation */}
         <div className="mb-5">
-          <ModernLabel required>{t(language, 'salutationLabel')}</ModernLabel>
+          <ModernLabel>{t(language, 'salutationLabel')}</ModernLabel>
           <div className="flex gap-2 mt-1">
             {salutations.map((opt) => {
               const isSelected = gender === opt.value;
@@ -269,8 +277,8 @@ export default function ModernCustomerDetails() {
                   style={{
                     fontFamily: 'var(--font-inter)',
                     backgroundColor: isSelected ? `${theme.primaryColor}20` : 'var(--s1)',
-                    border: `1px solid ${isSelected ? theme.primaryColor : errors.gender ? '#EF4444' : 'var(--b2)'}`,
-                    color: isSelected ? theme.primaryColor : 'var(--t-muted)',
+                    border: `1px solid ${isSelected ? theme.primarySolid : errors.gender ? '#EF4444' : 'var(--b2)'}`,
+                    color: isSelected ? 'var(--t-accent)' : 'var(--t-muted)',
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
@@ -314,8 +322,8 @@ export default function ModernCustomerDetails() {
             <motion.div
               className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
               style={{
-                backgroundColor: gdprMarketing ? theme.primaryColor : 'var(--s1)',
-                border: `1.5px solid ${gdprMarketing ? theme.primaryColor : 'var(--b2)'}`,
+                backgroundColor: gdprMarketing ? theme.primarySolid : 'var(--s1)',
+                border: `1.5px solid ${gdprMarketing ? theme.primarySolid : 'var(--b2)'}`,
               }}
               onClick={() => setGdprMarketing(!gdprMarketing)}
               whileTap={{ scale: 0.9 }}
@@ -348,12 +356,12 @@ export default function ModernCustomerDetails() {
               <motion.div
                 className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
                 style={{
-                  backgroundColor: privacyConsent ? theme.primaryColor : 'var(--s1)',
+                  backgroundColor: privacyConsent ? theme.primarySolid : 'var(--s1)',
                   border: `1.5px solid ${
                     errors.privacyConsent
                       ? '#EF4444'
                       : privacyConsent
-                      ? theme.primaryColor
+                      ? theme.primarySolid
                       : 'var(--b2)'
                   }`,
                   boxShadow: errors.privacyConsent ? '0 0 0 3px rgba(239,68,68,0.12)' : 'none',
@@ -388,7 +396,7 @@ export default function ModernCustomerDetails() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline transition-colors"
-                  style={{ color: theme.primaryColor }}
+                  style={{ color: 'var(--t-accent)' }}
                 >
                   {t(language, 'privacyLinkLabel')}
                 </a>
@@ -412,13 +420,17 @@ export default function ModernCustomerDetails() {
         </motion.p>
       )}
 
-      <motion.div variants={itemVariants}>
+      <motion.div
+        variants={itemVariants}
+        className="booking-sticky-cta"
+        style={stickyCtaStyle(theme.bgTo, 16)}
+      >
         <motion.button
           onClick={handleSubmit}
           disabled={!isFormComplete}
           className="w-full py-4 rounded-2xl font-semibold text-white transition-all relative overflow-hidden"
           style={{
-            backgroundColor: isFormComplete ? theme.primaryColor : 'var(--s3)',
+            backgroundColor: isFormComplete ? theme.primarySolid : 'var(--s3)',
             color: isFormComplete ? '#ffffff' : 'var(--t-disabled)',
             fontFamily: 'var(--font-inter)',
             fontSize: '0.975rem',

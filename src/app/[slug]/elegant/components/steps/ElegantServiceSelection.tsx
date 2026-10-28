@@ -47,7 +47,7 @@ function ServiceRow({
     <motion.button
       variants={itemVariants}
       onClick={() => {
-        selectCategoryAndService(category, service);
+        selectCategoryAndService(category, service, true);
         usePromotionsStore.getState().computeActivePromotion(String(service.id));
       }}
       whileTap={{ scale: 0.995 }}
@@ -68,7 +68,7 @@ function ServiceRow({
           {service.opis && (
             <p
               className="mt-0.5 line-clamp-2"
-              style={{ fontFamily: 'var(--font-inter)', fontSize: '0.8rem', color: '#9CA3AF', lineHeight: 1.5 }}
+              style={{ fontFamily: 'var(--font-inter)', fontSize: '0.8rem', color: '#6B7280', lineHeight: 1.5 }}
             >
               {service.opis}
             </p>
@@ -86,7 +86,7 @@ function ServiceRow({
                 finalCena={promo.finalCena}
                 size="sm"
                 variantStyle="elegant"
-                accentColor={theme.primaryColor}
+                accentColor={theme.primarySolid}
               />
             </AnimatePresence>
           ) : (
@@ -99,7 +99,7 @@ function ServiceRow({
           )}
           <p
             className="mt-0.5 flex items-center justify-end gap-1"
-            style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: '#9CA3AF' }}
+            style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: '#6B7280' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
@@ -111,14 +111,14 @@ function ServiceRow({
       </div>
 
       {isSelected && (
-        <div className="mt-2 flex items-center gap-1.5" style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>
+        <div className="mt-2 flex items-center gap-1.5" style={{ color: theme.primaryOnLight }}>
           <div
             className="w-4 h-4 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid }}
           >
             <span style={{ color: 'white', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: theme.primaryOnLight ?? theme.primaryColor }}>
+          <span style={{ fontFamily: 'var(--font-inter)', fontSize: '0.75rem', color: theme.primaryOnLight }}>
             Izbrano
           </span>
         </div>
@@ -133,7 +133,7 @@ export default function ElegantServiceSelection() {
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
-        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#9CA3AF' }}>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
           Ni razpoložljivih storitev.
         </p>
       </div>
@@ -146,7 +146,7 @@ export default function ElegantServiceSelection() {
         <h2
           style={{ fontFamily: 'var(--font-playfair)', fontSize: '2.1rem', fontWeight: 400, color: '#111111', lineHeight: 1.2 }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>storitev</span>
+          Izberite <span style={{ color: theme.primaryOnLight }}>storitev</span>
         </h2>
         <p className="mt-2" style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
           Katera storitev vas zanima?
@@ -168,7 +168,7 @@ export default function ElegantServiceSelection() {
                   fontSize: '0.72rem',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: theme.primaryOnLight ?? theme.primaryColor,
+                  color: theme.primaryOnLight,
                   fontWeight: 600,
                 }}
               >

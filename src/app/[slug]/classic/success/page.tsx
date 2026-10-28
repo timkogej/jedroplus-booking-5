@@ -162,7 +162,7 @@ function SuccessContent() {
                   }}
                 >
                   <span
-                    className="text-xs text-gray-400 uppercase tracking-wide font-medium flex-shrink-0"
+                    className="text-xs text-gray-500 uppercase tracking-wide font-medium flex-shrink-0"
                     style={{ fontFamily: 'var(--font-nunito-sans)' }}
                   >
                     {row.label}
@@ -199,7 +199,7 @@ function SuccessContent() {
 
         {/* Powered by */}
         <p
-          className="text-center mt-6 text-xs text-gray-400"
+          className="text-center mt-6 text-xs text-gray-500"
           style={{ fontFamily: 'var(--font-nunito-sans)' }}
         >
           {t(language, 'poweredBy')} Jedro+

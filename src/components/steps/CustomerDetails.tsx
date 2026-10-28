@@ -12,6 +12,8 @@ import {
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { CustomerDetails as CustomerDetailsType } from '@/types';
+import { contactFieldAttrs } from '@/lib/booking/fieldAttrs';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 
 export default function CustomerDetails() {
   const {
@@ -61,7 +63,7 @@ export default function CustomerDetails() {
     if (!formData.email.trim()) {
       newErrors.email = 'Email je obvezen';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Vnesi veljaven email';
+      newErrors.email = 'Vnesite veljaven email';
     }
 
     if (!formData.phone.trim()) {
@@ -135,7 +137,7 @@ export default function CustomerDetails() {
             ${isFocused ? '' : 'text-white/60'}
           `}
           style={{
-            color: isFocused ? theme.primaryColor : undefined,
+            color: isFocused ? theme.primarySolid : undefined,
           }}
         >
           {label}
@@ -146,6 +148,7 @@ export default function CustomerDetails() {
         <input
           type={type}
           name={name}
+          {...contactFieldAttrs(name)}
           value={formData[name] as string || ''}
           onChange={handleChange}
           onFocus={() => setFocused(name)}
@@ -159,7 +162,7 @@ export default function CustomerDetails() {
             borderColor: hasError
               ? '#f87171'
               : isFocused
-              ? theme.primaryColor
+              ? theme.primarySolid
               : 'rgba(255,255,255,0.2)',
           }}
         />
@@ -189,7 +192,7 @@ export default function CustomerDetails() {
       <motion.div variants={itemVariants} className="mb-12">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
           Vaši{' '}
-          <span style={{ color: theme.primaryColor }}>
+          <span style={{ color: theme.primarySolid }}>
             podatki
           </span>
         </h1>
@@ -233,12 +236,12 @@ export default function CustomerDetails() {
                       }}
                       className="px-5 py-2.5 rounded-full border-2 font-medium text-sm transition-all duration-300"
                       style={{
-                        borderColor: isSelected ? theme.primaryColor : 'rgba(255,255,255,0.2)',
+                        borderColor: isSelected ? theme.primarySolid : 'rgba(255,255,255,0.2)',
                         backgroundColor: isSelected ? `${theme.primaryColor}20` : 'transparent',
-                        color: isSelected ? theme.primaryColor : 'rgba(255,255,255,0.7)',
+                        color: isSelected ? theme.primarySolid : 'rgba(255,255,255,0.7)',
                       }}
                       whileHover={{
-                        borderColor: theme.primaryColor,
+                        borderColor: theme.primarySolid,
                         scale: 1.02,
                       }}
                       whileTap={{ scale: 0.98 }}
@@ -257,7 +260,7 @@ export default function CustomerDetails() {
                   ${focused === 'notes' ? '' : 'text-white/60'}
                 `}
                 style={{
-                  color: focused === 'notes' ? theme.primaryColor : undefined,
+                  color: focused === 'notes' ? theme.primarySolid : undefined,
                 }}
               >
                 Opombe <span className="text-white/30 ml-1">(neobvezno)</span>
@@ -274,7 +277,7 @@ export default function CustomerDetails() {
                 className="w-full bg-transparent border-0 border-b-2 py-3 px-0 font-sans text-lg outline-none transition-all duration-200 resize-none text-white placeholder:text-white/30"
                 style={{
                   borderColor:
-                    focused === 'notes' ? theme.primaryColor : 'rgba(255,255,255,0.2)',
+                    focused === 'notes' ? theme.primarySolid : 'rgba(255,255,255,0.2)',
                 }}
               />
             </motion.div>
@@ -290,7 +293,7 @@ export default function CustomerDetails() {
                 className="mt-1 w-5 h-5 rounded border-2 bg-transparent cursor-pointer"
                 style={{
                   borderColor: errors.privacyConsent ? 'rgb(248 113 113)' : 'rgba(255,255,255,0.3)',
-                  accentColor: theme.primaryColor,
+                  accentColor: theme.primarySolid,
                 }}
               />
               <div>
@@ -301,7 +304,7 @@ export default function CustomerDetails() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline hover:text-white transition-colors"
-                    style={{ color: theme.primaryColor }}
+                    style={{ color: theme.primarySolid }}
                   >
                     Preberite politiko zasebnosti
                   </a>
@@ -323,7 +326,7 @@ export default function CustomerDetails() {
                 className="mt-1 w-5 h-5 rounded border-2 bg-transparent cursor-pointer"
                 style={{
                   borderColor: 'rgba(255,255,255,0.3)',
-                  accentColor: theme.primaryColor,
+                  accentColor: theme.primarySolid,
                 }}
               />
               <label
@@ -336,16 +339,20 @@ export default function CustomerDetails() {
           </div>
 
           {/* Submit button */}
-          <motion.div variants={itemVariants} className="mt-12">
+          <motion.div
+            variants={itemVariants}
+            className="booking-sticky-cta mt-12"
+            style={stickyCtaStyle(theme.bgTo, 16)}
+          >
             <button
               type="submit"
               className="px-8 py-3 rounded-full border-2 font-medium transition-all duration-300"
               style={{
-                borderColor: theme.primaryColor,
-                color: theme.primaryColor,
+                borderColor: theme.primarySolid,
+                color: theme.primarySolid,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = theme.primaryColor;
+                e.currentTarget.style.backgroundColor = theme.primarySolid;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';
@@ -427,7 +434,7 @@ export default function CustomerDetails() {
               <span className="text-white/50">Skupaj</span>
               <span
                 className="font-light text-2xl tracking-wider"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {pricing.hasDiscount && (
                   <span className="block text-sm text-white/35 line-through">

@@ -22,9 +22,9 @@ export default function MagazineCard({
     <motion.div
       className={`relative border bg-white transition-all duration-300 ${className}`}
       style={{
-        borderColor: selected ? theme.primaryColor : 'rgba(0,0,0,0.1)',
+        borderColor: selected ? theme.primarySolid : 'rgba(0,0,0,0.1)',
         borderLeftWidth: selected ? 3 : 1,
-        borderLeftColor: selected ? theme.primaryColor : 'rgba(0,0,0,0.1)',
+        borderLeftColor: selected ? theme.primarySolid : 'rgba(0,0,0,0.1)',
         backgroundColor: selected ? `${theme.primaryColor}04` : 'white',
         boxShadow: selected
           ? `0 4px 24px ${theme.primaryColor}12`

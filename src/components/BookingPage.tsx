@@ -137,7 +137,7 @@ export default function BookingPage({ businessSlug }: BookingPageProps) {
 
   // Apply theme CSS variables
   useEffect(() => {
-    document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
+    document.documentElement.style.setProperty('--primary-color', theme.primarySolid);
     document.documentElement.style.setProperty('--secondary-color', theme.secondaryColor);
     document.documentElement.style.setProperty('--bg-from', theme.bgFrom);
     document.documentElement.style.setProperty('--bg-to', theme.bgTo);

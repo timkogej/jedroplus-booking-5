@@ -22,12 +22,14 @@ interface CasinoLayoutProps {
   companySlug: string;
 }
 
-function storeToVisualCasino(storeStep: number): number {
+function storeToVisualCasino(storeStep: number, showEmployees: boolean): number {
+  // Without the specialist step everything after it moves up by one.
+  const shift = showEmployees ? 0 : 1;
   if (storeStep <= 2) return 1;
   if (storeStep === 3) return 2;
-  if (storeStep === 4) return 3;
-  if (storeStep === 5) return 4;
-  return 5;
+  if (storeStep === 4) return 3 - shift;
+  if (storeStep === 5) return 4 - shift;
+  return 5 - shift;
 }
 
 const pageVariants = {
@@ -51,10 +53,12 @@ const pageVariants = {
 
 // ── Step indicator — elegant dots ──────────────────────────────
 function StepIndicator({ current }: { current: number }) {
-  const visualCurrent = storeToVisualCasino(current);
+  const prikazZaposlenih = useBookingStore((s) => s.prikazZaposlenih);
+  const visualCurrent = storeToVisualCasino(current, prikazZaposlenih);
+  const total = prikazZaposlenih ? 5 : 4;
   return (
     <div className="flex items-center justify-center gap-1.5 mb-8">
-      {[1, 2, 3, 4, 5].map((step) => {
+      {Array.from({ length: total }, (_, i) => i + 1).map((step) => {
         const isDone = step < visualCurrent;
         const isActive = step === visualCurrent;
         return (
@@ -296,7 +300,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen mc-bg relative overflow-x-hidden" style={{ color: '#f5edd6' }}>
+    <div className="min-h-screen mc-bg relative overflow-x-clip" style={{ color: '#f5edd6' }}>
       {/* Decorative elements */}
       <RouletteDecoration />
       <CardSuitsDecoration />

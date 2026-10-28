@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import CompanyLogo from '@/components/shared/CompanyLogo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
@@ -9,6 +8,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { SupportedLanguage } from '@/types';
 import { getBookingPricing, resolvePrimaryPromotion } from '@/lib/pricing';
+import { isLightBackground } from '@/lib/color';
 import { t } from '../i18n';
 import ClassicSummaryCard from './ClassicSummaryCard';
 import ClassicServiceSelection from './steps/ClassicServiceSelection';
@@ -23,25 +23,10 @@ interface Props {
 }
 
 // ── Contrast detection (exported for step components) ────────────────────────
+// 'dark' means dark text (light background). Uses the shared threshold, where
+// black and white text have equal contrast.
 export function getContrastMode(bgFrom: string, bgTo: string): 'light' | 'dark' {
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-      : { r: 128, g: 128, b: 128 };
-  };
-  const luminance = (r: number, g: number, b: number) => {
-    const [rs, gs, bs] = [r, g, b].map((c) => {
-      const s = c / 255;
-      return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-    });
-    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-  };
-  const rgb1 = hexToRgb(bgFrom);
-  const rgb2 = hexToRgb(bgTo);
-  const avg =
-    (luminance(rgb1.r, rgb1.g, rgb1.b) + luminance(rgb2.r, rgb2.g, rgb2.b)) / 2;
-  return avg > 0.5 ? 'dark' : 'light';
+  return isLightBackground(bgFrom, bgTo) ? 'dark' : 'light';
 }
 
 // ── Page transition variants ─────────────────────────────────────────────────
@@ -102,8 +87,8 @@ function LanguageToggle({
               color: isActive
                 ? '#ffffff'
                 : contrastMode === 'light'
-                ? 'rgba(255,255,255,0.55)'
-                : 'rgba(0,0,0,0.38)',
+                ? 'rgba(255,255,255,0.75)'
+                : 'rgba(0,0,0,0.6)',
               letterSpacing: '0.06em',
             }}
           >
@@ -128,7 +113,7 @@ function ClassicStepper({
   contrastMode: 'light' | 'dark';
 }) {
   const textMuted =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.38)' : 'rgba(0,0,0,0.28)';
+    contrastMode === 'light' ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
   const textActive =
     contrastMode === 'light' ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.82)';
   const trackBg =
@@ -276,17 +261,12 @@ export default function ClassicLayout({ companySlug }: Props) {
   const contrastMode = getContrastMode(theme.bgFrom, theme.bgTo);
   const canGoBack = currentStep > 1 && !isSuccess && currentStep !== 7;
 
-  // Auto-skip step 3 when prikazZaposlenih=false
-  useEffect(() => {
-    if (currentStep === 3 && !prikazZaposlenih) {
-      useBookingStore.getState().selectEmployee(null, true);
-    }
-  }, [currentStep, prikazZaposlenih]);
+  // Step 3 is skipped in the store when prikazZaposlenih=false.
 
   const textPrimary =
     contrastMode === 'light' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
   const textSecondary =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
+    contrastMode === 'light' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.62)';
 
   // Build step list based on prikazZaposlenih flag
   const CLASSIC_STEPS = prikazZaposlenih
@@ -383,7 +363,7 @@ export default function ClassicLayout({ companySlug }: Props) {
         <LanguageToggle
           language={language}
           onToggle={setLanguage}
-          primaryColor={theme.primaryColor}
+          primaryColor={theme.primarySolid}
           contrastMode={contrastMode}
         />
       </header>
@@ -401,7 +381,7 @@ export default function ClassicLayout({ companySlug }: Props) {
             <ClassicStepper
               steps={CLASSIC_STEPS}
               visualStep={visualStep}
-              primaryColor={theme.primaryColor}
+              primaryColor={theme.primarySolid}
               contrastMode={contrastMode}
             />
           </motion.div>
@@ -474,7 +454,7 @@ export default function ClassicLayout({ companySlug }: Props) {
                     ? `${customerDetails.firstName} ${customerDetails.lastName}`
                     : undefined
                 }
-                primaryColor={theme.primaryColor}
+                primaryColor={theme.primarySolid}
                 language={language}
                 originalTotal={summaryPricing.originalTotal}
                 finalTotal={summaryPricing.finalTotal}

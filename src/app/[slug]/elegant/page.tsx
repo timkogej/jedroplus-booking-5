@@ -31,7 +31,7 @@ function ElegantLoadingScreen() {
             className="absolute inset-0 rounded-full"
             style={{
               border: `2px solid transparent`,
-              borderTopColor: theme.primaryColor,
+              borderTopColor: theme.primarySolid,
             }}
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' as const }}
@@ -53,7 +53,7 @@ function ElegantLoadingScreen() {
           style={{
             fontFamily: 'var(--font-inter)',
             fontSize: '0.85rem',
-            color: '#9CA3AF',
+            color: '#6B7280',
           }}
         >
           Prosimo počakajte&hellip;
@@ -73,7 +73,7 @@ function ElegantLoadingScreen() {
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              color: theme.primaryOnLight ?? theme.primaryColor,
+              color: theme.primaryOnLight,
               opacity: 0.75,
               textDecoration: 'none',
               fontWeight: 500,
@@ -135,7 +135,7 @@ function ElegantErrorScreen({ error }: { error: string }) {
         <button
           onClick={() => window.location.reload()}
           className="px-6 py-3 rounded-lg text-white text-sm font-medium transition-opacity hover:opacity-90"
-          style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+          style={{ backgroundColor: theme.primarySolid, fontFamily: 'var(--font-inter)' }}
         >
           Poskusi znova
         </button>
@@ -194,7 +194,7 @@ export default function ElegantPage() {
         }
       } catch (err) {
         console.error('Elegant booking: failed to load init data:', err);
-        setError('Napaka pri nalaganju. Prosimo poskusite znova.');
+        setError('Napaka pri nalaganju. Prosimo, poskusite znova.');
       } finally {
         setLoading(false);
         setTimeout(() => setHasLoaded(true), 300);

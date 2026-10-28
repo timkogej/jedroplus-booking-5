@@ -69,7 +69,7 @@ function SeasonalSuccessContent() {
               border: cancelled ? '1px solid #E5E7EB' : '1px solid #11182718',
             }}
           >
-            <span className="text-3xl leading-none" style={{ color: cancelled ? '#9CA3AF' : '#111827' }}>
+            <span className="text-3xl leading-none" style={{ color: cancelled ? '#6B7280' : '#111827' }}>
               {cancelled ? '×' : '✓'}
             </span>
           </div>

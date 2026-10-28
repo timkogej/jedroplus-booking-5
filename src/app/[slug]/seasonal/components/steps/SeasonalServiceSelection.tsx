@@ -48,7 +48,7 @@ function ServiceRow({
     <motion.button
       variants={itemVariants}
       onClick={() => {
-        selectCategoryAndService(category, service);
+        selectCategoryAndService(category, service, true);
         usePromotionsStore.getState().computeActivePromotion(String(service.id));
       }}
       className="w-full text-left px-5 py-4 transition-colors duration-150 relative group"
@@ -62,7 +62,7 @@ function ServiceRow({
       {isSelected && (
         <motion.div
           className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
           transition={{ duration: 0.2 }}
@@ -76,7 +76,7 @@ function ServiceRow({
             style={{
               fontFamily: 'var(--font-quicksand)',
               fontSize: '0.95rem',
-              color: isSelected ? theme.primaryColor : 'var(--t-primary)',
+              color: isSelected ? theme.primarySolid : 'var(--t-primary)',
             }}
           >
             {service.naziv}
@@ -102,7 +102,7 @@ function ServiceRow({
                 finalCena={promo.finalCena}
                 size="sm"
                 variantStyle="seasonal"
-                accentColor={theme.primaryColor}
+                accentColor={theme.primarySolid}
               />
             </AnimatePresence>
           ) : (
@@ -164,7 +164,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
           Izberite{' '}
           <span
             className="seasonal-gradient-text"
-            style={{ backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})` }}
+            style={{ backgroundImage: `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor})` }}
           >
             storitev
           </span>
@@ -189,7 +189,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
               {/* Category header */}
               <p
                 className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                style={{ color: theme.primaryColor, fontFamily: 'var(--font-quicksand)' }}
+                style={{ color: theme.primarySolid, fontFamily: 'var(--font-quicksand)' }}
               >
                 {category.name}
               </p>

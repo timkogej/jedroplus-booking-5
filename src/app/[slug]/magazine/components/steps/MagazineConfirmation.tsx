@@ -5,20 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { submitBooking } from '@/lib/api';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
-import {
-  buildCancelUrl,
-  buildSuccessUrl,
-  redirectToCheckout,
-} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -116,7 +110,7 @@ function SuccessView() {
         <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="overflow-visible">
           <motion.circle
             cx="40" cy="40" r="38"
-            stroke={theme.primaryColor}
+            stroke={theme.primarySolid}
             strokeWidth="0.5"
             fill="none"
             initial={{ scale: 1, opacity: 0.4 }}
@@ -126,7 +120,7 @@ function SuccessView() {
           />
           <motion.circle
             cx="40" cy="40" r="38"
-            stroke={theme.primaryColor}
+            stroke={theme.primarySolid}
             strokeWidth="0.5"
             fill="none"
             initial={{ scale: 1, opacity: 0.3 }}
@@ -143,14 +137,14 @@ function SuccessView() {
           />
           <circle
             cx="40" cy="40" r="38"
-            stroke={theme.primaryColor}
+            stroke={theme.primarySolid}
             strokeWidth="1.5"
             fill="none"
             className="circle-path"
           />
           <path
             d="M22 40L35 53L58 28"
-            stroke={theme.primaryColor}
+            stroke={theme.primarySolid}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -162,7 +156,7 @@ function SuccessView() {
       <motion.div {...successItem(0)} className="mb-3">
         <p
           className="magazine-caps text-[11px] tracking-[0.35em]"
-          style={{ color: theme.primaryColor }}
+          style={{ color: theme.primarySolid }}
         >
           {t(language, 'confirmed')}
         </p>
@@ -234,7 +228,7 @@ function SuccessView() {
               </p>
               <p
                 className="magazine-serif text-[1.4rem] font-light tabular-nums"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {pricing.hasDiscount && (
                   <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">
@@ -269,7 +263,7 @@ function SuccessView() {
         <motion.button
           onClick={handleShare}
           className="flex items-center gap-2 px-6 py-3 magazine-caps text-[9px] tracking-[0.18em] border transition-all duration-300"
-          style={{ borderColor: theme.primaryColor, color: theme.primaryColor }}
+          style={{ borderColor: theme.primarySolid, color: theme.primarySolid }}
           whileHover={{ backgroundColor: `${theme.primaryColor}08` }}
           whileTap={{ scale: 0.98 }}
         >
@@ -295,7 +289,6 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -328,72 +321,18 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     setError(null);
 
     try {
-      const response = await submitBooking({
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceId: selectedService.id,
-        employeeId: selectedEmployeeId,
-        anyPerson,
-        eligibleEmployeeIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender,
-        notes: customerDetails.notes,
-        gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent ?? false,
-        marketingConsent: customerDetails.gdprSendMarketing,
-        consentTimestamp: new Date().toISOString(),
-        originalCena: pricing.originalTotal,
-        finalCena: pricing.finalTotal,
-        ...(promotion ? {
-          promocijaTip: promotion.type,
-          promocijaNaziv: promotion.naziv,
-          popust: pricing.discountAmount,
-          popustTip: getPromotionPopustTip(promotion),
-          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
-          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
-        } : {}),
-        ...(selectedAddOn ? {
-          addOnServiceId: selectedAddOn.id,
-          addOnNaziv: selectedAddOn.naziv,
-          addOnFinalCena: selectedAddOn.finalCena,
-          addOnOriginalCena: selectedAddOn.originalCena,
-          addOnPopust: selectedAddOn.popustZnesek,
-          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
-          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
-        } : {}),
-      });
+      const result = await submitCurrentBooking(companySlug);
+      const response = result.confirmation;
 
       if (response.success) {
-        const serviceName = response.storitev || selectedService.naziv;
+        const serviceName = result.serviceName;
         const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
         if (response.requiresPayment === true) {
-          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
           setRedirecting(true);
 
           try {
-            await redirectToCheckout({
-              companySlug,
-              appointmentId,
-              amount: response.paymentAmount ?? pricing.finalTotal,
-              currency: response.currency ?? 'EUR',
-              serviceName,
-              customerEmail: customerDetails.email,
-              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-              language,
-              paymentMode: response.paymentMode ?? 'full',
-              successUrl: buildSuccessUrl(companySlug, 'magazine', {
-                lang: language,
-                serviceName,
-                date: response.datum || datumDisplay,
-                time: response.cas || selectedTime,
-              }),
-              cancelUrl: buildCancelUrl(companySlug, 'magazine'),
-            });
+            await startCheckout(result, companySlug, 'magazine', datumDisplay);
             return;
           } catch (err) {
             console.error('Magazine booking: failed to start payment:', err);
@@ -415,7 +354,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Failed to submit booking:', err);
-      setError(t(language, 'bookingFailed'));
+      setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -429,7 +368,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     >
       {/* Section header */}
       <div className="mb-10">
-        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
+        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
           {t(language, 'reviewTitle')}
         </h1>
@@ -463,7 +402,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 magazine-serif text-[11px]"
               style={{
                 border: `1px solid ${theme.primaryColor}30`,
-                color: theme.primaryColor,
+                color: theme.primarySolid,
                 backgroundColor: `${theme.primaryColor}08`,
               }}
             >
@@ -532,7 +471,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               </p>
               <p
                 className="magazine-body text-[13px] mt-0.5 tabular-nums"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {selectedTime}
               </p>
@@ -583,7 +522,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               )}
               <p
                 className="magazine-serif text-[1.8rem] font-light tabular-nums"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {formatBookingPrice(pricing.finalTotal)}
               </p>

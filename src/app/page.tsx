@@ -80,13 +80,13 @@ export default function Home() {
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-teal-300 bg-clip-text text-transparent">
               Jedro+
             </span>{' '}
-            booking platform
+            spletno naročanje
           </h1>
           <p
             className="text-lg text-white/60 max-w-xl"
             style={{ fontFamily: 'var(--font-nunito), sans-serif', fontWeight: 400 }}
           >
-            A modern appointment scheduling platform for your business.
+            Sodobno spletno naročanje na termine za vaše podjetje.
           </p>
         </motion.div>
 
@@ -107,14 +107,14 @@ export default function Home() {
               className="text-xl font-bold text-white mb-3"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Book in a few clicks
+              Rezervacija v nekaj klikih
             </h2>
             <p
               className="text-white/60 leading-relaxed"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Schedule an appointment in a few clicks —{' '}
-              <Gradient>anywhere, anytime</Gradient>. Simple for clients, powerful for your business.
+              Stranke si termin rezervirajo v nekaj klikih —{' '}
+              <Gradient>kjerkoli in kadarkoli</Gradient>. Preprosto za stranke, zmogljivo za vaše podjetje.
             </p>
           </motion.div>
 
@@ -133,16 +133,16 @@ export default function Home() {
               className="text-xl font-bold text-white mb-3"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Grow effortlessly
+              Več strank brez dodatnega dela
             </h2>
             <p
               className="text-white/60 leading-relaxed"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              <Gradient>Fewer</Gradient> calls.{' '}
-              <Gradient>More</Gradient> bookings.{' '}
-              <Gradient>24/7</Gradient> scheduling.{' '}
-              <Gradient>Professional</Gradient> impression.
+              <Gradient>Manj</Gradient> klicev.{' '}
+              <Gradient>Več</Gradient> rezervacij.{' '}
+              Naročanje <Gradient>24/7</Gradient>.{' '}
+              <Gradient>Profesionalen</Gradient> vtis.
             </p>
           </motion.div>
 
@@ -161,16 +161,16 @@ export default function Home() {
               className="text-xl font-bold text-white mb-3"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Your brand, your design
+              Vaša znamka, vaš dizajn
             </h2>
             <p
               className="text-white/60 leading-relaxed"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Choose your{' '}
-              <Gradient>style</Gradient>. Set{' '}
-              <Gradient>colors</Gradient> that match your{' '}
-              <Gradient>brand</Gradient> — and let the platform handle the rest.
+              Izberite{' '}
+              <Gradient>slog</Gradient>, nastavite{' '}
+              <Gradient>barve</Gradient> svoje{' '}
+              <Gradient>znamke</Gradient> — za ostalo poskrbi platforma.
             </p>
           </motion.div>
 
@@ -189,14 +189,14 @@ export default function Home() {
               className="text-xl font-bold text-white mb-3"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Built for conversion
+              Zasnovano za rezervacije
             </h2>
             <p
               className="text-white/60 leading-relaxed"
               style={{ fontFamily: 'var(--font-nunito), sans-serif' }}
             >
-              Create a booking{' '}
-              <Gradient>experience</Gradient> that brings your clients from discovery to reservation — seamlessly.
+              Stranke brez zapletov pripelje od prvega{' '}
+              <Gradient>ogleda</Gradient> do potrjenega termina.
             </p>
           </motion.div>
         </div>

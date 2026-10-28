@@ -25,7 +25,7 @@ export default function MagazineCategorySelection() {
     >
       {/* Section header */}
       <motion.div variants={itemVariants} className="mb-10">
-        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
+        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
           Storitve
         </h1>
@@ -62,14 +62,14 @@ export default function MagazineCategorySelection() {
                   className="absolute left-0 top-0 bottom-0 w-[2px]"
                   animate={{ scaleY: isSelected ? 1 : 0 }}
                   transition={{ duration: 0.3 }}
-                  style={{ backgroundColor: theme.primaryColor, transformOrigin: 'top' }}
+                  style={{ backgroundColor: theme.primarySolid, transformOrigin: 'top' }}
                 />
 
                 <div className="flex items-baseline pl-2">
                   {/* Category name */}
                   <span
                     className="magazine-serif text-[1.2rem] transition-colors duration-300 flex-shrink-0"
-                    style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+                    style={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
                   >
                     {category.name}
                   </span>
@@ -80,7 +80,7 @@ export default function MagazineCategorySelection() {
                   {/* Page-number style index */}
                   <span
                     className="magazine-caps text-[9px] tracking-[0.2em] flex-shrink-0 tabular-nums"
-                    style={{ color: isSelected ? theme.primaryColor : '#6B6B6B' }}
+                    style={{ color: isSelected ? theme.primarySolid : '#6B6B6B' }}
                   >
                     {paddedIndex}
                   </span>
@@ -94,7 +94,7 @@ export default function MagazineCategorySelection() {
                 {/* Hover underline on name */}
                 <motion.div
                   className="absolute bottom-0 left-2 h-[1px]"
-                  style={{ backgroundColor: theme.primaryColor }}
+                  style={{ backgroundColor: theme.primarySolid }}
                   initial={{ width: 0 }}
                   animate={{ width: isSelected ? '40%' : 0 }}
                   whileHover={{ width: '30%' }}

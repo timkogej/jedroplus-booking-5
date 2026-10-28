@@ -5,19 +5,13 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { submitBooking } from '@/lib/api';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
-import {
-  buildCancelUrl,
-  buildSuccessUrl,
-  redirectToCheckout,
-} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -121,7 +115,7 @@ function SuccessView() {
             border: `2px solid ${theme.primaryColor}30`,
           }}
         >
-          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor, fontSize: '1.5rem' }}>✓</span>
+          <span style={{ color: theme.primaryOnLight, fontSize: '1.5rem' }}>✓</span>
         </motion.div>
 
         <h2
@@ -153,11 +147,11 @@ function SuccessView() {
 
         {selectedDate && selectedTime && (
           <p
-            className="mt-1 capitalize"
+            className="mt-1 first-cap"
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: '0.9rem',
-              color: theme.primaryOnLight ?? theme.primaryColor,
+              color: theme.primaryOnLight,
               fontWeight: 500,
             }}
           >
@@ -181,7 +175,7 @@ function SuccessView() {
         {/* Top accent line */}
         <div
           className="h-0.5"
-          style={{ background: `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}40)` }}
+          style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.primaryColor}40)` }}
         />
 
         <div className="px-6 py-5">
@@ -241,7 +235,7 @@ function SuccessView() {
           onClick={() => { usePromotionsStore.getState().resetSelections(); window.location.reload(); }}
           className="w-full py-4 rounded-xl text-white font-medium text-sm transition-opacity hover:opacity-90"
           style={{
-            backgroundColor: theme.primarySolid ?? theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             fontFamily: 'var(--font-inter)',
             boxShadow: `0 4px 14px ${theme.primaryColor}30`,
           }}
@@ -259,7 +253,6 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedService,
     selectedDate,
     selectedTime,
@@ -293,72 +286,18 @@ export default function ElegantConfirmation({ companySlug }: Props) {
     setError(null);
 
     try {
-      const response = await submitBooking({
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceId: selectedService.id,
-        employeeId: selectedEmployeeId,
-        anyPerson,
-        eligibleEmployeeIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender,
-        notes: customerDetails.notes,
-        gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent ?? false,
-        marketingConsent: customerDetails.gdprSendMarketing ?? false,
-        consentTimestamp: new Date().toISOString(),
-        originalCena: pricing.originalTotal,
-        finalCena: pricing.finalTotal,
-        ...(promotion ? {
-          promocijaTip: promotion.type,
-          promocijaNaziv: promotion.naziv,
-          popust: pricing.discountAmount,
-          popustTip: getPromotionPopustTip(promotion),
-          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
-          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
-        } : {}),
-        ...(selectedAddOn ? {
-          addOnServiceId: selectedAddOn.id,
-          addOnNaziv: selectedAddOn.naziv,
-          addOnFinalCena: selectedAddOn.finalCena,
-          addOnOriginalCena: selectedAddOn.originalCena,
-          addOnPopust: selectedAddOn.popustZnesek,
-          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
-          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
-        } : {}),
-      });
+      const result = await submitCurrentBooking(companySlug);
+      const response = result.confirmation;
 
       if (response.success) {
-        const serviceName = response.storitev || selectedService.naziv;
+        const serviceName = result.serviceName;
         const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
         if (response.requiresPayment === true) {
-          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
           setRedirecting(true);
 
           try {
-            await redirectToCheckout({
-              companySlug,
-              appointmentId,
-              amount: response.paymentAmount ?? pricing.finalTotal,
-              currency: response.currency ?? 'EUR',
-              serviceName,
-              customerEmail: customerDetails.email,
-              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-              language,
-              paymentMode: response.paymentMode ?? 'full',
-              successUrl: buildSuccessUrl(companySlug, 'elegant', {
-                lang: language,
-                serviceName,
-                date: response.datum || datumDisplay,
-                time: response.cas || selectedTime,
-              }),
-              cancelUrl: buildCancelUrl(companySlug, 'elegant'),
-            });
+            await startCheckout(result, companySlug, 'elegant', datumDisplay);
             return;
           } catch (err) {
             console.error('Elegant booking: failed to start payment:', err);
@@ -384,7 +323,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Elegant booking: submit failed:', err);
-      setError('Rezervacija ni uspela. Prosim poskusite znova.');
+      setError(bookingErrorMessage(err, 'Rezervacija ni uspela. Prosimo, poskusite znova.'));
     } finally {
       setSubmitting(false);
     }
@@ -425,7 +364,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Potrditev <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>rezervacije</span>
+          Potrditev <span style={{ color: theme.primaryOnLight }}>rezervacije</span>
         </h2>
         <p
           className="mt-2"
@@ -454,7 +393,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         {/* Top accent */}
         <div
           className="h-0.5"
-          style={{ background: `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}30)` }}
+          style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.primaryColor}30)` }}
         />
 
         <div className="px-5 py-1">
@@ -462,7 +401,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
             <div key={i} className="elegant-summary-row">
               <span className="elegant-summary-label">{row.label}</span>
               <span
-                className="elegant-summary-value capitalize"
+                className={`elegant-summary-value ${String(row.value).includes('@') ? '' : 'first-cap'}`}
                 style={{ maxWidth: '65%' }}
               >
                 {row.value}
@@ -482,14 +421,14 @@ export default function ElegantConfirmation({ companySlug }: Props) {
                   fontSize: '0.7rem',
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: '#9CA3AF',
+                  color: '#6B7280',
                 }}
               >
                 Skupaj
               </span>
               <div className="text-right">
                 {pricing.hasDiscount && (
-                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '0.85rem', color: '#9CA3AF', textDecoration: 'line-through' }}>
+                  <div style={{ fontFamily: 'var(--font-inter)', fontSize: '0.85rem', color: '#6B7280', textDecoration: 'line-through' }}>
                     {formatBookingPrice(pricing.originalTotal)}
                   </div>
                 )}
@@ -547,7 +486,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         whileTap={!isSubmitting ? { scale: 0.99 } : {}}
         className="w-full py-4 rounded-xl text-white font-medium transition-all relative overflow-hidden"
         style={{
-          backgroundColor: theme.primarySolid ?? theme.primaryColor,
+          backgroundColor: theme.primarySolid,
           fontFamily: 'var(--font-inter)',
           fontSize: '0.975rem',
           cursor: isSubmitting ? 'not-allowed' : 'pointer',
@@ -580,7 +519,7 @@ export default function ElegantConfirmation({ companySlug }: Props) {
         style={{
           fontFamily: 'var(--font-inter)',
           fontSize: '0.8rem',
-          color: '#9CA3AF',
+          color: '#6B7280',
         }}
       >
         Potrditev bo poslana na vaš email

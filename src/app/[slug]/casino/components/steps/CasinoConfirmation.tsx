@@ -5,20 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { submitBooking } from '@/lib/api';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
-import {
-  buildCancelUrl,
-  buildSuccessUrl,
-  redirectToCheckout,
-} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
@@ -334,7 +328,6 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedService,
     selectedServices,
     totalDurationMin,
@@ -374,72 +367,18 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     setError(null);
 
     try {
-      const response = await submitBooking({
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceId: primaryService.id,
-        employeeId: selectedEmployeeId,
-        anyPerson,
-        eligibleEmployeeIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender,
-        notes: customerDetails.notes,
-        gdprSendMarketing: customerDetails.gdprSendMarketing,
-        privacyConsent: customerDetails.privacyConsent ?? false,
-        marketingConsent: customerDetails.gdprSendMarketing ?? false,
-        consentTimestamp: new Date().toISOString(),
-        originalCena: pricing.originalTotal,
-        finalCena: pricing.finalTotal,
-        ...(promotion ? {
-          promocijaTip: promotion.type,
-          promocijaNaziv: promotion.naziv,
-          popust: pricing.discountAmount,
-          popustTip: getPromotionPopustTip(promotion),
-          ...(promotion.type === 'popust' && { popust_id: promotion.id }),
-          ...(promotion.type === 'happy_hour' && { happy_hour_id: promotion.id }),
-        } : {}),
-        ...(selectedAddOn ? {
-          addOnServiceId: selectedAddOn.id,
-          addOnNaziv: selectedAddOn.naziv,
-          addOnFinalCena: selectedAddOn.finalCena,
-          addOnOriginalCena: selectedAddOn.originalCena,
-          addOnPopust: selectedAddOn.popustZnesek,
-          addOnPopustTip: selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta',
-          addOnTrajanjeMin: selectedAddOn.trajanjeMin,
-        } : {}),
-      });
+      const result = await submitCurrentBooking(companySlug);
+      const response = result.confirmation;
 
       if (response.success) {
-        const serviceName = response.storitev || displayServices || primaryService.naziv;
+        const serviceName = result.serviceName;
         const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
         if (response.requiresPayment === true) {
-          const appointmentId = String(response.terminRowId ?? response.terminId ?? '');
           setRedirecting(true);
 
           try {
-            await redirectToCheckout({
-              companySlug,
-              appointmentId,
-              amount: response.paymentAmount ?? pricing.finalTotal,
-              currency: response.currency ?? 'EUR',
-              serviceName,
-              customerEmail: customerDetails.email,
-              customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-              language,
-              paymentMode: response.paymentMode ?? 'full',
-              successUrl: buildSuccessUrl(companySlug, 'casino', {
-                lang: language,
-                serviceName,
-                date: response.datum || datumDisplay,
-                time: response.cas || selectedTime,
-              }),
-              cancelUrl: buildCancelUrl(companySlug, 'casino'),
-            });
+            await startCheckout(result, companySlug, 'casino', datumDisplay);
             return;
           } catch (err) {
             console.error('Casino booking: failed to start payment:', err);
@@ -461,7 +400,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Casino booking: submit failed:', err);
-      setError(t(language, 'bookingFailed'));
+      setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);
     }

@@ -29,14 +29,14 @@ function CategoryIcon({ selected }: { selected: boolean }) {
       className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto"
       style={{
         backgroundColor: selected ? `${theme.primaryColor}22` : 'var(--s1)',
-        border: `1px solid ${selected ? theme.primaryColor : 'var(--b1)'}`,
+        border: `1px solid ${selected ? theme.primarySolid : 'var(--b1)'}`,
       }}
       animate={selected ? { scale: [1, 1.08, 1], rotate: [0, 3, -3, 0] } : {}}
       transition={{ duration: 0.45 }}
     >
       <svg
         className="w-7 h-7"
-        style={{ color: selected ? theme.primaryColor : 'var(--t-muted)' }}
+        style={{ color: selected ? 'var(--t-accent)' : 'var(--t-muted)' }}
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -110,7 +110,7 @@ export default function ModernCategorySelection() {
           <span
             className="modern-gradient-text"
             style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
+              backgroundImage: `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor})`,
             }}
           >
             kategorijo
