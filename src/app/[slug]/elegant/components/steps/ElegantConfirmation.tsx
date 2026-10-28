@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { useBookingStore } from '@/store/bookingStore';
-import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
@@ -250,6 +251,7 @@ function SuccessView() {
 
 // ── Pre-submit confirmation ───────────────────────────────────
 export default function ElegantConfirmation({ companySlug }: Props) {
+  useSlotRecheck(companySlug);
   const {
     employeesUI,
     selectedEmployeeId,
@@ -323,6 +325,10 @@ export default function ElegantConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Elegant booking: submit failed:', err);
+      if (isSlotConflict(err)) {
+        returnToTimeStep();
+        return;
+      }
       setError(bookingErrorMessage(err, t(language, 'bookingFailedRetry')));
     } finally {
       setSubmitting(false);

@@ -6,7 +6,7 @@
 // screens; what gets booked is decided here, from the two stores.
 
 import { format } from 'date-fns';
-import { API_BASE_URL } from '@/lib/api';
+import { API_BASE_URL, checkSlotAvailable } from '@/lib/api';
 import {
   getBookingPricing,
   getPromotionPopustTip,
@@ -30,15 +30,85 @@ export class BookingSubmitError extends Error {
   }
 }
 
+const UNCONFIRMED_MESSAGE = {
+  sl: 'Rezervacije ni bilo mogoče potrditi. Preden poskusite znova, preverite, ali ste prejeli potrditveni email, ali pokličite salon.',
+  en: 'We could not confirm your booking. Before trying again, check whether you received a confirmation email, or call the salon.',
+};
+
+const SLOT_TAKEN_MESSAGE = {
+  sl: 'Izbrani termin je bil medtem zaseden. Izberite drug termin.',
+  en: 'That time has just been taken. Please choose another time.',
+};
+
+/** API codes that mean the chosen time is no longer free. */
+const SLOT_CONFLICT_CODES = new Set(['slot_taken', 'resurs_taken', 'no_employee_available']);
+
+/**
+ * Errors after which we cannot tell whether the booking was saved: the server
+ * failed (5xx), answered with nothing, or the connection dropped. Telling the
+ * client to simply try again could create a second booking.
+ */
+function isUnconfirmed(err: unknown): boolean {
+  if (err instanceof BookingSubmitError) {
+    return err.code === 'http_error' || err.code === 'empty_response';
+  }
+  return err instanceof TypeError; // fetch network failure
+}
+
 /**
  * Text to show when sending failed: the API's own message when it refused the
- * booking (e.g. the slot was just taken), otherwise the design's fallback.
+ * booking, a "check your email or call" message when we do not know whether
+ * it was saved, otherwise the design's fallback.
  */
 export function bookingErrorMessage(err: unknown, fallback: string): string {
-  if (err instanceof BookingSubmitError && err.code !== 'http_error' && err.code !== 'missing_data') {
+  const lang = useBookingStore.getState().language === 'en' ? 'en' : 'sl';
+  if (isUnconfirmed(err)) return UNCONFIRMED_MESSAGE[lang];
+  if (err instanceof BookingSubmitError && err.code !== 'missing_data') {
     return err.message || fallback;
   }
   return fallback;
+}
+
+/** True when the booking was refused because the time is no longer free. */
+export function isSlotConflict(err: unknown): boolean {
+  return err instanceof BookingSubmitError && !!err.code && SLOT_CONFLICT_CODES.has(err.code);
+}
+
+/**
+ * Sends the client back to the date step with a notice. Times are fetched
+ * again when that step opens, so the taken time disappears from the list.
+ */
+export function returnToTimeStep(): void {
+  const state = useBookingStore.getState();
+  const lang = state.language === 'en' ? 'en' : 'sl';
+  useBookingStore.setState({ selectedTime: null, slotNotice: SLOT_TAKEN_MESSAGE[lang] });
+  state.goToStep(4);
+}
+
+/**
+ * Asks the API whether the chosen time is still free. Returns null when the
+ * check itself fails; the booking request checks again on the server anyway.
+ */
+export async function isSelectedSlotStillFree(companySlug: string): Promise<boolean | null> {
+  const state = useBookingStore.getState();
+  const services = getSelectedServices();
+  if (!companySlug || services.length === 0 || !state.selectedDate || !state.selectedTime) return null;
+  const anyPerson = !state.prikazZaposlenih || state.anyPerson;
+  try {
+    const res = await checkSlotAvailable({
+      companySlug,
+      serviceIds: services.map((s) => s.id),
+      employeeId: anyPerson ? null : state.selectedEmployeeId,
+      anyPerson,
+      eligibleEmployeeIds: state.eligibleEmployeeIds,
+      date: format(state.selectedDate, 'yyyy-MM-dd'),
+      time: state.selectedTime,
+      resursiIds: state.requiredResursiIds,
+    });
+    return typeof res.available === 'boolean' ? res.available : null;
+  } catch {
+    return null;
+  }
 }
 
 export interface SubmitResult {
@@ -151,22 +221,23 @@ export async function submitCurrentBooking(companySlug: string): Promise<SubmitR
     throw new BookingSubmitError(`HTTP ${response.status}`, 'http_error');
   }
 
-  // An empty or non-JSON 200 has always counted as success; kept as it was.
+  // n8n answers every create with JSON. An empty or unreadable answer means
+  // the workflow stopped half way, so we cannot tell the client it worked.
   const text = await response.text();
-  let parsed: Record<string, unknown> = { success: true };
-  if (text && text.trim() !== '') {
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      /* keep default */
-    }
+  let parsed: Record<string, unknown> | null = null;
+  try {
+    parsed = text.trim() ? JSON.parse(text) : null;
+  } catch {
+    parsed = null;
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    throw new BookingSubmitError('Empty response', 'empty_response');
   }
 
-  if (parsed.success === false) {
-    throw new BookingSubmitError(
-      (parsed.message as string) || 'Booking failed',
-      parsed.error as string | undefined,
-    );
+  if (parsed.success !== true) {
+    // A clear refusal carries success:false; anything else is unexpected.
+    const code = parsed.success === false ? (parsed.error as string | undefined) : 'empty_response';
+    throw new BookingSubmitError((parsed.message as string) || 'Booking failed', code);
   }
 
   const confirmation = { success: true, ...parsed } as unknown as BookingConfirmation;

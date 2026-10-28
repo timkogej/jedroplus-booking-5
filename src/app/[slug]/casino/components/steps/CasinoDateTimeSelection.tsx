@@ -22,6 +22,7 @@ import {
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { t } from '../../i18n';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -273,6 +274,7 @@ export default function CasinoDateTimeSelection({ companySlug }: Props) {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
+      <SlotNotice />
 
       {/* ── Single horizontal date row ── */}
       <motion.div variants={itemVariants} className="mb-5">

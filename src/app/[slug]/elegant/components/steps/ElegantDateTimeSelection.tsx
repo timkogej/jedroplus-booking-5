@@ -22,6 +22,7 @@ import { checkHappyHour, fetchAvailableAddOns, calculateDiscount, fetchHappyHour
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { dateLocale, datePattern, t } from '../../i18n';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 interface Props {
   companySlug?: string;
@@ -276,6 +277,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
+      <SlotNotice />
       {/* Heading */}
       <motion.div variants={itemVariants} className="mb-6">
         <h2

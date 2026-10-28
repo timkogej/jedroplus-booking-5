@@ -28,6 +28,7 @@ import {
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { t } from '../../i18n';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -290,6 +291,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
 
   return (
     <div>
+      <SlotNotice />
       {/* ── Heading ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
