@@ -5,7 +5,8 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
 import { getSeasonEmoji, type SeasonalTheme } from '../decorations/SeasonDetector';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
@@ -276,6 +277,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
 
 // ── Pre-submit confirmation ───────────────────────────────────
 export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Props) {
+  useSlotRecheck(companySlug);
   const {
     employeesUI,
     selectedEmployeeId,
@@ -372,6 +374,10 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
       }
     } catch (err) {
       console.error('Seasonal booking: submit failed:', err);
+      if (isSlotConflict(err)) {
+        returnToTimeStep();
+        return;
+      }
       setError(bookingErrorMessage(err, language === 'en' ? 'Booking failed. Please try again.' : 'Rezervacija ni uspela. Prosimo, poskusite znova.'));
     } finally {
       setSubmitting(false);

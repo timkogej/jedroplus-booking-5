@@ -29,6 +29,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { getContrastMode } from '../ClassicLayout';
 import { t } from '../../i18n';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -333,6 +334,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
+      <SlotNotice />
       {/* Title */}
       <motion.div variants={itemVariants} className="mb-5">
         <h2

@@ -26,6 +26,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { t } from '../../i18n';
 import type { DaySlots } from '@/types';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 interface Props {
   companySlug?: string;
@@ -466,6 +467,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
       transition={{ duration: 0.5 }}
       className="max-w-2xl"
     >
+      <SlotNotice />
       {/* Section header */}
       <div className="mb-8">
         <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />

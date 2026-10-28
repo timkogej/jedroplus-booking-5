@@ -10,6 +10,7 @@ import { checkHappyHour, fetchAvailableAddOns, calculateDiscount, fetchHappyHour
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import type { SeasonalTheme } from '../decorations/SeasonDetector';
+import SlotNotice from '@/components/shared/SlotNotice';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -263,6 +264,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
 
   return (
     <div>
+      <SlotNotice />
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

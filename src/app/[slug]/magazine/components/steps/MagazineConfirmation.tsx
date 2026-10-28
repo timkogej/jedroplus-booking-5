@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
@@ -284,6 +285,7 @@ function SuccessView() {
 
 // ─── Pre-confirmation (review) view ────────────────────────────────────────
 export default function MagazineConfirmation({ companySlug }: Props) {
+  useSlotRecheck(companySlug);
   const {
     theme,
     language,
@@ -356,6 +358,10 @@ export default function MagazineConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Failed to submit booking:', err);
+      if (isSlotConflict(err)) {
+        returnToTimeStep();
+        return;
+      }
       setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);

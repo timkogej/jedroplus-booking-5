@@ -63,6 +63,11 @@ interface BookingState {
   selectedDate: Date | null;
   selectedTime: string | null;
   customerDetails: CustomerDetails | null;
+  /**
+   * Shown on the date step after the chosen time was taken by someone else
+   * while the client filled the form. Cleared when a new time is picked.
+   */
+  slotNotice: string | null;
 
   // ── Multi-service (up to 3) ──────────────────────────────────────────────────
   /** 1–3 selected services; index 0 is the primary service */
@@ -158,6 +163,7 @@ interface BookingState {
   setLoadingSlots: (v: boolean) => void;
   setStripePaymentInfo: (info: StripePaymentInfo | null) => void;
   setLanguage: (lang: SupportedLanguage) => void;
+  setSlotNotice: (notice: string | null) => void;
 
   // ── Actions — loading / result ───────────────────────────────────────────────
   setLoading: (loading: boolean) => void;
@@ -177,7 +183,7 @@ const initialState: Omit<BookingState,
   | 'selectService' | 'selectCategoryAndService' | 'selectDate'
   | 'selectTime' | 'setCustomerDetails' | 'addService' | 'removeService'
   | 'nextStep' | 'prevStep' | 'goToStep' | 'goToPayment'
-  | 'setSlotsMap' | 'setLoadingSlots' | 'setStripePaymentInfo' | 'setLanguage'
+  | 'setSlotsMap' | 'setLoadingSlots' | 'setStripePaymentInfo' | 'setLanguage' | 'setSlotNotice'
   | 'setLoading' | 'setSubmitting' | 'setBookingConfirmation' | 'reset'
 > = {
   currentStep: 1 as BookingStep,
@@ -198,6 +204,7 @@ const initialState: Omit<BookingState,
   selectedDate: null,
   selectedTime: null,
   customerDetails: null,
+  slotNotice: null,
   selectedServices: [],
   multipleServicesAllowed: false,
   noEmployeeForCombination: false,
@@ -404,7 +411,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
     selectDate: (date) => set({ selectedDate: date, selectedTime: null }),
 
     selectTime: (time) => {
-      set({ selectedTime: time });
+      set({ selectedTime: time, slotNotice: null });
       get().nextStep();
     },
 
@@ -474,6 +481,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
     // ── Slots / Stripe / Language ─────────────────────────────────────────────
 
     setSlotsMap: (slotsMap) => set({ slotsMap }),
+    setSlotNotice: (slotNotice) => set({ slotNotice }),
 
     setLoadingSlots: (isLoadingSlots) => set({ isLoadingSlots }),
 

@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
@@ -325,6 +326,7 @@ function SuccessView() {
 
 // ── Pre-submit confirmation view ──────────────────────────────
 export default function CasinoConfirmation({ companySlug }: Props) {
+  useSlotRecheck(companySlug);
   const {
     employeesUI,
     selectedEmployeeId,
@@ -402,6 +404,10 @@ export default function CasinoConfirmation({ companySlug }: Props) {
       }
     } catch (err) {
       console.error('Casino booking: submit failed:', err);
+      if (isSlotConflict(err)) {
+        returnToTimeStep();
+        return;
+      }
       setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);

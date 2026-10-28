@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
+import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
 import { getContrastMode } from '../ClassicLayout';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
@@ -428,6 +429,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
 
 // ── Pre-submit confirmation ────────────────────────────────────────────────────
 export default function ClassicConfirmation({ companySlug }: Props) {
+  useSlotRecheck(companySlug);
   const {
     theme,
     employeesUI,
@@ -525,6 +527,10 @@ export default function ClassicConfirmation({ companySlug }: Props) {
       });
     } catch (err) {
       console.error('Classic booking: submit failed:', err);
+      if (isSlotConflict(err)) {
+        returnToTimeStep();
+        return;
+      }
       setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);
