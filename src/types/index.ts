@@ -128,6 +128,14 @@ export interface Company {
   plan?: string;
   /** Public URL of the company logo, added by /api/branding. */
   logo_url?: string | null;
+  /** Business address, added by /api/branding (for the calendar event). */
+  naslov?: string | null;
+  /** Contact phone, added by /api/branding (shown when a booking is unclear). */
+  telefon?: string | null;
+  /** Days before the appointment until which a client may cancel (Jedro+). */
+  cancelDays?: number | null;
+  /** Days before the appointment until which a client may reschedule. */
+  rescheduleDays?: number | null;
   /**
    * When false, employee selection step is hidden and all bookings use any_person=true.
    * NEW COLUMN — run ALTER TABLE

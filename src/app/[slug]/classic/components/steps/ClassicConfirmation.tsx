@@ -15,6 +15,8 @@ import {
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
+import { addBookingToCalendar } from '@/lib/booking/calendar';
+import CancellationPolicy from '@/components/shared/CancellationPolicy';
 
 interface Props {
   companySlug?: string;
@@ -97,8 +99,6 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     bookingConfirmation,
     selectedServices,
     selectedService,
-    selectedDate,
-    selectedTime,
     selectedEmployeeId,
     anyPerson,
     employeesUI,
@@ -139,40 +139,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  const handleAddToCalendar = () => {
-    if (!selectedDate || !selectedTime || services.length === 0) return;
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const yr = selectedDate.getFullYear();
-    const mo = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const dy = String(selectedDate.getDate()).padStart(2, '0');
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    const totalMin = hours * 60 + minutes + totalDuration;
-    const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
-    const endM = String(totalMin % 60).padStart(2, '0');
-    const summary = services.map((s) => s.naziv).join(' + ');
-    const ics = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Jedro+//Booking//SL',
-      'BEGIN:VEVENT',
-      `DTSTART:${yr}${mo}${dy}T${hh}${mm}00`,
-      `DTEND:${yr}${mo}${dy}T${endH}${endM}00`,
-      `SUMMARY:${summary}`,
-      `DESCRIPTION:Rezervacija: ${summary}`,
-      'END:VEVENT',
-      'END:VCALENDAR',
-    ].join('\r\n');
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'rezervacija.ics';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
     const text = `${t(language, 'bookingConfirmed')}\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ob ${bookingConfirmation?.cas}`;
@@ -777,6 +744,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
       >
         {t(language, 'confirmationSentEmail')}
       </p>
+      <CancellationPolicy />
     </div>
   );
 }

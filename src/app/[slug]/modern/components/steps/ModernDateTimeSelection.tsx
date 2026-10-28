@@ -29,6 +29,8 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { t } from '../../i18n';
 import SlotNotice from '@/components/shared/SlotNotice';
+import QuickSlotBar from '@/components/shared/QuickSlotBar';
+import { filterTimes } from '@/lib/booking/slots';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -79,6 +81,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
     selectDate,
     language,
     nextStep,
+    timeOfDay,
   } = useBookingStore();
 
   const {
@@ -287,11 +290,12 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
   // Derive time slots from slotsMap — no extra API call needed
   const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
-  const timeSlots = Array.isArray(daySlots) ? daySlots : [];
+  const timeSlots = filterTimes(Array.isArray(daySlots) ? daySlots : [], timeOfDay);
 
   return (
     <div>
       <SlotNotice />
+      <QuickSlotBar />
       {/* ── Heading ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}

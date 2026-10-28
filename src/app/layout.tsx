@@ -30,6 +30,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute URLs for the link preview image.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://booking.jedroplus.com'),
   title: "Rezervacija termina",
   description: "Spletno naročanje na termin prek Jedro+.",
 };

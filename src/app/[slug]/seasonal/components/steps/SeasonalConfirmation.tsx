@@ -14,6 +14,8 @@ import {
   getBookingPricing,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
+import { addBookingToCalendar } from '@/lib/booking/calendar';
+import CancellationPolicy from '@/components/shared/CancellationPolicy';
 
 interface Props {
   companySlug?: string;
@@ -53,36 +55,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
 
   const successEmoji = getSeasonEmoji(seasonalTheme);
 
-  const handleAddToCalendar = () => {
-    if (!selectedDate || !selectedTime || !selectedService) return;
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const yr = selectedDate.getFullYear();
-    const mo = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const dy = String(selectedDate.getDate()).padStart(2, '0');
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    const totalMin = hours * 60 + minutes + selectedService.trajanjeMin;
-    const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
-    const endM = String(totalMin % 60).padStart(2, '0');
-    const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Jedro+//Booking//SL',
-      'BEGIN:VEVENT',
-      `DTSTART:${yr}${mo}${dy}T${hh}${mm}00`,
-      `DTEND:${yr}${mo}${dy}T${endH}${endM}00`,
-      `SUMMARY:${selectedService.naziv}`,
-      `DESCRIPTION:Rezervacija storitve ${selectedService.naziv}`,
-      'END:VEVENT', 'END:VCALENDAR',
-    ].join('\r\n');
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'rezervacija.ics';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
     const text = `${language === 'en' ? 'My booking' : 'Moja rezervacija'}:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ${language === 'en' ? 'at' : 'ob'} ${bookingConfirmation?.cas}`;
@@ -520,6 +493,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
       <p className="text-center mt-3 text-xs text-gray-500" style={{ fontFamily: 'var(--font-inter)' }}>
         {t.emailNote}
       </p>
+      <CancellationPolicy />
     </div>
   );
 }

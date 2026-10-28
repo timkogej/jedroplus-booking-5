@@ -27,6 +27,9 @@ function getPersistedLanguage(): SupportedLanguage {
 // ─────────────────────────────────────────────────────────────────────────────
 // State + Actions interface
 // ─────────────────────────────────────────────────────────────────────────────
+/** Morning = before 12:00. */
+export type TimeOfDay = 'all' | 'morning' | 'afternoon';
+
 interface BookingState {
   // ── Step ────────────────────────────────────────────────────────────────────
   /** Current booking step. 1–6 = standard flow, 7 = Stripe payment gate */
@@ -68,6 +71,8 @@ interface BookingState {
    * while the client filled the form. Cleared when a new time is picked.
    */
   slotNotice: string | null;
+  /** Filter for the time list on the date step. */
+  timeOfDay: TimeOfDay;
 
   // ── Multi-service (up to 3) ──────────────────────────────────────────────────
   /** 1–3 selected services; index 0 is the primary service */
@@ -164,6 +169,7 @@ interface BookingState {
   setStripePaymentInfo: (info: StripePaymentInfo | null) => void;
   setLanguage: (lang: SupportedLanguage) => void;
   setSlotNotice: (notice: string | null) => void;
+  setTimeOfDay: (value: TimeOfDay) => void;
 
   // ── Actions — loading / result ───────────────────────────────────────────────
   setLoading: (loading: boolean) => void;
@@ -183,7 +189,7 @@ const initialState: Omit<BookingState,
   | 'selectService' | 'selectCategoryAndService' | 'selectDate'
   | 'selectTime' | 'setCustomerDetails' | 'addService' | 'removeService'
   | 'nextStep' | 'prevStep' | 'goToStep' | 'goToPayment'
-  | 'setSlotsMap' | 'setLoadingSlots' | 'setStripePaymentInfo' | 'setLanguage' | 'setSlotNotice'
+  | 'setSlotsMap' | 'setLoadingSlots' | 'setStripePaymentInfo' | 'setLanguage' | 'setSlotNotice' | 'setTimeOfDay'
   | 'setLoading' | 'setSubmitting' | 'setBookingConfirmation' | 'reset'
 > = {
   currentStep: 1 as BookingStep,
@@ -205,6 +211,7 @@ const initialState: Omit<BookingState,
   selectedTime: null,
   customerDetails: null,
   slotNotice: null,
+  timeOfDay: 'all',
   selectedServices: [],
   multipleServicesAllowed: false,
   noEmployeeForCombination: false,
@@ -482,6 +489,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
 
     setSlotsMap: (slotsMap) => set({ slotsMap }),
     setSlotNotice: (slotNotice) => set({ slotNotice }),
+    setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
 
     setLoadingSlots: (isLoadingSlots) => set({ isLoadingSlots }),
 

@@ -30,10 +30,12 @@ export class BookingSubmitError extends Error {
   }
 }
 
-const UNCONFIRMED_MESSAGE = {
-  sl: 'Rezervacije ni bilo mogoče potrditi. Preden poskusite znova, preverite, ali ste prejeli potrditveni email, ali pokličite salon.',
-  en: 'We could not confirm your booking. Before trying again, check whether you received a confirmation email, or call the salon.',
-};
+function unconfirmedMessage(lang: 'sl' | 'en', phone?: string | null): string {
+  if (lang === 'en') {
+    return `We could not confirm your booking. Before trying again, check whether you received a confirmation email, or call the salon${phone ? ` at ${phone}` : ''}.`;
+  }
+  return `Rezervacije ni bilo mogoče potrditi. Preden poskusite znova, preverite, ali ste prejeli potrditveni email, ali pokličite salon${phone ? ` na ${phone}` : ''}.`;
+}
 
 const SLOT_TAKEN_MESSAGE = {
   sl: 'Izbrani termin je bil medtem zaseden. Izberite drug termin.',
@@ -61,8 +63,9 @@ function isUnconfirmed(err: unknown): boolean {
  * it was saved, otherwise the design's fallback.
  */
 export function bookingErrorMessage(err: unknown, fallback: string): string {
-  const lang = useBookingStore.getState().language === 'en' ? 'en' : 'sl';
-  if (isUnconfirmed(err)) return UNCONFIRMED_MESSAGE[lang];
+  const { language, company } = useBookingStore.getState();
+  const lang = language === 'en' ? 'en' : 'sl';
+  if (isUnconfirmed(err)) return unconfirmedMessage(lang, company?.telefon);
   if (err instanceof BookingSubmitError && err.code !== 'missing_data') {
     return err.message || fallback;
   }
