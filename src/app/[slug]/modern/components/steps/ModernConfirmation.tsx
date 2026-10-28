@@ -50,6 +50,7 @@ function SuccessView() {
     theme,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const [copied, setCopied] = useState(false);
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
@@ -233,7 +234,7 @@ function SuccessView() {
           )}
 
           {/* Specialist */}
-          {(anyPerson || selectedEmployee) && (
+          {showEmployee && (anyPerson || selectedEmployee) && (
             <div className="modern-summary-row">
               <span className="modern-summary-label">{t(language, 'fieldSpecialist')}</span>
               <span className="modern-summary-value">
@@ -403,6 +404,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
     theme,
     language,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
@@ -483,7 +485,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
     },
     {
       label: t(language, 'fieldSpecialist'),
-      value: anyPerson ? t(language, 'anyone') : selectedEmployee?.label,
+      value: showEmployee ? (anyPerson ? t(language, 'anyone') : selectedEmployee?.label) : undefined,
     },
     {
       label: t(language, 'fieldDate'),

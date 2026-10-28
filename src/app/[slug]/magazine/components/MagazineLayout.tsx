@@ -4,7 +4,7 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { t } from '../i18n';
 import MagazineMasthead from './MagazineMasthead';
-import MagazineProgress from './MagazineProgress';
+import MagazineProgress, { useMagazineSteps } from './MagazineProgress';
 import MagazineEmployeeSelection from './steps/MagazineEmployeeSelection';
 import MagazineServiceSelection from './steps/MagazineServiceSelection';
 import MagazineDateTimeSelection from './steps/MagazineDateTimeSelection';
@@ -47,6 +47,7 @@ function EditorialPanel() {
 
   const safeStep = (step >= 1 && step <= 6 ? step : 1) as PanelKey;
   const panel = panels[safeStep];
+  const { steps, currentIdx, total } = useMagazineSteps();
 
   return (
     <div className="sticky top-0 h-screen flex flex-col justify-between p-12 overflow-hidden">
@@ -165,8 +166,8 @@ function EditorialPanel() {
               {panel.accent}
             </motion.span>
           </AnimatePresence>
-          <span className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
-            0{safeStep} / 06
+          <span className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
+            {steps[currentIdx]?.num} / {total}
           </span>
         </div>
       </div>
@@ -253,10 +254,10 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
       {/* Footer */}
       <footer className="border-t border-black/10 px-8 py-4 md:px-12">
         <div className="flex items-center justify-between">
-          <p className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
+          <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
             © {new Date().getFullYear()} · Jedro+
           </p>
-          <p className="magazine-caps text-[9px] tracking-[0.22em] text-black/25">
+          <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
             {t(language, 'onlineBooking')}
           </p>
         </div>

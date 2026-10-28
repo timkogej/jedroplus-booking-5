@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import CompanyLogo from '@/components/shared/CompanyLogo';
 import { useBookingStore } from '@/store/bookingStore';
-import { SeasonalTheme } from './decorations/SeasonDetector';
+import { getSeasonEmoji, type SeasonalTheme } from './decorations/SeasonDetector';
 
 interface Props {
   currentStep: number;
@@ -16,22 +16,7 @@ interface Props {
 export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBack, seasonalTheme }: Props) {
   const { company, theme } = useBookingStore();
 
-  const seasonEmoji: Record<string, string> = {
-    christmas: '🎄',
-    newyear: '🎉',
-    valentine: '💕',
-    easter: '🐣',
-    halloween: '🎃',
-    thanksgiving: '🍂',
-    winter: '❄️',
-    spring: '🌸',
-    summer: '☀️',
-    autumn: '🍁',
-  };
-
-  const emoji = seasonalTheme.holiday
-    ? seasonEmoji[seasonalTheme.holiday] ?? seasonEmoji[seasonalTheme.season]
-    : seasonEmoji[seasonalTheme.season];
+  const emoji = getSeasonEmoji(seasonalTheme);
 
   return (
     <motion.header

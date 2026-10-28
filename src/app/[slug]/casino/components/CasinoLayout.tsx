@@ -270,7 +270,7 @@ function getStepInfo(step: number, lang: SupportedLanguage) {
 }
 
 export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
-  const { currentStep, prevStep, bookingConfirmation, selectedService, language } = useBookingStore();
+  const { currentStep, prevStep, bookingConfirmation, selectedService, selectedServices: pickedServices, language } = useBookingStore();
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const stepInfo = getStepInfo(currentStep, language);
@@ -280,7 +280,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
 
   // Hide the summary card on step 5 (customer details) — it's shown inside the step itself
   const showSummaryCard = !isSuccess && currentStep !== 5;
-  const selectedServices = selectedService ? [selectedService] : [];
+  const selectedServices = pickedServices.length > 0 ? pickedServices : selectedService ? [selectedService] : [];
   const promotion = resolvePrimaryPromotion(selectedServices, serviceDiscounts, activePromotion);
   const pricing = getBookingPricing(selectedServices, promotion, selectedAddOn);
 
@@ -363,7 +363,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
               </p>
 
               {/* Service price badge if applicable */}
-              {selectedService && currentStep > 2 && (
+              {selectedServices.length > 0 && currentStep > 2 && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -382,7 +382,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
                       color: '#a89060',
                     }}
                   >
-                    {selectedService.naziv}
+                    {selectedServices.map((s) => s.naziv).join(' + ')}
                   </span>
                   <span style={{ color: 'rgba(201,168,76,0.4)', fontSize: '0.5rem' }}>◆</span>
                   <span

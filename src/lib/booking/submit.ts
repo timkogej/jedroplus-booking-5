@@ -18,7 +18,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { BookingConfirmation, Service } from '@/types';
 
-export type BookingVariant = 'classic' | 'modern' | 'elegant' | 'magazine' | 'casino' | 'seasonal' | 'default';
+export type BookingVariant = 'classic' | 'modern' | 'elegant' | 'magazine' | 'casino' | 'seasonal';
 
 /** Error from the booking API. `code` is the API error code, e.g. 'slot_taken'. */
 export class BookingSubmitError extends Error {
@@ -187,8 +187,6 @@ export async function startCheckout(
 ): Promise<void> {
   const { customerDetails, language, selectedTime } = useBookingStore.getState();
   const { confirmation, serviceName, pricing } = result;
-  // The default design has no success page of its own; classic's works for any slug.
-  const pageVariant = variant === 'default' ? 'classic' : variant;
 
   await redirectToCheckout({
     companySlug,
@@ -202,14 +200,12 @@ export async function startCheckout(
     customerName: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : '',
     language,
     paymentMode: confirmation.paymentMode ?? confirmation.stripe?.paymentMode ?? 'full',
-    successUrl: buildSuccessUrl(companySlug, pageVariant, {
+    successUrl: buildSuccessUrl(companySlug, variant, {
       lang: language,
       serviceName,
       date: confirmation.datum || dateDisplay,
       time: confirmation.cas || selectedTime || undefined,
     }),
-    cancelUrl: variant === 'default'
-      ? new URL(`/${companySlug}`, window.location.origin).toString()
-      : buildCancelUrl(companySlug, variant),
+    cancelUrl: buildCancelUrl(companySlug, variant),
   });
 }

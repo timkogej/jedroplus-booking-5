@@ -16,18 +16,17 @@ import {
   getDay,
   addDays,
 } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchTimeSlotsRange } from '@/lib/api';
 import { checkHappyHour, fetchAvailableAddOns, calculateDiscount, fetchHappyHoursForDay, type HappyHourRange } from '@/lib/promotionsApi';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
+import { dateLocale, datePattern, t } from '../../i18n';
 
 interface Props {
   companySlug?: string;
 }
 
-const WEEK_DAYS = ['Po', 'To', 'Sr', 'Če', 'Pe', 'So', 'Ne'];
 
 const slideVariants: Variants = {
   enter: (d: number) => ({ x: d > 0 ? 20 : -20, opacity: 0 }),
@@ -288,7 +287,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight }}>termin</span>
+          {t(language, 'chooseTimeA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseTimeB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -298,7 +297,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             color: '#6B7280',
           }}
         >
-          Izberite željeni datum in uro
+          {t(language, 'timeQuestion')}
         </p>
       </motion.div>
 
@@ -333,7 +332,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                   color: '#374151',
                 }}
               >
-                {format(currentMonth, 'LLLL yyyy', { locale: sl })}
+                {format(currentMonth, 'LLLL yyyy', { locale: dateLocale(language) })}
               </span>
               <button
                 onClick={() => navigateMonth(1)}
@@ -369,7 +368,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                   const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                   const isTodayDate = isToday(day);
                   const dow = getDay(day);
-                  const weekdayAbbr = WEEK_DAYS[dow === 0 ? 6 : dow - 1];
+                  const weekdayAbbr = t(language, 'weekDays')[dow === 0 ? 6 : dow - 1];
 
                   return (
                     <button
@@ -473,7 +472,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       color: '#1F2937',
                     }}
                   >
-                    {format(currentMonth, 'LLLL yyyy', { locale: sl })}
+                    {format(currentMonth, 'LLLL yyyy', { locale: dateLocale(language) })}
                   </motion.h3>
                 </AnimatePresence>
                 {isLoadingSlots && (
@@ -504,7 +503,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             <div className="p-3">
               {/* Weekday headers */}
               <div className="grid grid-cols-7 mb-1">
-                {WEEK_DAYS.map((d) => (
+                {t(language, 'weekDays').map((d) => (
                   <div
                     key={d}
                     className="text-center py-1"
@@ -614,7 +613,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     color: '#6B7280',
                   }}
                 >
-                  Prosti termini
+                  {t(language, 'freeSlots')}
                 </p>
                 {selectedDate ? (
                   <p
@@ -626,7 +625,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       color: '#1F2937',
                     }}
                   >
-                    {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
+                    {format(selectedDate, datePattern(language, 'd. MMMM yyyy'), { locale: dateLocale(language) })}
                   </p>
                 ) : (
                   <p
@@ -637,7 +636,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       color: '#6B7280',
                     }}
                   >
-                    Izberite datum
+                    {t(language, 'chooseDate')}
                   </p>
                 )}
               </div>
@@ -677,7 +676,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     color: '#D1D5DB',
                   }}
                 >
-                  Izberite datum v koledarju
+                  {t(language, 'chooseDateInCalendar')}
                 </p>
               </div>
             ) : isLoadingSlots ? (
@@ -700,7 +699,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       color: '#6B7280',
                     }}
                   >
-                    Ni prostih terminov
+                    {t(language, 'noSlots')}
                   </p>
                   <p
                     className="mt-1"
@@ -710,7 +709,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       color: '#D1D5DB',
                     }}
                   >
-                    Izberite drug datum
+                    {t(language, 'chooseOtherDate')}
                   </p>
                 </div>
               </div>
@@ -817,9 +816,9 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
               }}
             >
               <span className="font-medium first-cap">
-                {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
+                {format(selectedDate, datePattern(language, 'd. MMMM yyyy'), { locale: dateLocale(language) })}
               </span>{' '}
-              ob{' '}
+              {t(language, 'at')}{' '}
               <span className="font-medium" style={{ color: theme.primaryOnLight }}>
                 {selectedTime}
               </span>

@@ -207,7 +207,7 @@ export default function MagazineEmployeeSelection() {
           {/* Divider */}
           <motion.div variants={itemVariants} className="my-6 flex items-center gap-4">
             <div className="flex-1 h-[1px] bg-black/08" />
-            <span className="magazine-caps text-[9px] tracking-[0.2em] text-black/25">
+            <span className="magazine-caps text-[9px] tracking-[0.2em] text-[#757575]">
               {t(language, 'or')}
             </span>
             <div className="flex-1 h-[1px] bg-black/08" />

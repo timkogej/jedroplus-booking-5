@@ -45,6 +45,7 @@ function SuccessView() {
     selectedTime,
     reset,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   const [copied, setCopied] = useState(false);
@@ -181,7 +182,7 @@ function SuccessView() {
       <motion.div {...successItem(3)}>
         <div className="h-[1px] bg-black/10 mb-6" />
         <div className="space-y-4">
-          {(selectedEmployee || anyPerson) && (
+          {showEmployee && (selectedEmployee || anyPerson) && (
             <div className="flex justify-between items-baseline">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'specialist')}
@@ -298,6 +299,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
     setSubmitting,
     setBookingConfirmation,
   } = useBookingStore();
+  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
@@ -396,7 +398,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
       <div className="space-y-0 mb-10">
         <div className="h-[1px] bg-black/10" />
 
-        {(selectedEmployee || anyPerson) && (
+        {showEmployee && (selectedEmployee || anyPerson) && (
           <div className="flex items-start gap-4 py-5 border-b border-black/08">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 magazine-serif text-[11px]"

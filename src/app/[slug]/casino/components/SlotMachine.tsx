@@ -8,7 +8,10 @@ import { useBookingStore } from '@/store/bookingStore';
 export default function BookingSummaryCard() {
   const {
     selectedService,
+    selectedServices,
     selectedEmployeeId,
+    prikazZaposlenih,
+    language,
     anyPerson,
     selectedTime,
     employeesUI,
@@ -17,26 +20,32 @@ export default function BookingSummaryCard() {
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
+  const en = language === 'en';
+  const services = selectedServices.length > 0 ? selectedServices : selectedService ? [selectedService] : [];
+
   const items = [
     {
-      label: 'Storitev',
-      value: selectedService?.naziv ?? null,
+      label: en ? 'Service' : 'Storitev',
+      value: services.length > 0 ? services.map((s) => s.naziv).join(' + ') : null,
       suit: '♠',
     },
+    // With the employee step hidden there is nothing to show here.
+    ...(prikazZaposlenih
+      ? [{
+          label: 'Specialist',
+          value: anyPerson ? (en ? 'Anyone available' : 'Kdorkoli prost') : selectedEmployee?.label ?? null,
+          suit: '♥',
+        }]
+      : []),
     {
-      label: 'Specialist',
-      value: anyPerson ? 'Kdorkoli prost' : selectedEmployee?.label ?? null,
-      suit: '♥',
-    },
-    {
-      label: 'Termin',
+      label: en ? 'Time' : 'Termin',
       value: selectedTime ?? null,
       suit: '♦',
     },
   ];
 
   const filledCount = items.filter((i) => i.value !== null).length;
-  const allFilled = filledCount === 3;
+  const allFilled = filledCount === items.length;
 
   // Only show when at least one item is selected (step 2+)
   if (currentStep < 2 && filledCount === 0) return null;
@@ -79,7 +88,7 @@ export default function BookingSummaryCard() {
               color: 'rgba(201,168,76,0.35)',
             }}
           >
-            Vaša Izbira
+            {en ? 'Your choice' : 'Vaša izbira'}
           </span>
         </div>
 

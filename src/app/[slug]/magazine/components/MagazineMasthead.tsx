@@ -41,7 +41,7 @@ export default function MagazineMasthead() {
               onClick={() => setLanguage('sl')}
               className="magazine-caps text-[9px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
               style={{
-                color: language === 'sl' ? theme.primarySolid : 'rgba(0,0,0,0.25)',
+                color: language === 'sl' ? theme.primarySolid : '#757575',
                 borderBottom: language === 'sl' ? `1px solid ${theme.primarySolid}` : '1px solid transparent',
               }}
               aria-pressed={language === 'sl'}
@@ -53,7 +53,7 @@ export default function MagazineMasthead() {
               onClick={() => setLanguage('en')}
               className="magazine-caps text-[9px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
               style={{
-                color: language === 'en' ? theme.primarySolid : 'rgba(0,0,0,0.25)',
+                color: language === 'en' ? theme.primarySolid : '#757575',
                 borderBottom: language === 'en' ? `1px solid ${theme.primarySolid}` : '1px solid transparent',
               }}
               aria-pressed={language === 'en'}
