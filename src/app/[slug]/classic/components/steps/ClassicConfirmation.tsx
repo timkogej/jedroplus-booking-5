@@ -5,29 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
-import type { BookingConfirmation } from '@/types';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { getContrastMode } from '../ClassicLayout';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
-import {
-  redirectToCheckout,
-  buildSuccessUrl,
-  buildCancelUrl,
-} from '@/lib/checkout';
 
 interface Props {
   companySlug?: string;
 }
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_N8N_BOOKING_URL ||
-  'https://n8n.jedroplus.com/webhook/booking-v2';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -286,7 +277,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="text-sm text-gray-400 mb-7"
+          className="text-sm text-gray-500 mb-7"
           style={{ fontFamily: 'var(--font-nunito-sans)' }}
         >
           {t(language, 'emailSent')}
@@ -324,7 +315,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
                 }}
               >
                 <span
-                  className="text-xs text-gray-400 uppercase tracking-wide font-medium flex-shrink-0"
+                  className="text-xs text-gray-500 uppercase tracking-wide font-medium flex-shrink-0"
                   style={{ fontFamily: 'var(--font-nunito-sans)' }}
                 >
                   {row.label}
@@ -352,7 +343,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
               }}
             >
               <span
-                className="text-sm text-gray-400"
+                className="text-sm text-gray-500"
                 style={{ fontFamily: 'var(--font-nunito-sans)' }}
               >
                 {t(language, 'total')}
@@ -439,7 +430,6 @@ export default function ClassicConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedServices,
     selectedService,
     selectedDate,
@@ -449,7 +439,6 @@ export default function ClassicConfirmation({ companySlug }: Props) {
     isSubmitting,
     setSubmitting,
     setBookingConfirmation,
-    requiredResursiIds,
     language,
   } = useBookingStore();
 
@@ -483,7 +472,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
   if (bookingConfirmation?.success) {
-    return <SuccessView primaryColor={theme.primaryColor} />;
+    return <SuccessView primaryColor={theme.primarySolid} />;
   }
 
   const handleConfirm = async () => {
@@ -502,108 +491,16 @@ export default function ClassicConfirmation({ companySlug }: Props) {
     setError(null);
 
     try {
-      const body: Record<string, unknown> = {
-        action: 'create',
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceIds: services.map((s) => s.id),
-        employeeId: selectedEmployeeId,
-        any_person: anyPerson,
-        eligibleEmployeeIds,
-        resursiIds: requiredResursiIds,
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender ?? '',
-        notes: customerDetails.notes ?? '',
-        privacy_consent: customerDetails.privacyConsent ?? false,
-        marketing_consent: customerDetails.gdprSendMarketing ?? false,
-        consent_timestamp: new Date().toISOString(),
-        language,
-        originalCena: baseTotalPrice,
-        finalCena: finalPrice,
-      };
-
-      if (promotion) {
-        body.promocijaTip = promotion.type;
-        body.promocijaNaziv = promotion.naziv ?? null;
-        body.popust = pricing.discountAmount;
-        body.popustTip = getPromotionPopustTip(promotion);
-        if (promotion.type === 'popust') body.popust_id = promotion.id;
-        if (promotion.type === 'happy_hour') body.happy_hour_id = promotion.id;
-      }
-
-      if (selectedAddOn) {
-        body.addOnServiceId = selectedAddOn.id;
-        body.addOnNaziv = selectedAddOn.naziv ?? null;
-        body.addOnFinalCena = selectedAddOn.finalCena;
-        body.addOnOriginalCena = selectedAddOn.originalCena;
-        body.addOnPopust = selectedAddOn.popustZnesek;
-        body.addOnPopustTip = selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta';
-        body.addOnTrajanjeMin = selectedAddOn.trajanjeMin;
-      }
-
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      let parsed: Record<string, unknown> = { success: true };
-      if (text && text.trim() !== '') {
-        try {
-          parsed = JSON.parse(text);
-        } catch { /* treat as success */ }
-      }
-
-      if (parsed.success === false) {
-        const err = new Error(
-          (parsed.message as string) || t(language, 'bookingFailed')
-        ) as Error & { code?: string };
-        err.code = parsed.error as string | undefined;
-        throw err;
-      }
-
-      const confirmation = parsed as unknown as BookingConfirmation;
-
-      const serviceName =
-        confirmation.storitev || services.map((s) => s.naziv).join(' + ');
+      const result = await submitCurrentBooking(companySlug);
+      const { confirmation, serviceName } = result;
       const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
       // Online payment required → redirect to Stripe Checkout (via POS).
       // The appointment is already created server-side as 'pending_payment'.
       if (confirmation.requiresPayment === true) {
-        const appointmentId = String(
-          confirmation.terminRowId ?? confirmation.terminId ?? ''
-        );
         setRedirecting(true);
         try {
-          await redirectToCheckout({
-            companySlug,
-            appointmentId,
-            amount: confirmation.paymentAmount ?? finalPrice,
-            currency: confirmation.currency ?? 'EUR',
-            serviceName,
-            customerEmail: customerDetails.email,
-            customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-            language,
-            paymentMode: confirmation.paymentMode ?? 'full',
-            successUrl: buildSuccessUrl(companySlug, 'classic', {
-              lang: language,
-              serviceName,
-              date: confirmation.datum || datumDisplay,
-              time: confirmation.cas || selectedTime,
-            }),
-            cancelUrl: buildCancelUrl(companySlug, 'classic'),
-          });
+          await startCheckout(result, companySlug, 'classic', datumDisplay);
           // On success the browser navigates away to Stripe; nothing more to do.
           return;
         } catch (err) {
@@ -617,18 +514,14 @@ export default function ClassicConfirmation({ companySlug }: Props) {
       // No payment required → show the existing confirmation/success screen.
       setBookingConfirmation({
         success: true,
-        message: (parsed.message as string) || t(language, 'bookingConfirmed'),
+        message: confirmation.message || t(language, 'bookingConfirmed'),
         storitev: serviceName,
         datum: datumDisplay,
         cas: selectedTime,
       });
     } catch (err) {
       console.error('Classic booking: submit failed:', err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : t(language, 'bookingFailed')
-      );
+      setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -709,7 +602,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
         <div
           className="h-1"
           style={{
-            background: `linear-gradient(90deg, ${theme.primarySolid ?? theme.primaryColor}, ${theme.primaryColor}55)`,
+            background: `linear-gradient(90deg, ${theme.primarySolid}, ${theme.primaryColor}55)`,
           }}
         />
 
@@ -724,13 +617,13 @@ export default function ClassicConfirmation({ companySlug }: Props) {
               }}
             >
               <span
-                className="text-xs text-gray-400 uppercase tracking-wide font-medium flex-shrink-0"
+                className="text-xs text-gray-500 uppercase tracking-wide font-medium flex-shrink-0"
                 style={{ fontFamily: 'var(--font-nunito-sans)' }}
               >
                 {row.label}
               </span>
               <span
-                className="text-sm font-semibold text-gray-800 text-right ml-4 capitalize"
+                className={`text-sm font-semibold text-gray-800 text-right ml-4 ${String(row.value).includes('@') ? '' : 'first-cap'}`}
                 style={{
                   fontFamily: 'var(--font-nunito-sans)',
                   maxWidth: '65%',
@@ -752,7 +645,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
             }}
           >
             <span
-              className="text-sm text-gray-400"
+              className="text-sm text-gray-500"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
               {t(language, 'total')}
@@ -770,7 +663,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
                 className="text-2xl font-bold"
                 style={{
                   fontFamily: 'var(--font-nunito)',
-                  color: theme.primaryOnLight ?? theme.primaryColor,
+                  color: theme.primaryOnLight,
                 }}
               >
                 {formatBookingPrice(finalPrice)}
@@ -826,7 +719,7 @@ export default function ClassicConfirmation({ companySlug }: Props) {
             fontFamily: 'var(--font-nunito)',
             backgroundColor: isSubmitting || redirecting
               ? `${theme.primaryColor}70`
-              : theme.primaryColor,
+              : theme.primarySolid,
             boxShadow: isSubmitting || redirecting
               ? 'none'
               : `0 8px 24px ${theme.primaryColor}38`,

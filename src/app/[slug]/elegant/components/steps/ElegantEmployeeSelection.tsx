@@ -29,7 +29,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
       whileTap={{ scale: 0.99 }}
       className="w-full p-4 rounded-xl transition-all duration-200"
       style={{
-        border: anyPerson ? `2px solid ${theme.primarySolid ?? theme.primaryColor}` : '2px dashed #D1D5DB',
+        border: anyPerson ? `2px solid ${theme.primarySolid}` : '2px dashed #D1D5DB',
         backgroundColor: anyPerson ? `${theme.primaryColor}06` : 'white',
       }}
     >
@@ -44,7 +44,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke={theme.primaryOnLight ?? theme.primaryColor}
+            stroke={theme.primaryOnLight}
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -62,7 +62,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: '0.975rem',
-              color: anyPerson ? theme.primaryColor : '#1F2937',
+              color: anyPerson ? theme.primarySolid : '#1F2937',
             }}
           >
             Kdorkoli
@@ -71,7 +71,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: '0.8rem',
-              color: '#9CA3AF',
+              color: '#6B7280',
             }}
           >
             Dodelimo vam prvega prostega specialista
@@ -87,7 +87,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid }}
             >
               <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
             </motion.div>
@@ -116,7 +116,7 @@ function EmployeeCard({
       whileTap={{ scale: 0.99 }}
       className="w-full p-4 rounded-xl border transition-all duration-200"
       style={{
-        borderColor: isSelected ? theme.primaryColor : '#E5E7EB',
+        borderColor: isSelected ? theme.primarySolid : '#E5E7EB',
         backgroundColor: isSelected ? `${theme.primaryColor}06` : 'white',
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}
@@ -126,7 +126,7 @@ function EmployeeCard({
         <div
           className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-medium"
           style={{
-            backgroundColor: theme.primarySolid ?? theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             fontFamily: 'var(--font-inter)',
             fontSize: '0.9rem',
           }}
@@ -150,7 +150,7 @@ function EmployeeCard({
               style={{
                 fontFamily: 'var(--font-inter)',
                 fontSize: '0.8rem',
-                color: '#9CA3AF',
+                color: '#6B7280',
               }}
             >
               {employee.subtitle}
@@ -167,7 +167,7 @@ function EmployeeCard({
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid }}
             >
               <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
             </motion.div>
@@ -187,7 +187,7 @@ export default function ElegantEmployeeSelection() {
   if (eligibleEmployeeIds.length === 0) {
     return (
       <div className="text-center py-16">
-        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#9CA3AF' }}>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
           Za to storitev ni razpoložljivega osebja.
         </p>
       </div>
@@ -207,7 +207,7 @@ export default function ElegantEmployeeSelection() {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>specialista</span>
+          Izberite <span style={{ color: theme.primaryOnLight }}>specialista</span>
         </h2>
         <p
           className="mt-2"

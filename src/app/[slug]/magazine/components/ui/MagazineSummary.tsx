@@ -106,7 +106,7 @@ export default function MagazineSummary() {
             </p>
             <p
               className="magazine-serif text-[1.4rem] font-light tabular-nums"
-              style={{ color: theme.primaryColor }}
+              style={{ color: theme.primarySolid }}
             >
               {pricing.hasDiscount && (
                 <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">

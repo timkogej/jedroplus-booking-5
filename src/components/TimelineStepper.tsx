@@ -84,7 +84,7 @@ export default function TimelineStepper() {
                 <div
                   className="absolute left-[11px] top-[28px] w-[2px] h-[60px]"
                   style={{
-                    backgroundColor: isCompleted ? theme.primaryColor : 'rgba(255,255,255,0.2)',
+                    backgroundColor: isCompleted ? theme.primarySolid : 'rgba(255,255,255,0.2)',
                   }}
                 />
               )}
@@ -104,8 +104,8 @@ export default function TimelineStepper() {
                   <motion.div
                     className="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300"
                     style={{
-                      borderColor: isCompleted || isCurrent ? theme.primaryColor : 'rgba(255,255,255,0.3)',
-                      backgroundColor: isCompleted ? theme.primaryColor : 'transparent',
+                      borderColor: isCompleted || isCurrent ? theme.primarySolid : 'rgba(255,255,255,0.3)',
+                      backgroundColor: isCompleted ? theme.primarySolid : 'transparent',
                     }}
                     whileHover={canNavigate ? { scale: 1.1 } : {}}
                   >
@@ -114,7 +114,7 @@ export default function TimelineStepper() {
                     ) : isCurrent ? (
                       <motion.div
                         className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: theme.primaryColor }}
+                        style={{ backgroundColor: theme.primarySolid }}
                         animate={{ scale: [1, 1.2, 1] }}
                         transition={{ repeat: Infinity, duration: 2 }}
                       />
@@ -128,7 +128,7 @@ export default function TimelineStepper() {
                     <span
                       className="text-xs font-mono uppercase tracking-wider"
                       style={{
-                        color: isCurrent ? theme.primaryColor : 'rgba(255,255,255,0.5)',
+                        color: isCurrent ? theme.primarySolid : 'rgba(255,255,255,0.5)',
                       }}
                     >
                       {step.number}.

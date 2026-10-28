@@ -16,6 +16,8 @@ import {
 } from '@/lib/pricing';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
+import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 
 interface FormErrors {
   firstName?: string;
@@ -42,6 +44,7 @@ const itemVariants: Variants = {
 
 // ── Clean input component ─────────────────────────────────────────────────────
 function FormInput({
+  field,
   label,
   required,
   value,
@@ -51,6 +54,7 @@ function FormInput({
   error,
   primaryColor,
 }: {
+  field?: ContactField;
   label: string;
   required?: boolean;
   value: string;
@@ -74,6 +78,7 @@ function FormInput({
         )}
       </label>
       <input
+        {...contactFieldAttrs(field)}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -219,7 +224,7 @@ function BookingSummaryCard({ primaryColor }: { primaryColor: string }) {
         <div className="flex-1 min-w-0 space-y-1.5">
           {rows.map((row, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span style={{ color: '#9CA3AF', flexShrink: 0 }}>{row.icon}</span>
+              <span style={{ color: '#6B7280', flexShrink: 0 }}>{row.icon}</span>
               <span
                 className="text-sm text-gray-600 truncate"
                 style={{ fontFamily: 'var(--font-nunito-sans)' }}
@@ -339,7 +344,6 @@ export default function ClassicCustomerDetails() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       e.email = t(language, 'emailInvalid');
     if (!phone.trim()) e.phone = t(language, 'phoneRequired');
-    if (!gender) e.gender = t(language, 'genderRequired');
     if (!privacyConsent)
       e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
@@ -396,7 +400,7 @@ export default function ClassicCustomerDetails() {
 
       {/* Booking summary */}
       <motion.div variants={itemVariants}>
-        <BookingSummaryCard primaryColor={theme.primaryColor} />
+        <BookingSummaryCard primaryColor={theme.primarySolid} />
       </motion.div>
 
       {/* Add-on selector */}
@@ -405,7 +409,7 @@ export default function ClassicCustomerDetails() {
           <AddOnSelector
             addOns={availableAddOns}
             isLoading={isLoadingAddOns}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
             variantStyle="classic"
           />
         </motion.div>
@@ -424,7 +428,7 @@ export default function ClassicCustomerDetails() {
           className="text-xs uppercase tracking-widest font-bold mb-5"
           style={{
             fontFamily: 'var(--font-nunito)',
-            color: '#9CA3AF',
+            color: '#6B7280',
             letterSpacing: '0.12em',
           }}
         >
@@ -434,27 +438,30 @@ export default function ClassicCustomerDetails() {
         {/* Name row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <FormInput
+            field="firstName"
             label={t(language, 'firstNameLabel')}
             required
             value={firstName}
             onChange={setFirstName}
             placeholder="Janez"
             error={errors.firstName}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
           <FormInput
+            field="lastName"
             label={t(language, 'lastNameLabel')}
             required
             value={lastName}
             onChange={setLastName}
             placeholder="Novak"
             error={errors.lastName}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
         </div>
 
         <div className="mb-4">
           <FormInput
+            field="email"
             label={t(language, 'emailLabel')}
             required
             value={email}
@@ -462,12 +469,13 @@ export default function ClassicCustomerDetails() {
             placeholder="janez@email.com"
             type="email"
             error={errors.email || fieldErrors.email}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
         </div>
 
         <div className="mb-4">
           <FormInput
+            field="phone"
             label={t(language, 'phoneLabel')}
             required
             value={phone}
@@ -475,7 +483,7 @@ export default function ClassicCustomerDetails() {
             placeholder="041 123 456"
             type="tel"
             error={errors.phone}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           />
         </div>
 
@@ -486,7 +494,6 @@ export default function ClassicCustomerDetails() {
             style={{ fontFamily: 'var(--font-nunito-sans)', color: '#6B7280' }}
           >
             {t(language, 'salutationLabel')}
-            <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>
           </label>
           <div className="flex gap-2">
             {GENDERS.map((g) => {
@@ -505,11 +512,11 @@ export default function ClassicCustomerDetails() {
                     fontFamily: 'var(--font-nunito-sans)',
                     background: isActive ? `${theme.primaryColor}12` : '#F8F9FA',
                     border: isActive
-                      ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
+                      ? `2px solid ${theme.primarySolid}`
                       : errors.gender
                       ? '2px solid #EF4444'
                       : '2px solid #E9ECEF',
-                    color: isActive ? theme.primaryColor : '#6B7280',
+                    color: isActive ? theme.primarySolid : '#6B7280',
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -558,7 +565,7 @@ export default function ClassicCustomerDetails() {
               color: '#1F2937',
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = theme.primaryColor;
+              e.target.style.borderColor = theme.primarySolid;
               e.target.style.boxShadow = `0 0 0 3px ${theme.primaryColor}18`;
               e.target.style.background = '#ffffff';
             }}
@@ -587,7 +594,7 @@ export default function ClassicCustomerDetails() {
           <Checkbox
             checked={gdprMarketing}
             onChange={() => setGdprMarketing((v) => !v)}
-            primaryColor={theme.primaryColor}
+            primaryColor={theme.primarySolid}
           >
             {t(language, 'marketingLabel')}
           </Checkbox>
@@ -600,7 +607,7 @@ export default function ClassicCustomerDetails() {
                 if (errors.privacyConsent)
                   setErrors((p) => ({ ...p, privacyConsent: undefined }));
               }}
-              primaryColor={theme.primaryColor}
+              primaryColor={theme.primarySolid}
               hasError={!!errors.privacyConsent}
             >
               {t(language, 'privacyLabel')}{' '}
@@ -609,7 +616,7 @@ export default function ClassicCustomerDetails() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline transition-opacity hover:opacity-70"
-                style={{ color: theme.primaryOnLight ?? theme.primaryColor }}
+                style={{ color: theme.primaryOnLight }}
               >
                 {t(language, 'privacyLinkLabel')}
               </a>
@@ -648,14 +655,18 @@ export default function ClassicCustomerDetails() {
       )}
 
       {/* Submit */}
-      <motion.div variants={itemVariants} className="mt-6 flex justify-end">
+      <motion.div
+        variants={itemVariants}
+        className="booking-sticky-cta mt-6 flex justify-end"
+        style={stickyCtaStyle(theme.bgTo, 16)}
+      >
         <motion.button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="px-8 py-3.5 rounded-2xl font-bold text-white flex items-center gap-2"
+          className="w-full sm:w-auto justify-center px-8 py-3.5 rounded-2xl font-bold text-white flex items-center gap-2"
           style={{
             fontFamily: 'var(--font-nunito)',
-            backgroundColor: theme.primarySolid ?? theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             boxShadow: `0 6px 24px ${theme.primaryColor}38`,
             opacity: isSubmitting ? 0.65 : 1,
             cursor: isSubmitting ? 'not-allowed' : 'pointer',

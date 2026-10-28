@@ -67,7 +67,7 @@ function ServiceCard({
     <motion.div variants={itemVariants} className="relative">
       {/* Promo ribbon */}
       {promo?.badgeLabel && (
-        <PromoRibbon label={promo.badgeLabel} color={theme.primaryColor} />
+        <PromoRibbon label={promo.badgeLabel} color={theme.primarySolid} />
       )}
 
       <motion.button
@@ -76,7 +76,7 @@ function ServiceCard({
         style={{
           background: 'rgba(255,255,255,0.97)',
           border: isSelected
-            ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
+            ? `2px solid ${theme.primarySolid}`
             : '2px solid rgba(0,0,0,0.04)',
           boxShadow: isSelected
             ? `0 6px 24px ${theme.primaryColor}28`
@@ -95,8 +95,8 @@ function ServiceCard({
             <div
               className="mt-0.5 w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
               style={{
-                background: isSelected ? theme.primaryColor : 'transparent',
-                border: `2px solid ${isSelected ? theme.primaryColor : '#D1D5DB'}`,
+                background: isSelected ? theme.primarySolid : 'transparent',
+                border: `2px solid ${isSelected ? theme.primarySolid : '#D1D5DB'}`,
               }}
             >
               {isSelected && (
@@ -122,14 +122,14 @@ function ServiceCard({
             </h3>
             {service.opis && (
               <p
-                className="text-sm text-gray-400 mb-2 line-clamp-2"
+                className="text-sm text-gray-500 mb-2 line-clamp-2"
                 style={{ fontFamily: 'var(--font-nunito-sans)' }}
               >
                 {service.opis}
               </p>
             )}
             <p
-              className="text-xs text-gray-400 flex items-center gap-1"
+              className="text-xs text-gray-500 flex items-center gap-1"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -152,7 +152,7 @@ function ServiceCard({
                 </span>
                 <span
                   className="text-lg font-bold"
-                  style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
+                  style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight }}
                 >
                   {formatBookingPrice(promo.finalCena)}
                 </span>
@@ -160,7 +160,7 @@ function ServiceCard({
             ) : (
               <span
                 className="text-lg font-bold"
-                style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
+                style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight }}
               >
                 {isNaN(price)
                   ? String(service.cena)
@@ -318,7 +318,7 @@ export default function ClassicServiceSelection() {
                   key={s.id}
                   service={s}
                   onRemove={() => removeService(s.id)}
-                  primaryColor={theme.primaryColor}
+                  primaryColor={theme.primarySolid}
                 />
               ))}
             </AnimatePresence>
@@ -460,7 +460,7 @@ export default function ClassicServiceSelection() {
                   background:
                     selectedServices.length === 0 || noEmployeeForCombination
                       ? 'rgba(0,0,0,0.15)'
-                      : theme.primaryColor,
+                      : theme.primarySolid,
                   boxShadow:
                     selectedServices.length > 0 && !noEmployeeForCombination
                       ? `0 6px 24px ${theme.primaryColor}38`

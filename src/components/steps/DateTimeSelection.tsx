@@ -38,7 +38,7 @@ export default function DateTimeSelection({ companySlug }: DateTimeSelectionProp
     theme,
   } = useBookingStore();
 
-  const themeColor = theme.primaryColor;
+  const themeColor = theme.primarySolid;
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [direction, setDirection] = useState(0);

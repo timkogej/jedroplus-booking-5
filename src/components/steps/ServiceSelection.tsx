@@ -68,7 +68,7 @@ export default function ServiceSelection() {
 
         <div className="flex items-center gap-3 mb-3">
           <h1 className="font-serif text-3xl md:text-4xl text-white">
-            <span style={{ color: theme.primaryColor }}>
+            <span style={{ color: theme.primarySolid }}>
               {selectedCategory?.name}
             </span>
           </h1>
@@ -97,7 +97,7 @@ export default function ServiceSelection() {
                 className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
                 initial={{ scale: 0 }}
                 animate={{ scale: isSelected ? 1 : 0 }}
-                style={{ backgroundColor: theme.primaryColor }}
+                style={{ backgroundColor: theme.primarySolid }}
                 transition={{ duration: 0.2 }}
               />
 
@@ -112,7 +112,7 @@ export default function ServiceSelection() {
                     <h3
                       className="font-serif text-xl mb-2 transition-colors duration-300"
                       style={{
-                        color: isSelected ? theme.primaryColor : 'white',
+                        color: isSelected ? theme.primarySolid : 'white',
                       }}
                     >
                       {service.naziv}
@@ -134,7 +134,7 @@ export default function ServiceSelection() {
                         <span
                           className="font-light text-xl tracking-wider"
                           style={{
-                            color: isSelected ? theme.primaryColor : 'white',
+                            color: isSelected ? theme.primarySolid : 'white',
                           }}
                         >
                           {formatBookingPrice(promo.finalCena)}
@@ -144,7 +144,7 @@ export default function ServiceSelection() {
                       <span
                         className="font-light text-xl tracking-wider"
                         style={{
-                          color: isSelected ? theme.primaryColor : 'white',
+                          color: isSelected ? theme.primarySolid : 'white',
                         }}
                       >
                         {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}

@@ -15,6 +15,8 @@ import {
 } from '@/lib/pricing';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
+import { contactFieldAttrs } from '@/lib/booking/fieldAttrs';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.07 } },
@@ -40,7 +42,7 @@ interface FieldProps {
   value: string;
   error?: string;
   focused: string | null;
-  theme: { primaryColor: string };
+  theme: { primaryColor: string; primarySolid: string };
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus: (name: string) => void;
   onBlur: () => void;
@@ -65,7 +67,7 @@ function MagField({
     <div className="relative">
       <label
         className="block magazine-caps text-[9px] tracking-[0.2em] mb-2 transition-colors duration-200"
-        style={{ color: isFocused ? theme.primaryColor : '#6B6B6B' }}
+        style={{ color: isFocused ? theme.primarySolid : '#6B6B6B' }}
       >
         {label}
         {required && <span className="ml-1 text-black/20">*</span>}
@@ -80,12 +82,13 @@ function MagField({
           className="absolute bottom-0 left-0 h-[1px] pointer-events-none"
           animate={{ width: isFocused ? '100%' : '0%' }}
           transition={{ duration: 0.35 }}
-          style={{ backgroundColor: error ? '#EF4444' : theme.primaryColor }}
+          style={{ backgroundColor: error ? '#EF4444' : theme.primarySolid }}
         />
 
         <input
           type={type}
           name={name}
+          {...contactFieldAttrs(name)}
           value={value}
           onChange={onChange}
           onFocus={() => onFocus(name)}
@@ -210,7 +213,7 @@ export default function MagazineCustomerDetails() {
     >
       {/* Section header */}
       <motion.div variants={itemVariants} className="mb-10">
-        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
+        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
           {t(language, 'detailsTitle')}
         </h1>
@@ -224,7 +227,7 @@ export default function MagazineCustomerDetails() {
         <AddOnSelector
           addOns={availableAddOns}
           isLoading={isLoadingAddOns}
-          primaryColor={theme.primaryColor}
+          primaryColor={theme.primarySolid}
           variantStyle="magazine"
         />
       </motion.div>
@@ -308,10 +311,10 @@ export default function MagazineCustomerDetails() {
                     }
                     className="relative px-5 py-2 text-[13px] transition-all duration-250"
                     style={{
-                      color: isSelected ? theme.primaryColor : '#6B6B6B',
+                      color: isSelected ? theme.primarySolid : '#6B6B6B',
                       fontFamily: 'var(--font-playfair), Georgia, serif',
                       fontStyle: isSelected ? 'italic' : 'normal',
-                      borderBottom: `1px solid ${isSelected ? theme.primaryColor : 'rgba(0,0,0,0.12)'}`,
+                      borderBottom: `1px solid ${isSelected ? theme.primarySolid : 'rgba(0,0,0,0.12)'}`,
                     }}
                   >
                     {t(language, opt.labelKey)}
@@ -332,7 +335,7 @@ export default function MagazineCustomerDetails() {
             </span>
             <label
               className="block magazine-caps text-[9px] tracking-[0.2em] mb-3 transition-colors duration-200"
-              style={{ color: focused === 'notes' ? theme.primaryColor : '#6B6B6B' }}
+              style={{ color: focused === 'notes' ? theme.primarySolid : '#6B6B6B' }}
             >
               {t(language, 'notes')}{' '}
               <span className="text-black/25 ml-1">({t(language, 'optional')})</span>
@@ -346,7 +349,7 @@ export default function MagazineCustomerDetails() {
                 className="absolute bottom-0 left-0 h-[1px] pointer-events-none"
                 animate={{ width: focused === 'notes' ? '100%' : '0%' }}
                 transition={{ duration: 0.35 }}
-                style={{ backgroundColor: theme.primaryColor }}
+                style={{ backgroundColor: theme.primarySolid }}
               />
               <textarea
                 name="notes"
@@ -376,7 +379,7 @@ export default function MagazineCustomerDetails() {
                   borderColor: errors.privacyConsent
                     ? '#f87171'
                     : formData.privacyConsent
-                    ? theme.primaryColor
+                    ? theme.primarySolid
                     : 'rgba(0,0,0,0.2)',
                   backgroundColor: formData.privacyConsent
                     ? `${theme.primaryColor}12`
@@ -387,7 +390,7 @@ export default function MagazineCustomerDetails() {
                   <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
                     <path
                       d="M1 3L3 5L7 1"
-                      stroke={theme.primaryColor}
+                      stroke={theme.primarySolid}
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -409,7 +412,7 @@ export default function MagazineCustomerDetails() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline transition-colors"
-                  style={{ color: theme.primaryColor }}
+                  style={{ color: theme.primarySolid }}
                 >
                   {t(language, 'privacyLink')}
                 </a>
@@ -434,7 +437,7 @@ export default function MagazineCustomerDetails() {
                 className="w-4 h-4 border flex items-center justify-center transition-all duration-200"
                 style={{
                   borderColor: formData.gdprSendMarketing
-                    ? theme.primaryColor
+                    ? theme.primarySolid
                     : 'rgba(0,0,0,0.2)',
                   backgroundColor: formData.gdprSendMarketing
                     ? `${theme.primaryColor}12`
@@ -445,7 +448,7 @@ export default function MagazineCustomerDetails() {
                   <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
                     <path
                       d="M1 3L3 5L7 1"
-                      stroke={theme.primaryColor}
+                      stroke={theme.primarySolid}
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -487,13 +490,17 @@ export default function MagazineCustomerDetails() {
             </motion.p>
           )}
 
-          <motion.div variants={itemVariants} className="mt-10">
+          <motion.div
+            variants={itemVariants}
+            className="booking-sticky-cta mt-10"
+            style={stickyCtaStyle('#FAFAF9', 24)}
+          >
             <motion.button
               type="submit"
               disabled={isSubmitting}
               className="group relative px-8 py-3 overflow-hidden transition-all duration-300"
               style={{
-                border: `1px solid ${theme.primaryColor}`,
+                border: `1px solid ${theme.primarySolid}`,
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
@@ -502,14 +509,14 @@ export default function MagazineCustomerDetails() {
             >
               <motion.div
                 className="absolute inset-0"
-                style={{ backgroundColor: theme.primaryColor }}
+                style={{ backgroundColor: theme.primarySolid }}
                 initial={{ x: '-100%' }}
                 whileHover={{ x: '0%' }}
                 transition={{ duration: 0.3 }}
               />
               <span
                 className="relative z-10 magazine-caps text-[10px] tracking-[0.2em]"
-                style={{ color: theme.primaryColor }}
+                style={{ color: theme.primarySolid }}
               >
                 {isSubmitting ? t(language, 'sending') : t(language, 'continueToConfirm')}
               </span>
@@ -595,7 +602,7 @@ export default function MagazineCustomerDetails() {
                 </p>
                 <p
                   className="magazine-serif text-[1.5rem] font-light tabular-nums"
-                  style={{ color: theme.primaryColor }}
+                  style={{ color: theme.primarySolid }}
                 >
                   {pricing.hasDiscount && (
                     <span className="block magazine-body text-[12px] text-[#6B6B6B] line-through">

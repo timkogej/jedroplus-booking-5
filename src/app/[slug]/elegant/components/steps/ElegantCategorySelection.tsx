@@ -52,7 +52,7 @@ function CategoryCard({
           height="18"
           viewBox="0 0 24 24"
           fill="none"
-          stroke={theme.primaryOnLight ?? theme.primaryColor}
+          stroke={theme.primaryOnLight}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -78,7 +78,7 @@ function CategoryCard({
         style={{
           fontFamily: 'var(--font-inter)',
           fontSize: '0.8rem',
-          color: '#9CA3AF',
+          color: '#6B7280',
         }}
       >
         {servicesCountLabel(serviceCount)}
@@ -101,7 +101,7 @@ export default function ElegantCategorySelection() {
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
-        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#9CA3AF' }}>
+        <p style={{ fontFamily: 'var(--font-inter)', fontSize: '0.9rem', color: '#6B7280' }}>
           Ni razpoložljivih kategorij.
         </p>
       </div>
@@ -122,7 +122,7 @@ export default function ElegantCategorySelection() {
           }}
         >
           Izberite{' '}
-          <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>kategorijo</span>
+          <span style={{ color: theme.primaryOnLight }}>kategorijo</span>
         </h2>
         <p
           className="mt-2"

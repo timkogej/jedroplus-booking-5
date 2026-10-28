@@ -13,8 +13,8 @@ export const translations = {
     // Loading / error
     loading: 'Loading',
     loadingError: 'Napaka pri nalaganju',
-    loadingErrorDesc: 'Napaka pri nalaganju. Prosimo poskusite znova.',
-    retry: 'Poskusi znova',
+    loadingErrorDesc: 'Napaka pri nalaganju. Prosimo, poskusite znova.',
+    retry: 'Poskusite znova',
     // Service selection
     chooseService: 'Izberite storitev',
     whichService: 'Katero storitev želite?',
@@ -28,7 +28,7 @@ export const translations = {
     whoPerson: 'Kdo naj izvede vašo storitev?',
     anyone: 'Kdorkoli',
     anyoneDesc: 'Vseeno mi je, kdo me postreže',
-    orChoosePerson: 'Ali izberi osebo:',
+    orChoosePerson: 'Ali izberite osebo:',
     noStaff: 'Za to storitev ni razpoložljivega osebja.',
     // Date / time
     chooseDateTime: 'Datum in čas',
@@ -46,8 +46,8 @@ export const translations = {
     lastNameLabel: 'Priimek',
     emailLabel: 'Email',
     phoneLabel: 'Telefon',
-    salutationLabel: 'Nagovor',
-    notesLabel: 'Posebne želje (opcijsko)',
+    salutationLabel: 'Nagovor (neobvezno)',
+    notesLabel: 'Posebne želje (neobvezno)',
     notesPlaceholder: 'Posebne opombe ali zahteve...',
     marketingLabel: 'Želim prejemati ekskluzivne ponudbe in novosti',
     privacyLabel: 'Strinjam se z obdelavo osebnih podatkov za namen rezervacije termina.',
@@ -80,7 +80,7 @@ export const translations = {
     fieldSpecialist: 'Specialist',
     fieldAddon: 'Dodatek',
     missingData: 'Manjkajo podatki za rezervacijo',
-    bookingFailed: 'Rezervacija ni uspela. Prosim poskusite znova.',
+    bookingFailed: 'Rezervacija ni uspela. Prosimo, poskusite znova.',
     // Success
     bookingConfirmed: 'Rezervacija potrjena!',
     emailSent: 'Potrditev bo poslana na vaš email',
@@ -144,7 +144,7 @@ export const translations = {
     lastNameLabel: 'Last name',
     emailLabel: 'Email',
     phoneLabel: 'Phone',
-    salutationLabel: 'Salutation',
+    salutationLabel: 'Salutation (optional)',
     notesLabel: 'Special requests (optional)',
     notesPlaceholder: 'Special notes or requests...',
     marketingLabel: 'I want to receive exclusive offers and news',

@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 
 const STEPS = [
-  { number: 1, label: 'Storitev', visual: 1 },
-  { number: 3, label: 'Specialist', visual: 2 },
-  { number: 4, label: 'Datum in ura', visual: 3 },
-  { number: 5, label: 'Podatki', visual: 4 },
-  { number: 6, label: 'Potrditev', visual: 5 },
+  { number: 1, label: 'Storitev' },
+  { number: 3, label: 'Specialist' },
+  { number: 4, label: 'Datum in ura' },
+  { number: 5, label: 'Podatki' },
+  { number: 6, label: 'Potrditev' },
 ];
 
 interface Props {
@@ -43,14 +43,16 @@ function ElegantCheck({ color }: { color: string }) {
 }
 
 export default function ElegantSidebar({ currentStep, stepValues }: Props) {
-  const { theme } = useBookingStore();
+  const { theme, prikazZaposlenih } = useBookingStore();
+  // The specialist step is skipped when the company hides employees online.
+  const steps = STEPS.filter((s) => prikazZaposlenih || s.number !== 3);
 
   return (
     <nav className="px-6 pb-8 flex-1">
-      {STEPS.map((step, idx) => {
+      {steps.map((step, idx) => {
         const isDone = currentStep > step.number;
         const isActive = currentStep === step.number;
-        const isLast = idx === STEPS.length - 1;
+        const isLast = idx === steps.length - 1;
         const value = isDone ? stepValues[step.number] : undefined;
 
         return (
@@ -62,14 +64,14 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                 className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
                 style={{
                   background: isDone
-                    ? `linear-gradient(135deg, ${theme.primarySolid ?? theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                    ? `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primarySolid})`
                     : 'transparent',
                   border: isDone
                     ? 'none'
                     : isActive
-                    ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
+                    ? `2px solid ${theme.primarySolid}`
                     : '1.5px solid #D1D5DB',
-                  color: isActive ? theme.primaryColor : '#9CA3AF',
+                  color: isActive ? theme.primarySolid : '#6B7280',
                   fontSize: '0.7rem',
                   fontWeight: 500,
                   fontFamily: 'var(--font-inter)',
@@ -86,7 +88,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
                     >
-                      {step.visual}
+                      {idx + 1}
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -99,7 +101,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   style={{
                     height: value ? '3rem' : '2.25rem',
                     marginTop: '3px',
-                    backgroundColor: isDone ? theme.primaryColor : '#E5E7EB',
+                    backgroundColor: isDone ? theme.primarySolid : '#E5E7EB',
                     opacity: isDone ? 0.4 : 1,
                   }}
                 />
@@ -114,7 +116,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   fontFamily: 'var(--font-inter)',
                   fontSize: '0.875rem',
                   fontWeight: isActive ? 500 : 400,
-                  color: isDone ? '#6B7280' : isActive ? theme.primaryColor : '#9CA3AF',
+                  color: isDone ? '#6B7280' : isActive ? theme.primarySolid : '#6B7280',
                 }}
               >
                 {step.label}
@@ -125,7 +127,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   style={{
                     fontFamily: 'var(--font-inter)',
                     fontSize: '0.75rem',
-                    color: '#9CA3AF',
+                    color: '#6B7280',
                   }}
                 >
                   {value}

@@ -23,7 +23,7 @@ export default function MobileStepIndicator() {
                 style={{
                   backgroundColor:
                     isCompleted || isCurrent
-                      ? theme.primaryColor
+                      ? theme.primarySolid
                       : 'rgba(255,255,255,0.3)',
                   width: isCurrent ? '24px' : '8px',
                 }}
@@ -33,7 +33,7 @@ export default function MobileStepIndicator() {
                 <div
                   className="w-4 h-[1px] mx-1"
                   style={{
-                    backgroundColor: isCompleted ? theme.primaryColor : 'rgba(255,255,255,0.2)',
+                    backgroundColor: isCompleted ? theme.primarySolid : 'rgba(255,255,255,0.2)',
                   }}
                 />
               )}
@@ -43,7 +43,7 @@ export default function MobileStepIndicator() {
       </div>
 
       {/* Current step name */}
-      <p className="font-serif text-lg" style={{ color: theme.primaryColor }}>
+      <p className="font-serif text-lg" style={{ color: theme.primarySolid }}>
         {stepNames[currentStep - 1]}
       </p>
       <p className="text-sm text-white/50 font-mono">

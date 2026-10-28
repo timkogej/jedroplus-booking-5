@@ -288,7 +288,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             lineHeight: 1.2,
           }}
         >
-          Izberite <span style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>termin</span>
+          Izberite <span style={{ color: theme.primaryOnLight }}>termin</span>
         </h2>
         <p
           className="mt-2"
@@ -315,7 +315,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 disabled={isPrevDisabled}
                 className="w-7 h-7 rounded-full flex items-center justify-center"
                 style={{
-                  color: isPrevDisabled ? '#D1D5DB' : '#9CA3AF',
+                  color: isPrevDisabled ? '#D1D5DB' : '#6B7280',
                   backgroundColor: isPrevDisabled ? 'transparent' : '#F9FAFB',
                   border: `1px solid ${isPrevDisabled ? 'transparent' : '#E5E7EB'}`,
                   fontSize: '1rem',
@@ -325,7 +325,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 ‹
               </button>
               <span
-                className="capitalize"
+                className="first-cap"
                 style={{
                   fontFamily: 'var(--font-inter)',
                   fontSize: '0.85rem',
@@ -339,7 +339,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 onClick={() => navigateMonth(1)}
                 className="w-7 h-7 rounded-full flex items-center justify-center"
                 style={{
-                  color: '#9CA3AF',
+                  color: '#6B7280',
                   backgroundColor: '#F9FAFB',
                   border: '1px solid #E5E7EB',
                   fontSize: '1rem',
@@ -379,13 +379,13 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       className="elegant-date-pill flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
                       style={{
                         backgroundColor: isSelected
-                          ? theme.primaryColor
+                          ? theme.primarySolid
                           : isTodayDate
                           ? `${theme.primaryColor}08`
                           : 'white',
                         border: `1px solid ${
                           isSelected
-                            ? theme.primaryColor
+                            ? theme.primarySolid
                             : isTodayDate
                             ? `${theme.primaryColor}30`
                             : '#EFEFEF'
@@ -465,7 +465,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    className="capitalize"
+                    className="first-cap"
                     style={{
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.9rem',
@@ -512,7 +512,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.7rem',
                       fontWeight: 500,
-                      color: '#9CA3AF',
+                      color: '#6B7280',
                       letterSpacing: '0.03em',
                     }}
                   >
@@ -554,11 +554,11 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                             : isWeekend
                             ? '#6B7280'
                             : '#374151',
-                          backgroundColor: isSelected ? theme.primaryColor : 'transparent',
+                          backgroundColor: isSelected ? theme.primarySolid : 'transparent',
                           boxShadow: isSelected ? `0 2px 8px ${theme.primaryColor}40` : 'none',
                           borderColor:
                             isTodayDate && !isSelected && !isGrayed
-                              ? theme.primaryColor
+                              ? theme.primarySolid
                               : 'transparent',
                           borderWidth: '2px',
                           fontWeight: isTodayDate && !isGrayed ? 500 : 400,
@@ -576,7 +576,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                         {isTodayDate && !isSelected && !isGrayed && (
                           <span
                             className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-                            style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+                            style={{ backgroundColor: theme.primarySolid }}
                           />
                         )}
                       </motion.button>
@@ -611,14 +611,14 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     fontSize: '0.7rem',
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
-                    color: '#9CA3AF',
+                    color: '#6B7280',
                   }}
                 >
                   Prosti termini
                 </p>
                 {selectedDate ? (
                   <p
-                    className="mt-0.5 capitalize"
+                    className="mt-0.5 first-cap"
                     style={{
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.875rem',
@@ -634,7 +634,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     style={{
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.875rem',
-                      color: '#9CA3AF',
+                      color: '#6B7280',
                     }}
                   >
                     Izberite datum
@@ -655,7 +655,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.72rem',
                       fontWeight: 600,
-                      color: theme.secondaryColor ?? theme.primaryColor,
+                      color: theme.secondaryColor ?? theme.primarySolid,
                       lineHeight: 1,
                     }}
                   >
@@ -697,7 +697,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     style={{
                       fontFamily: 'var(--font-inter)',
                       fontSize: '0.875rem',
-                      color: '#9CA3AF',
+                      color: '#6B7280',
                     }}
                   >
                     Ni prostih terminov
@@ -738,7 +738,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                         style={{
                           fontFamily: 'var(--font-inter)',
                           fontSize: '0.9rem',
-                          color: isSelected ? theme.primaryColor : '#374151',
+                          color: isSelected ? theme.primarySolid : '#374151',
                         }}
                       >
                         {slot}
@@ -749,7 +749,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                           style={{
                             background: `${theme.primaryColor}10`,
                             borderColor: `${theme.primaryColor}30`,
-                            color: theme.primaryOnLight ?? theme.primaryColor,
+                            color: theme.primaryOnLight,
                             fontFamily: 'var(--font-inter)',
                           }}
                         >
@@ -761,12 +761,12 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                     {/* Radio indicator */}
                     <div
                       className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0"
-                      style={{ borderColor: isSelected ? theme.primaryColor : '#D1D5DB' }}
+                      style={{ borderColor: isSelected ? theme.primarySolid : '#D1D5DB' }}
                     >
                       {isSelected && (
                         <div
                           className="w-2.5 h-2.5 rounded-full"
-                          style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+                          style={{ backgroundColor: theme.primarySolid }}
                         />
                       )}
                     </div>
@@ -794,7 +794,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
           >
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primarySolid ?? theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid }}
             >
               <svg
                 width="12"
@@ -816,11 +816,11 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 color: '#374151',
               }}
             >
-              <span className="font-medium capitalize">
+              <span className="font-medium first-cap">
                 {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
               </span>{' '}
               ob{' '}
-              <span className="font-medium" style={{ color: theme.primaryOnLight ?? theme.primaryColor }}>
+              <span className="font-medium" style={{ color: theme.primaryOnLight }}>
                 {selectedTime}
               </span>
             </p>
@@ -844,7 +844,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
             }}
             language={language}
             variantStyle="elegant"
-            accentColor={theme.primaryColor}
+            accentColor={theme.primarySolid}
           />
         )}
       </AnimatePresence>

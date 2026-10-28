@@ -381,11 +381,11 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                         style={{
                           width: CARD_W,
                           scrollSnapAlign: 'center',
-                          backgroundColor: isSelected ? theme.primaryColor : 'var(--s2)',
+                          backgroundColor: isSelected ? theme.primarySolid : 'var(--s2)',
                           border: isTodayDate && !isSelected
                             ? `2px solid ${theme.primaryColor}60`
                             : isSelected
-                            ? `2px solid ${theme.primaryColor}`
+                            ? `2px solid ${theme.primarySolid}`
                             : '2px solid transparent',
                           boxShadow: isSelected
                             ? `0 6px 22px ${theme.primaryColor}45`
@@ -507,7 +507,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                     {t(language, 'availableSlots')}
                   </p>
                   <p
-                    className="capitalize"
+                    className="first-cap"
                     style={{ fontFamily: 'var(--font-clash)', fontWeight: 400, fontSize: '0.95rem', color: 'var(--t-primary)' }}
                   >
                     {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
@@ -519,7 +519,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                     className="px-3 py-1 rounded-full text-xs font-semibold"
                     style={{
                       background: `${theme.primaryColor}14`,
-                      color: theme.primaryColor,
+                      color: 'var(--t-accent)',
                       fontFamily: 'var(--font-inter)',
                     }}
                   >
@@ -600,9 +600,9 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                           }}
                           className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-semibold"
                           style={{
-                            backgroundColor: isSelected ? theme.primaryColor : 'var(--s1)',
+                            backgroundColor: isSelected ? theme.primarySolid : 'var(--s1)',
                             color: isSelected ? '#ffffff' : 'var(--t-primary)',
-                            border: `1px solid ${isSelected ? theme.primaryColor : 'var(--b1)'}`,
+                            border: `1px solid ${isSelected ? theme.primarySolid : 'var(--b1)'}`,
                             fontFamily: 'var(--font-inter)',
                             boxShadow: isSelected ? `0 4px 14px ${theme.primaryColor}40` : 'none',
                             transition: 'background-color 0.15s, color 0.15s, box-shadow 0.15s',
@@ -619,7 +619,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
                                   background: isSelected
                                     ? 'rgba(255,255,255,0.2)'
                                     : `${theme.primaryColor}14`,
-                                  color: isSelected ? '#ffffff' : theme.primaryColor,
+                                  color: isSelected ? '#ffffff' : 'var(--t-accent)',
                                   border: `1px solid ${isSelected ? 'rgba(255,255,255,0.3)' : `${theme.primaryColor}30`}`,
                                   fontFamily: 'var(--font-inter)',
                                 }}
@@ -668,7 +668,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
           >
             <motion.div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: theme.primaryColor }}
+              style={{ backgroundColor: theme.primarySolid }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 22 }}
@@ -678,14 +678,14 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
               </svg>
             </motion.div>
             <p
-              className="text-sm capitalize"
+              className="text-sm first-cap"
               style={{ color: 'var(--t-soft)', fontFamily: 'var(--font-inter)' }}
             >
               <span className="font-semibold">
                 {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
               </span>{' '}
               ob{' '}
-              <span className="font-semibold" style={{ color: theme.primaryColor }}>
+              <span className="font-semibold" style={{ color: 'var(--t-accent)' }}>
                 {selectedTime}
               </span>
             </p>
@@ -709,7 +709,7 @@ export default function ModernDateTimeSelection({ companySlug }: Props) {
             }}
             language={language}
             variantStyle="modern"
-            accentColor={theme.primaryColor}
+            accentColor={theme.primarySolid}
           />
         )}
       </AnimatePresence>

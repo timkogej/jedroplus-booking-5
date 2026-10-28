@@ -413,7 +413,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
               <div className="flex items-center gap-2 flex-shrink-0">
                 <span
                   className="magazine-body text-[15px] transition-colors duration-200 tabular-nums"
-                  style={{ color: isTimeSelected ? theme.primaryColor : '#1A1A1A' }}
+                  style={{ color: isTimeSelected ? theme.primarySolid : '#1A1A1A' }}
                 >
                   {time}
                 </span>
@@ -421,7 +421,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                   <span
                     className="magazine-caps text-[8px] tracking-[0.12em] px-1.5 py-0.5 border leading-none"
                     style={{
-                      color: theme.primaryColor,
+                      color: theme.primarySolid,
                       borderColor: `${theme.primaryColor}40`,
                     }}
                   >
@@ -441,14 +441,14 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                 className="w-4 h-4 rounded-full border transition-all duration-200 flex items-center justify-center flex-shrink-0"
                 style={{
                   borderColor: isTimeSelected
-                    ? theme.primaryColor
+                    ? theme.primarySolid
                     : 'rgba(0,0,0,0.2)',
                 }}
               >
                 {isTimeSelected && (
                   <div
                     className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: theme.primaryColor }}
+                    style={{ backgroundColor: theme.primarySolid }}
                   />
                 )}
               </div>
@@ -468,7 +468,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
     >
       {/* Section header */}
       <div className="mb-8">
-        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
+        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-4">
           {t(language, 'appointmentTitle')}
         </h1>
@@ -523,7 +523,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                       minHeight: 86,
                       scrollSnapAlign: 'center',
                       border: isSelected
-                        ? `1px solid ${theme.primaryColor}`
+                        ? `1px solid ${theme.primarySolid}`
                         : isTodayDate
                         ? `1px solid ${theme.primaryColor}35`
                         : '1px solid rgba(0,0,0,0.07)',
@@ -543,7 +543,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                       style={{
                         fontSize: '8px',
                         letterSpacing: '0.14em',
-                        color: isSelected ? theme.primaryColor : '#9CA3AF',
+                        color: isSelected ? theme.primarySolid : '#6B7280',
                         marginBottom: 5,
                       }}
                     >
@@ -555,7 +555,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                       className="magazine-serif leading-none"
                       style={{
                         fontSize: '1.45rem',
-                        color: isSelected ? theme.primaryColor : '#1A1A1A',
+                        color: isSelected ? theme.primarySolid : '#1A1A1A',
                         fontStyle: isSelected ? 'italic' : 'normal',
                         marginBottom: 4,
                       }}
@@ -569,7 +569,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                       style={{
                         fontSize: '8px',
                         letterSpacing: '0.1em',
-                        color: isSelected ? theme.primaryColor : '#C4C4C4',
+                        color: isSelected ? theme.primarySolid : '#C4C4C4',
                       }}
                     >
                       {format(date, 'MMM', { locale })}
@@ -585,7 +585,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                           style={{
                             fontSize: '0.5rem',
                             fontFamily: 'var(--font-playfair)',
-                            color: isSelected ? theme.primaryColor : scarceColor,
+                            color: isSelected ? theme.primarySolid : scarceColor,
                             lineHeight: 1,
                           }}
                         >
@@ -637,7 +637,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.22 }}
-                className="magazine-serif text-lg text-[#1A1A1A] capitalize"
+                className="magazine-serif text-lg text-[#1A1A1A] first-cap"
               >
                 {format(currentMonth, 'LLLL yyyy', { locale })}
               </motion.h3>
@@ -720,7 +720,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                       <motion.span
                         layoutId="magCalSelectedDay"
                         className="absolute inset-1 rounded-full"
-                        style={{ backgroundColor: theme.primaryColor }}
+                        style={{ backgroundColor: theme.primarySolid }}
                         transition={{ duration: 0.2 }}
                       />
                     )}
@@ -797,7 +797,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
         >
           <div
             className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid }}
           >
             <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
               <path
@@ -812,7 +812,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
           <span className="magazine-body text-[#1A1A1A] text-sm">
             {format(selectedDate, 'd. MMMM yyyy', { locale })}{' '}
             {t(language, 'atPreposition')}{' '}
-            <span style={{ color: theme.primaryColor }}>{selectedTime}</span>
+            <span style={{ color: theme.primarySolid }}>{selectedTime}</span>
           </span>
         </motion.div>
       )}
@@ -833,7 +833,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
             }}
             language={language}
             variantStyle="magazine"
-            accentColor={theme.primaryColor}
+            accentColor={theme.primarySolid}
           />
         )}
       </AnimatePresence>

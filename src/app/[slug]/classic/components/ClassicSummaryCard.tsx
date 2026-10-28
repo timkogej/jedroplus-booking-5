@@ -49,7 +49,7 @@ function SummaryRow({
           className="uppercase tracking-wide font-medium mb-0.5"
           style={{
             fontFamily: 'var(--font-nunito-sans)',
-            color: '#9CA3AF',
+            color: '#6B7280',
             fontSize: '0.6rem',
             letterSpacing: '0.08em',
           }}
@@ -197,13 +197,13 @@ export default function ClassicSummaryCard({
         >
           <div>
             <p
-              className="text-xs text-gray-400"
+              className="text-xs text-gray-500"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
               {formatDuration(totalDuration)}
             </p>
             <p
-              className="text-xs text-gray-400 mt-0.5"
+              className="text-xs text-gray-500 mt-0.5"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
               {t(language, 'total')}

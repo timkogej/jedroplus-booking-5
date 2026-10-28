@@ -69,7 +69,7 @@ export default function ClassicPaymentStep() {
           className="text-xs uppercase tracking-widest font-bold mb-3"
           style={{
             fontFamily: 'var(--font-nunito)',
-            color: '#9CA3AF',
+            color: '#6B7280',
             letterSpacing: '0.12em',
           }}
         >
@@ -77,13 +77,13 @@ export default function ClassicPaymentStep() {
         </p>
         <p
           className="text-4xl font-bold mb-1"
-          style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight ?? theme.primaryColor }}
+          style={{ fontFamily: 'var(--font-nunito)', color: theme.primaryOnLight }}
         >
           {(amount / 100).toFixed(2).replace('.', ',')} {currency}
         </p>
         {stripePaymentInfo?.paymentMode === 'deposit' && (
           <p
-            className="text-xs text-gray-400 mt-1"
+            className="text-xs text-gray-500 mt-1"
             style={{ fontFamily: 'var(--font-nunito-sans)' }}
           >
             Predplačilo / Deposit
@@ -99,7 +99,7 @@ export default function ClassicPaymentStep() {
           }}
         >
           <p
-            className="text-sm text-gray-400"
+            className="text-sm text-gray-500"
             style={{ fontFamily: 'var(--font-nunito-sans)' }}
           >
             {/* TODO: Replace with <Elements> + <PaymentElement> */}
@@ -117,7 +117,7 @@ export default function ClassicPaymentStep() {
         className="w-full py-4 rounded-2xl font-bold text-white mb-3"
         style={{
           fontFamily: 'var(--font-nunito)',
-          backgroundColor: theme.primarySolid ?? theme.primaryColor,
+          backgroundColor: theme.primarySolid,
           boxShadow: `0 6px 22px ${theme.primaryColor}38`,
         }}
         whileHover={{ scale: 1.02 }}

@@ -21,10 +21,10 @@ function SeasonalLoadingScreen() {
           transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' as const }}
         />
         <p
-          className="text-sm text-gray-400 tracking-wide"
+          className="text-sm text-gray-500 tracking-wide"
           style={{ fontFamily: 'var(--font-inter, Inter, sans-serif)', fontWeight: 500 }}
         >
-          Loading
+          Nalaganje
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export default function SeasonalPage() {
         }
       } catch (err) {
         console.error('Seasonal booking: failed to load init data:', err);
-        setError('Napaka pri nalaganju. Prosimo poskusite znova.');
+        setError('Napaka pri nalaganju. Prosimo, poskusite znova.');
       } finally {
         setLoading(false);
         setTimeout(() => setHasLoaded(true), 300);

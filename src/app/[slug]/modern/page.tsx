@@ -46,7 +46,7 @@ function ModernLoadingScreen() {
             letterSpacing: '0.12em',
           }}
         >
-          Loading
+          Nalaganje
         </p>
       </motion.div>
     </div>
@@ -91,7 +91,7 @@ function ModernErrorScreen({ error }: { error: string }) {
           onClick={() => window.location.reload()}
           className="px-6 py-3 rounded-xl text-white font-medium transition-opacity hover:opacity-90"
           style={{
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             fontFamily: 'var(--font-inter)',
             boxShadow: `0 8px 25px ${theme.primaryColor}50`,
           }}
@@ -151,7 +151,7 @@ export default function ModernPage() {
         }
       } catch (err) {
         console.error('Modern booking: failed to load init data:', err);
-        setError('Napaka pri nalaganju. Prosimo poskusite znova.');
+        setError('Napaka pri nalaganju. Prosimo, poskusite znova.');
       } finally {
         setLoading(false);
         setTimeout(() => setHasLoaded(true), 300);

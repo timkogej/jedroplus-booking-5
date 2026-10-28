@@ -41,7 +41,7 @@ function ServiceCard({
     <motion.div
       variants={itemVariants}
       onClick={() => {
-        selectCategoryAndService(category, service);
+        selectCategoryAndService(category, service, true);
         usePromotionsStore.getState().computeActivePromotion(String(service.id));
       }}
       className="group cursor-pointer relative"
@@ -51,9 +51,9 @@ function ServiceCard({
       <div
         className="relative overflow-hidden border transition-all duration-350"
         style={{
-          borderColor: isSelected ? theme.primaryColor : 'rgba(0,0,0,0.1)',
+          borderColor: isSelected ? theme.primarySolid : 'rgba(0,0,0,0.1)',
           borderLeftWidth: isSelected ? 3 : 1,
-          borderLeftColor: isSelected ? theme.primaryColor : 'rgba(0,0,0,0.1)',
+          borderLeftColor: isSelected ? theme.primarySolid : 'rgba(0,0,0,0.1)',
           backgroundColor: isSelected ? `${theme.primaryColor}04` : 'white',
           boxShadow: isSelected
             ? `0 4px 24px ${theme.primaryColor}10`
@@ -64,7 +64,7 @@ function ServiceCard({
           <div className="flex-1 min-w-0">
             <h3
               className="magazine-serif text-[1.05rem] leading-snug mb-1 transition-colors duration-300"
-              style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+              style={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
             >
               {service.naziv}
             </h3>
@@ -87,14 +87,14 @@ function ServiceCard({
                   finalCena={promo.finalCena}
                   size="sm"
                   variantStyle="magazine"
-                  accentColor={theme.primaryColor}
-                  priceStyle={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+                  accentColor={theme.primarySolid}
+                  priceStyle={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
                 />
               </AnimatePresence>
             ) : (
               <span
                 className="magazine-serif text-[1.4rem] leading-none font-light tabular-nums transition-colors duration-300"
-                style={{ color: isSelected ? theme.primaryColor : '#1A1A1A' }}
+                style={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
               >
                 {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
               </span>
@@ -104,7 +104,7 @@ function ServiceCard({
 
         <motion.div
           className="absolute bottom-0 left-0 h-[2px]"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           animate={{ width: isSelected ? '100%' : '0%' }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
@@ -125,7 +125,7 @@ export default function MagazineServiceSelection() {
     >
       {/* Section header */}
       <motion.div variants={itemVariants} className="mb-10">
-        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primaryColor }} />
+        <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />
         <h1 className="magazine-serif text-[2.5rem] md:text-[3rem] text-[#1A1A1A] tracking-[-0.02em] leading-[1.1] mb-2">
           {t(language, 'servicesTitle')}
         </h1>
@@ -147,7 +147,7 @@ export default function MagazineServiceSelection() {
               <div className="flex items-baseline gap-3 mb-4 pb-3 border-b" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 <span
                   className="magazine-caps text-[9px] tracking-[0.2em] tabular-nums"
-                  style={{ color: theme.primaryColor }}
+                  style={{ color: theme.primarySolid }}
                 >
                   {paddedIndex}
                 </span>

@@ -31,14 +31,14 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
             className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
             style={{
               backgroundColor: anyPerson ? `${theme.primaryColor}22` : 'var(--s1)',
-              border: `1px solid ${anyPerson ? theme.primaryColor : 'var(--b1)'}`,
+              border: `1px solid ${anyPerson ? theme.primarySolid : 'var(--b1)'}`,
             }}
             animate={anyPerson ? { rotate: [0, 8, -8, 0] } : {}}
             transition={{ duration: 0.5 }}
           >
             <svg
               className="w-6 h-6"
-              style={{ color: anyPerson ? theme.primaryColor : 'var(--t-muted)' }}
+              style={{ color: anyPerson ? theme.primarySolid : 'var(--t-muted)' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -76,7 +76,7 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
           <div className="relative flex-shrink-0">
             <div
               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base"
-              style={{ backgroundColor: theme.primaryColor, fontFamily: 'var(--font-quicksand)' }}
+              style={{ backgroundColor: theme.primarySolid, fontFamily: 'var(--font-quicksand)' }}
             >
               {employee.initials}
             </div>
@@ -84,7 +84,7 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
               {isSelected && (
                 <motion.div
                   className="absolute inset-0 rounded-full"
-                  style={{ border: `2px solid ${theme.primaryColor}` }}
+                  style={{ border: `2px solid ${theme.primarySolid}` }}
                   initial={{ scale: 1, opacity: 0.7 }}
                   animate={{ scale: 1.5, opacity: 0 }}
                   exit={{ opacity: 0 }}
@@ -152,7 +152,7 @@ export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
           <span
             className="seasonal-gradient-text"
             style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.secondaryColor})`,
+              backgroundImage: `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor})`,
             }}
           >
             specialista

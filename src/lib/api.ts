@@ -10,70 +10,26 @@
  *       Company.multiple_services_online in the store.
  */
 
-import { ensureReadable, readableInkOnLight } from '@/lib/color';
+import { withReadableColors } from '@/lib/color';
 import {
   InitResponse,
   RangeSlotsResponse,
   DaySlots,
-  BookingConfirmation,
   Theme,
 } from '@/types';
 
 // Base URL — override via NEXT_PUBLIC_N8N_BOOKING_URL environment variable
-const API_BASE_URL =
+export const API_BASE_URL =
   process.env.NEXT_PUBLIC_N8N_BOOKING_URL ||
   'https://n8n.jedroplus.com/webhook/booking-v2';
 
 /** Default visual theme — individual API-returned fields override these */
-export const DEFAULT_THEME: Theme = {
+export const DEFAULT_THEME: Theme = withReadableColors({
   primaryColor: '#6D5EF7',
   secondaryColor: '#2AD4C5',
   bgFrom: '#F7F4FF',
   bgTo: '#EEFFFB',
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Legacy parameter shape used by variant Confirmation components (Phase 2 compat).
-// These components pass serviceId (string) and old consent fields; they will be
-// upgraded to the new BookingSubmission shape in Phase 3.
-// ─────────────────────────────────────────────────────────────────────────────
-interface LegacyBookingParams {
-  companySlug: string;
-  date: string;
-  time: string;
-  /** Single service ID — legacy field; use serviceIds[] in new code */
-  serviceId: string;
-  employeeId: string | null;
-  anyPerson: boolean;
-  eligibleEmployeeIds?: string[];
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  gender?: string;
-  notes?: string;
-  gdprSendMarketing?: boolean;
-  privacyConsent: boolean;
-  marketingConsent?: boolean;
-  consentTimestamp?: string;
-  // Promotion fields (passed through from promotionsStore)
-  promocijaTip?: 'popust' | 'happy_hour' | null;
-  promocijaNaziv?: string | null;
-  popust?: number;
-  popustTip?: 'valuta' | '%';
-  finalCena?: number;
-  originalCena?: number;
-  popust_id?: string;
-  happy_hour_id?: string;
-  // Add-on fields
-  addOnServiceId?: string | null;
-  addOnNaziv?: string | null;
-  addOnFinalCena?: number;
-  addOnOriginalCena?: number;
-  addOnPopust?: number;
-  addOnPopustTip?: 'valuta' | '%';
-  addOnTrajanjeMin?: number;
-}
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // fetchInitData
@@ -114,9 +70,6 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
   // Merge returned theme on top of defaults (API values win)
   data.theme = { ...DEFAULT_THEME, ...(data.theme || {}) };
 
-  // A very light company colour (e.g. #aaaaaa) is unreadable as text on the
-  // light designs, so they use this darkened variant. Dark designs keep the
-  // original colour.
   // Logo lives in a table the anon key cannot read; our own route returns it.
   if (data.company) {
     try {
@@ -130,9 +83,12 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
     }
   }
 
-  const rawPrimary = data.theme.primaryColor || DEFAULT_THEME.primaryColor;
-  data.theme.primaryOnLight = readableInkOnLight(rawPrimary);
-  data.theme.primarySolid = ensureReadable(rawPrimary);
+  // A very light company colour (e.g. #aaaaaa) is unreadable as text or under
+  // white text; add the readable shades every design uses.
+  data.theme = withReadableColors({
+    ...data.theme,
+    primaryColor: data.theme.primaryColor || DEFAULT_THEME.primaryColor,
+  });
 
   return data as InitResponse;
 }
@@ -288,103 +244,4 @@ export async function checkSlotAvailable(params: {
   return data as { available: boolean; reason?: string };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// submitBooking — legacy-compatible wrapper (Phase 2)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Submit a confirmed booking.
- *
- * Accepts the legacy single-serviceId shape used by variant Confirmation components
- * (Phase 2 backward compat). Internally maps to the v2 API body. Phase 3 will
- * update variant components to pass the full BookingSubmission from types/index.ts.
- *
- * On structured error responses (success:false + error code), throws an Error
- * with the localised message; attaches the error code as `.code` so the UI
- * can react to 'no_employee_for_combination', 'slot_taken', etc.
- */
-export async function submitBooking(
-  data: LegacyBookingParams
-): Promise<BookingConfirmation> {
-  const body: Record<string, unknown> = {
-    action: 'create',
-    companySlug: data.companySlug,
-    date: data.date,
-    time: data.time,
-    // Map legacy serviceId → new serviceIds array
-    serviceIds: [data.serviceId],
-    employeeId: data.employeeId,
-    any_person: data.anyPerson,
-    eligibleEmployeeIds: data.eligibleEmployeeIds ?? [],
-    resursiIds: [],
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    phone: data.phone,
-    gender: data.gender ?? '',
-    notes: data.notes ?? '',
-    privacy_consent: data.privacyConsent,
-    marketing_consent: data.marketingConsent ?? data.gdprSendMarketing ?? false,
-    consent_timestamp: data.consentTimestamp ?? new Date().toISOString(),
-    language: 'sl',
-  };
-
-  if (data.originalCena !== undefined) body.originalCena = data.originalCena;
-  if (data.finalCena !== undefined) body.finalCena = data.finalCena;
-
-  // Promotion fields — only include when present
-  if (data.promocijaTip) {
-    body.promocijaTip = data.promocijaTip;
-    body.promocijaNaziv = data.promocijaNaziv ?? null;
-    body.popust = data.popust;
-    body.popustTip = data.popustTip;
-    if (data.popust_id) body.popust_id = data.popust_id;
-    if (data.happy_hour_id) body.happy_hour_id = data.happy_hour_id;
-  }
-
-  // Add-on fields — only include when present
-  if (data.addOnServiceId) {
-    body.addOnServiceId = data.addOnServiceId;
-    body.addOnNaziv = data.addOnNaziv ?? null;
-    body.addOnFinalCena = data.addOnFinalCena;
-    body.addOnOriginalCena = data.addOnOriginalCena;
-    body.addOnPopust = data.addOnPopust;
-    body.addOnPopustTip = data.addOnPopustTip;
-    body.addOnTrajanjeMin = data.addOnTrajanjeMin;
-  }
-
-  const response = await fetch(API_BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    throw new Error(`submitBooking failed: ${response.status}`);
-  }
-
-  const text = await response.text();
-
-  // Empty/non-JSON body → treat as success
-  if (!text || text.trim() === '') {
-    return { success: true, message: 'Rezervacija uspešna!', storitev: '', datum: '', cas: '' };
-  }
-
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    // Non-JSON 200 OK → treat as success
-    return { success: true, message: 'Rezervacija uspešna!', storitev: '', datum: '', cas: '' };
-  }
-
-  if (parsed.success === false) {
-    const err = new Error(
-      (parsed.message as string) || 'Booking failed'
-    ) as Error & { code?: string };
-    err.code = parsed.error as string | undefined;
-    throw err;
-  }
-
-  return parsed as unknown as BookingConfirmation;
-}
+// Creating a booking lives in src/lib/booking/submit.ts.

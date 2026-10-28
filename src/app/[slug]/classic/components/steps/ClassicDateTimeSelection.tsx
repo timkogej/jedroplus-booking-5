@@ -420,12 +420,12 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                           width: CARD_W,
                           scrollSnapAlign: 'center',
                           background: isSelected
-                            ? theme.primaryColor
+                            ? theme.primarySolid
                             : 'rgba(255,255,255,0.92)',
                           border: isTodayDate && !isSelected
                             ? `2px solid ${theme.primaryColor}50`
                             : isSelected
-                            ? `2px solid ${theme.primarySolid ?? theme.primaryColor}`
+                            ? `2px solid ${theme.primarySolid}`
                             : '2px solid transparent',
                           boxShadow: isSelected
                             ? `0 5px 18px ${theme.primaryColor}42`
@@ -552,14 +552,14 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                     style={{
                       fontFamily: 'var(--font-nunito-sans)',
                       fontSize: '0.6rem',
-                      color: '#9CA3AF',
+                      color: '#6B7280',
                       letterSpacing: '0.1em',
                     }}
                   >
                     {t(language, 'availableSlots')}
                   </p>
                   <p
-                    className="font-bold text-gray-800 capitalize"
+                    className="font-bold text-gray-800 first-cap"
                     style={{ fontFamily: 'var(--font-nunito)', fontSize: '0.95rem' }}
                   >
                     {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
@@ -571,7 +571,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                     className="px-3 py-1 rounded-full text-xs font-semibold"
                     style={{
                       background: `${theme.primaryColor}14`,
-                      color: theme.primaryOnLight ?? theme.primaryColor,
+                      color: theme.primaryOnLight,
                       fontFamily: 'var(--font-nunito-sans)',
                     }}
                   >
@@ -613,7 +613,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                       </svg>
                     </div>
                     <p
-                      className="text-sm text-gray-400"
+                      className="text-sm text-gray-500"
                       style={{ fontFamily: 'var(--font-nunito-sans)' }}
                     >
                       {t(language, 'noSlotsForDay')}
@@ -646,11 +646,11 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                           style={{
                             fontFamily: 'var(--font-nunito-sans)',
                             background: isSelected
-                              ? theme.primaryColor
+                              ? theme.primarySolid
                               : '#F8F9FA',
                             color: isSelected ? '#ffffff' : '#374151',
                             border: `2px solid ${
-                              isSelected ? theme.primaryColor : hhLabel ? `${theme.primaryColor}30` : 'transparent'
+                              isSelected ? theme.primarySolid : hhLabel ? `${theme.primaryColor}30` : 'transparent'
                             }`,
                             boxShadow: isSelected
                               ? `0 4px 12px ${theme.primaryColor}38`
@@ -674,7 +674,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
                             <span
                               className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold leading-none"
                               style={{
-                                background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primaryColor,
+                                background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primarySolid,
                                 color: '#ffffff',
                                 fontFamily: 'var(--font-nunito-sans)',
                               }}
@@ -704,7 +704,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
             }}
           >
             <p
-              className="text-sm text-gray-400"
+              className="text-sm text-gray-500"
               style={{ fontFamily: 'var(--font-nunito-sans)' }}
             >
               {t(language, 'chooseAbove')}
@@ -729,7 +729,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
           >
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: theme.primarySolid ?? theme.primaryColor }}
+              style={{ background: theme.primarySolid }}
             >
               <svg
                 width="11"
@@ -745,7 +745,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
               </svg>
             </div>
             <p
-              className="text-sm capitalize"
+              className="text-sm first-cap"
               style={{
                 fontFamily: 'var(--font-nunito-sans)',
                 color: '#374151',
@@ -757,7 +757,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
               ob{' '}
               <span
                 className="font-semibold"
-                style={{ color: theme.primaryOnLight ?? theme.primaryColor }}
+                style={{ color: theme.primaryOnLight }}
               >
                 {selectedTime}
               </span>
@@ -782,7 +782,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
             }}
             language={language}
             variantStyle="classic"
-            accentColor={theme.primaryColor}
+            accentColor={theme.primarySolid}
           />
         )}
       </AnimatePresence>

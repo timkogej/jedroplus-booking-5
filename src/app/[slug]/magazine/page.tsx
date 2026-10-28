@@ -80,7 +80,7 @@ export default function MagazinePage() {
 
   // Keep CSS custom properties in sync when theme changes after init
   useEffect(() => {
-    document.documentElement.style.setProperty('--mag-primary', theme.primaryColor);
+    document.documentElement.style.setProperty('--mag-primary', theme.primarySolid);
     document.documentElement.style.setProperty('--mag-secondary', theme.secondaryColor);
     document.documentElement.style.setProperty('--mag-bg-from', theme.bgFrom);
     document.documentElement.style.setProperty('--mag-bg-to', theme.bgTo);
@@ -96,7 +96,7 @@ export default function MagazinePage() {
         >
           <div
             className="w-8 h-8 rounded-full border border-t-transparent animate-spin mx-auto mb-6"
-            style={{ borderColor: `${theme.primaryColor} transparent transparent transparent` }}
+            style={{ borderColor: `${theme.primarySolid} transparent transparent transparent` }}
           />
           <p className="magazine-caps text-[10px] tracking-[0.25em] text-[#6B6B6B]">
             {t(language, 'loading')}

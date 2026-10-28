@@ -51,7 +51,7 @@ export default function EmployeeSelection() {
           className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: isSelected ? 1 : 0 }}
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           transition={{ duration: 0.2 }}
         />
 
@@ -70,12 +70,12 @@ export default function EmployeeSelection() {
               className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 text-lg font-medium"
               style={{
                 border: isSelected
-                  ? `3px solid ${theme.primaryColor}`
+                  ? `3px solid ${theme.primarySolid}`
                   : '2px solid rgba(255,255,255,0.3)',
                 backgroundColor: isSelected
                   ? `${theme.primaryColor}20`
                   : 'rgba(255,255,255,0.1)',
-                color: isSelected ? theme.primaryColor : 'white',
+                color: isSelected ? theme.primarySolid : 'white',
                 boxShadow: isSelected ? `0 0 20px ${theme.primaryColor}40` : 'none',
               }}
             >
@@ -92,7 +92,7 @@ export default function EmployeeSelection() {
             <h3
               className="font-serif text-xl mb-1 transition-colors duration-300"
               style={{
-                color: isSelected ? theme.primaryColor : 'white',
+                color: isSelected ? theme.primarySolid : 'white',
               }}
             >
               {isAnyOption ? 'Kdorkoli' : employee?.label}
@@ -116,7 +116,7 @@ export default function EmployeeSelection() {
           >
             <ChevronRight
               className="w-5 h-5"
-              style={{ color: theme.primaryColor }}
+              style={{ color: theme.primarySolid }}
             />
           </motion.div>
         </div>
@@ -138,7 +138,7 @@ export default function EmployeeSelection() {
       <motion.div variants={itemVariants} className="mb-8">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
           Izberite{' '}
-          <span style={{ color: theme.primaryColor }}>
+          <span style={{ color: theme.primarySolid }}>
             specialista
           </span>
         </h1>

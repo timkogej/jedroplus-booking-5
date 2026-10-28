@@ -54,7 +54,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
               left: '13px',
               top: '14px',
               width: '2px',
-              backgroundColor: theme.primaryColor,
+              backgroundColor: theme.primarySolid,
               boxShadow: `0 0 8px ${theme.primaryColor}60`,
             }}
             initial={{ height: '0%' }}
@@ -82,9 +82,9 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
                     className="relative w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-semibold z-10"
                     style={{
                       backgroundColor:
-                        isDone || isActive ? theme.primaryColor : 'var(--s2)',
+                        isDone || isActive ? theme.primarySolid : 'var(--s2)',
                       color: isDone || isActive ? '#ffffff' : 'var(--t-muted)',
-                      border: `1.5px solid ${isDone || isActive ? theme.primaryColor : 'var(--b2)'}`,
+                      border: `1.5px solid ${isDone || isActive ? theme.primarySolid : 'var(--b2)'}`,
                       boxShadow: isActive ? `0 0 14px ${theme.primaryColor}50` : 'none',
                       fontFamily: 'var(--font-quicksand)',
                     }}

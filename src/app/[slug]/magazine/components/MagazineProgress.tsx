@@ -5,15 +5,19 @@ import { useBookingStore } from '@/store/bookingStore';
 import { t } from '../i18n';
 
 export default function MagazineProgress() {
-  const { currentStep, theme, language } = useBookingStore();
+  const { currentStep, theme, language, prikazZaposlenih } = useBookingStore();
 
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+  // The specialist step is skipped when the company hides employees online.
   const STEPS = [
-    { num: '01', labelKey: 'stepService' as const, roman: 'I', storeStep: 1 },
-    { num: '02', labelKey: 'stepSpecialist' as const, roman: 'II', storeStep: 3 },
-    { num: '03', labelKey: 'stepAppointment' as const, roman: 'III', storeStep: 4 },
-    { num: '04', labelKey: 'stepDetails' as const, roman: 'IV', storeStep: 5 },
-    { num: '05', labelKey: 'stepConfirm' as const, roman: 'V', storeStep: 6 },
-  ];
+    { labelKey: 'stepService' as const, storeStep: 1 },
+    { labelKey: 'stepSpecialist' as const, storeStep: 3 },
+    { labelKey: 'stepAppointment' as const, storeStep: 4 },
+    { labelKey: 'stepDetails' as const, storeStep: 5 },
+    { labelKey: 'stepConfirm' as const, storeStep: 6 },
+  ]
+    .filter((s) => prikazZaposlenih || s.storeStep !== 3)
+    .map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0'), roman: ROMAN[i] }));
 
   const idx = STEPS.findIndex(s => s.storeStep >= currentStep);
   const safeIdx = idx === -1 ? STEPS.length - 1 : idx;
@@ -33,7 +37,7 @@ export default function MagazineProgress() {
                   className="magazine-caps text-[9px] tracking-[0.18em] transition-all duration-500"
                   style={{
                     color: isActive
-                      ? theme.primaryColor
+                      ? theme.primarySolid
                       : isPast
                       ? '#6B6B6B'
                       : 'rgba(0,0,0,0.2)',
@@ -45,7 +49,7 @@ export default function MagazineProgress() {
                   className="magazine-serif text-[11px] transition-all duration-500"
                   style={{
                     color: isActive
-                      ? theme.primaryColor
+                      ? theme.primarySolid
                       : isPast
                       ? '#6B6B6B'
                       : 'rgba(0,0,0,0.18)',
@@ -66,9 +70,9 @@ export default function MagazineProgress() {
         <div className="ml-auto pl-6 border-l border-black/10">
           <p
             className="magazine-caps text-[9px] tracking-[0.22em]"
-            style={{ color: theme.primaryColor }}
+            style={{ color: theme.primarySolid }}
           >
-            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / 05
+            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / {String(STEPS.length).padStart(2, '0')}
           </p>
         </div>
       </div>
@@ -78,9 +82,9 @@ export default function MagazineProgress() {
         <div>
           <p
             className="magazine-caps text-[9px] tracking-[0.22em] mb-1"
-            style={{ color: theme.primaryColor }}
+            style={{ color: theme.primarySolid }}
           >
-            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / 05
+            {t(language, 'chapter')} {STEPS[safeIdx]?.num} / {String(STEPS.length).padStart(2, '0')}
           </p>
           <p className="magazine-serif text-base text-[#1A1A1A]">
             {t(language, STEPS[safeIdx]?.labelKey ?? 'stepService')}
@@ -97,7 +101,7 @@ export default function MagazineProgress() {
                 width: i === safeIdx ? 20 : 6,
                 backgroundColor:
                   i === safeIdx
-                    ? theme.primaryColor
+                    ? theme.primarySolid
                     : i < safeIdx
                     ? `${theme.primaryColor}50`
                     : 'rgba(0,0,0,0.12)',
@@ -112,7 +116,7 @@ export default function MagazineProgress() {
       <div className="h-[1px] bg-black/10 mt-4 overflow-hidden">
         <motion.div
           className="h-full"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           animate={{ width: `${((safeIdx + 1) / STEPS.length) * 100}%` }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         />

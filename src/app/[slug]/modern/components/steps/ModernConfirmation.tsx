@@ -5,24 +5,15 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
+import { bookingErrorMessage, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { usePromotionsStore } from '@/store/promotionsStore';
-import type { BookingConfirmation } from '@/types';
 import {
   formatBookingPrice,
   getBookingPricing,
-  getPromotionPopustTip,
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
-import {
-  buildCancelUrl,
-  buildSuccessUrl,
-  redirectToCheckout,
-} from '@/lib/checkout';
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_N8N_BOOKING_URL ||
-  'https://n8n.jedroplus.com/webhook/booking-v2';
 
 interface Props {
   companySlug?: string;
@@ -138,7 +129,7 @@ function SuccessView() {
           {/* Main ring */}
           <motion.div
             className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${theme.primaryColor}` }}
+            style={{ border: `2px solid ${theme.primarySolid}` }}
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, type: 'spring', stiffness: 220, damping: 18 }}
@@ -153,7 +144,7 @@ function SuccessView() {
           >
             <svg
               className="w-10 h-10"
-              style={{ color: theme.primaryColor }}
+              style={{ color: 'var(--t-accent)' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -193,8 +184,8 @@ function SuccessView() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-sm font-semibold capitalize"
-            style={{ color: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+            className="text-sm font-semibold first-cap"
+            style={{ color: 'var(--t-accent)', fontFamily: 'var(--font-inter)' }}
           >
             {format(selectedDate, 'd. MMMM yyyy', { locale: sl })} ob {selectedTime}
           </motion.p>
@@ -218,7 +209,7 @@ function SuccessView() {
         <div
           className="h-1"
           style={{
-            background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`,
+            background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor})`,
           }}
         />
 
@@ -255,7 +246,7 @@ function SuccessView() {
           {bookingConfirmation?.datum && (
             <div className="modern-summary-row">
               <span className="modern-summary-label">{t(language, 'fieldDate')}</span>
-              <span className="modern-summary-value capitalize">{bookingConfirmation.datum}</span>
+              <span className="modern-summary-value first-cap">{bookingConfirmation.datum}</span>
             </div>
           )}
 
@@ -265,7 +256,7 @@ function SuccessView() {
               <span className="modern-summary-label">{t(language, 'fieldTime')}</span>
               <span
                 className="modern-summary-value font-semibold"
-                style={{ color: theme.primaryColor }}
+                style={{ color: 'var(--t-accent)' }}
               >
                 {bookingConfirmation.cas}
               </span>
@@ -284,7 +275,7 @@ function SuccessView() {
           >
             <svg
               className="w-4 h-4 flex-shrink-0"
-              style={{ color: theme.primaryColor }}
+              style={{ color: 'var(--t-accent)' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -371,7 +362,7 @@ function SuccessView() {
           }}
           className="w-full py-4 rounded-2xl text-white font-semibold text-sm relative overflow-hidden"
           style={{
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.primarySolid,
             fontFamily: 'var(--font-inter)',
             boxShadow: `0 8px 28px ${theme.primaryColor}40`,
           }}
@@ -400,7 +391,6 @@ export default function ModernConfirmation({ companySlug }: Props) {
     employeesUI,
     selectedEmployeeId,
     anyPerson,
-    eligibleEmployeeIds,
     selectedServices,
     selectedService,
     selectedDate,
@@ -449,106 +439,15 @@ export default function ModernConfirmation({ companySlug }: Props) {
     setError(null);
 
     try {
-      const body: Record<string, unknown> = {
-        action: 'create',
-        companySlug,
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        time: selectedTime,
-        serviceIds: services.map((s) => s.id),
-        employeeId: selectedEmployeeId,
-        any_person: anyPerson,
-        eligibleEmployeeIds,
-        resursiIds: [],
-        firstName: customerDetails.firstName,
-        lastName: customerDetails.lastName,
-        email: customerDetails.email,
-        phone: customerDetails.phone,
-        gender: customerDetails.gender ?? '',
-        notes: customerDetails.notes ?? '',
-        privacy_consent: customerDetails.privacyConsent ?? false,
-        marketing_consent: customerDetails.gdprSendMarketing ?? false,
-        consent_timestamp: new Date().toISOString(),
-        language,
-        originalCena: totalPrice,
-        finalCena: finalPrice,
-      };
-
-      if (promotion) {
-        body.promocijaTip = promotion.type;
-        body.promocijaNaziv = promotion.naziv;
-        body.popust = pricing.discountAmount;
-        body.popustTip = getPromotionPopustTip(promotion);
-        if (promotion.type === 'popust') body.popust_id = promotion.id;
-        if (promotion.type === 'happy_hour') body.happy_hour_id = promotion.id;
-      }
-
-      if (selectedAddOn) {
-        body.addOnServiceId = selectedAddOn.id;
-        body.addOnNaziv = selectedAddOn.naziv;
-        body.addOnFinalCena = selectedAddOn.finalCena;
-        body.addOnOriginalCena = selectedAddOn.originalCena;
-        body.addOnPopust = selectedAddOn.popustZnesek;
-        body.addOnPopustTip = selectedAddOn.tipPopusta === 'percentage' ? '%' : 'valuta';
-        body.addOnTrajanjeMin = selectedAddOn.trajanjeMin;
-      }
-
-      const response = await fetch(API_BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Booking failed: ${response.status}`);
-      }
-
-      const text = await response.text();
-      let parsed: Record<string, unknown> = {};
-      if (text && text.trim()) {
-        try { parsed = JSON.parse(text); } catch { /* treat as success */ }
-      }
-
-      if (parsed.success === false) {
-        const msg = (parsed.message as string) || t(language, 'bookingFailed');
-        setError(msg);
-        return;
-      }
-
-      const confirmation = parsed as unknown as BookingConfirmation;
-      const serviceName =
-        confirmation.storitev || services.map((s) => s.naziv).join(' + ');
+      const result = await submitCurrentBooking(companySlug);
+      const { confirmation, serviceName } = result;
       const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
 
       if (confirmation.requiresPayment === true) {
-        const appointmentId = String(
-          confirmation.terminRowId ??
-            confirmation.terminId ??
-            confirmation.stripe?.terminId ??
-            ''
-        );
         setRedirecting(true);
 
         try {
-          await redirectToCheckout({
-            companySlug,
-            appointmentId,
-            amount:
-              confirmation.paymentAmount ?? confirmation.stripe?.amount ?? finalPrice,
-            currency: confirmation.currency ?? confirmation.stripe?.currency ?? 'EUR',
-            serviceName,
-            customerEmail: customerDetails.email,
-            customerName: `${customerDetails.firstName} ${customerDetails.lastName}`,
-            language,
-            paymentMode:
-              confirmation.paymentMode ?? confirmation.stripe?.paymentMode ?? 'full',
-            successUrl: buildSuccessUrl(companySlug, 'modern', {
-              lang: language,
-              serviceName,
-              date: confirmation.datum || datumDisplay,
-              time: confirmation.cas || selectedTime,
-            }),
-            cancelUrl: buildCancelUrl(companySlug, 'modern'),
-          });
+          await startCheckout(result, companySlug, 'modern', datumDisplay);
           return;
         } catch (err) {
           console.error('Modern booking: failed to start payment:', err);
@@ -560,14 +459,14 @@ export default function ModernConfirmation({ companySlug }: Props) {
 
       setBookingConfirmation({
         success: true,
-        message: (parsed.message as string) || 'Rezervacija uspešna!',
+        message: confirmation.message || 'Rezervacija uspešna!',
         storitev: serviceName,
         datum: datumDisplay,
         cas: selectedTime,
       });
     } catch (err) {
       console.error('Modern booking: submit failed:', err);
-      setError(t(language, 'bookingFailed'));
+      setError(bookingErrorMessage(err, t(language, 'bookingFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -645,7 +544,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
         <div
           className="h-1"
           style={{
-            background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`,
+            background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor})`,
           }}
         />
 
@@ -654,7 +553,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
             <div key={i} className="modern-summary-row">
               <span className="modern-summary-label">{row.label}</span>
               <span
-                className="modern-summary-value capitalize"
+                className={`modern-summary-value ${String(row.value).includes('@') ? '' : 'first-cap'}`}
                 style={{ maxWidth: '65%' }}
               >
                 {row.value}
@@ -727,7 +626,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
         disabled={isSubmitting}
         className="w-full py-4 rounded-2xl text-white font-semibold relative overflow-hidden"
         style={{
-          backgroundColor: theme.primaryColor,
+          backgroundColor: theme.primarySolid,
           fontFamily: 'var(--font-inter)',
           fontSize: '0.975rem',
           cursor: isSubmitting ? 'not-allowed' : 'pointer',

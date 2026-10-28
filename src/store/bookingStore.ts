@@ -14,6 +14,7 @@ import {
   InitResponse,
 } from '@/types';
 import { DEFAULT_THEME } from '@/lib/api';
+import { withReadableColors } from '@/lib/color';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper — read persisted language preference (SSR-safe)
@@ -129,8 +130,12 @@ interface BookingState {
   selectCategory: (category: Category) => void;
   /** Single-service select; keeps selectedServices in sync for backward compat */
   selectService: (service: Service) => void;
-  /** Combined category+service selection (used in compact step 1/2 variants) */
-  selectCategoryAndService: (category: Category, service: Service) => void;
+  /**
+   * Combined category+service selection (used in compact step 1/2 variants).
+   * `singleOnly` is for designs without an "add another service" screen: they
+   * always continue, even when the company allows several services.
+   */
+  selectCategoryAndService: (category: Category, service: Service, singleOnly?: boolean) => void;
   selectDate: (date: Date) => void;
   selectTime: (time: string) => void;
   setCustomerDetails: (details: CustomerDetails) => void;
@@ -283,6 +288,18 @@ export const useBookingStore = create<BookingState>((set, get) => {
 
   // ── Store object ─────────────────────────────────────────────────────────────
 
+  /**
+   * The step to actually show. When the company hides employees online
+   * (prikazZaposlenih=false) step 3 is skipped in every design and the booking
+   * goes to whoever is free.
+   */
+  function resolveStep(step: BookingStep): Partial<BookingState> {
+    if (step === 3 && !get().prikazZaposlenih) {
+      return { currentStep: 4 as BookingStep, selectedEmployeeId: null, anyPerson: true };
+    }
+    return { currentStep: step };
+  }
+
   return {
     ...initialState,
 
@@ -301,7 +318,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
 
       set({
         company,
-        theme: theme ? { ...DEFAULT_THEME, ...theme } : DEFAULT_THEME,
+        theme: theme ? withReadableColors({ ...DEFAULT_THEME, ...theme }) : DEFAULT_THEME,
         employeesUI: employees_ui ?? [],
         categories: serviceCategories ?? [],
         services: services ?? [],
@@ -321,7 +338,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
 
     // ── Individual setters (variant page backward compat) ─────────────────────
 
-    setTheme: (theme) => set({ theme }),
+    setTheme: (theme) => set({ theme: withReadableColors(theme) }),
 
     setCompany: (company) => set({ company }),
 
@@ -370,12 +387,12 @@ export const useBookingStore = create<BookingState>((set, get) => {
       get().nextStep();
     },
 
-    selectCategoryAndService: (category, service) => {
+    selectCategoryAndService: (category, service, singleOnly = false) => {
       const { multipleServicesAllowed } = get();
       const derived = deriveFromServices([service]);
       set({ selectedCategory: category, ...derived, anyPerson: false });
 
-      if (!multipleServicesAllowed) {
+      if (!multipleServicesAllowed || singleOnly) {
         // Single-service mode: skip step 2, go straight to employee selection
         get().goToStep(3);
       } else {
@@ -430,7 +447,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
     nextStep: () => {
       const { currentStep } = get();
       if (currentStep < 7) {
-        set({ currentStep: (currentStep + 1) as BookingStep });
+        set(resolveStep((currentStep + 1) as BookingStep));
       }
     },
 
@@ -442,12 +459,15 @@ export const useBookingStore = create<BookingState>((set, get) => {
       } else if (currentStep === 3) {
         // Step 3 can be reached by skipping step 2 via selectCategoryAndService
         set({ currentStep: 1 as BookingStep });
+      } else if (currentStep === 4 && !get().prikazZaposlenih) {
+        // Employee step is hidden: back from the calendar goes to the services
+        set({ currentStep: 1 as BookingStep });
       } else if (currentStep > 1) {
         set({ currentStep: (currentStep - 1) as BookingStep });
       }
     },
 
-    goToStep: (step) => set({ currentStep: step }),
+    goToStep: (step) => set(resolveStep(step)),
 
     goToPayment: () => set({ currentStep: 7 as BookingStep }),
 

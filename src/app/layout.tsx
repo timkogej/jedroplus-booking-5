@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Libre_Baskerville, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import "./globals.css";
+import HtmlLang from "@/components/shared/HtmlLang";
 
 const nunitoSans = Nunito_Sans({
   subsets: ["latin"],
@@ -29,8 +30,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Book Your Appointment",
-  description: "Premium appointment booking experience",
+  title: "Rezervacija termina",
+  description: "Spletno naročanje na termin prek Jedro+.",
 };
 
 export default function RootLayout({
@@ -39,10 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="sl">
       <body
         className={`${nunitoSans.variable} ${outfit.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
+        <HtmlLang />
         {children}
       </body>
     </html>

@@ -469,7 +469,6 @@ export default function CasinoDateTimeSelection({ companySlug }: Props) {
                     fontSize: '0.9rem',
                     fontWeight: 700,
                     color: '#f5edd6',
-                    textTransform: 'capitalize',
                   }}
                 >
                   {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}

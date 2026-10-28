@@ -98,7 +98,7 @@ function EditorialPanel() {
       <div>
         <div
           className="w-8 h-[1px] mb-4"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
         />
         <AnimatePresence mode="wait">
           <motion.p
@@ -108,7 +108,7 @@ function EditorialPanel() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
             className="magazine-caps text-[9px] tracking-[0.28em]"
-            style={{ color: theme.primaryColor }}
+            style={{ color: theme.primarySolid }}
           >
             {panel.eyebrow}
           </motion.p>

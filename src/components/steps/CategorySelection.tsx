@@ -34,7 +34,7 @@ export default function CategorySelection() {
       <motion.div variants={itemVariants} className="mb-16">
         <h1 className="font-serif text-3xl md:text-4xl mb-3 text-white">
           Izberite{' '}
-          <span style={{ color: theme.primaryColor }}>
+          <span style={{ color: theme.primarySolid }}>
             kategorijo
           </span>
         </h1>
@@ -67,7 +67,7 @@ export default function CategorySelection() {
                   className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300"
                   style={{
                     border: isSelected
-                      ? `3px solid ${theme.primaryColor}`
+                      ? `3px solid ${theme.primarySolid}`
                       : '2px solid rgba(255,255,255,0.3)',
                     backgroundColor: isSelected
                       ? `${theme.primaryColor}20`
@@ -79,7 +79,7 @@ export default function CategorySelection() {
                     strokeWidth={1.5}
                     style={{
                       color: isSelected
-                        ? theme.primaryColor
+                        ? theme.primarySolid
                         : 'rgba(255,255,255,0.7)',
                     }}
                   />
@@ -90,7 +90,7 @@ export default function CategorySelection() {
               <h3
                 className="font-serif text-lg mb-1 transition-colors duration-300"
                 style={{
-                  color: isSelected ? theme.primaryColor : 'white',
+                  color: isSelected ? theme.primarySolid : 'white',
                 }}
               >
                 {category.name}
@@ -106,11 +106,11 @@ export default function CategorySelection() {
                 className="h-[2px] w-12 rounded-full transition-all duration-300"
                 style={{
                   backgroundColor: isSelected
-                    ? theme.primaryColor
+                    ? theme.primarySolid
                     : 'transparent',
                 }}
                 whileHover={{
-                  backgroundColor: theme.primaryColor,
+                  backgroundColor: theme.primarySolid,
                   width: '48px',
                 }}
               />

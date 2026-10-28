@@ -65,7 +65,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
 
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-sm"
-            style={{ backgroundColor: theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid }}
           >
             {(company?.naziv ?? 'B').charAt(0).toUpperCase()}
           </div>
@@ -103,7 +103,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
                   animate={{
                     width: s === currentStep ? 18 : 6,
                     backgroundColor:
-                      s <= currentStep ? theme.primaryColor : 'var(--b2)',
+                      s <= currentStep ? theme.primarySolid : 'var(--b2)',
                   }}
                   style={{ height: 6 }}
                 />
@@ -127,7 +127,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
             style={{
               backgroundColor: `${theme.primaryColor}20`,
-              color: theme.primaryColor,
+              color: theme.primarySolid,
               border: `1px solid ${theme.primaryColor}40`,
               fontFamily: 'var(--font-quicksand)',
             }}

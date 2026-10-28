@@ -71,7 +71,7 @@ function ElegantSuccessContent() {
             border: cancelled ? '1px solid #E5E7EB' : '1px solid #11111122',
           }}
         >
-          <span style={{ color: cancelled ? '#9CA3AF' : '#111111', fontSize: '1.5rem' }}>
+          <span style={{ color: cancelled ? '#6B7280' : '#111111', fontSize: '1.5rem' }}>
             {cancelled ? '×' : '✓'}
           </span>
         </div>

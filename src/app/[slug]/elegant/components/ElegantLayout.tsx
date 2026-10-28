@@ -38,12 +38,14 @@ const STEP_LABELS: Record<number, string> = {
   6: 'Potrditev',
 };
 
-function storeToVisualElegant(storeStep: number): number {
+function storeToVisualElegant(storeStep: number, showEmployees: boolean): number {
+  // Without the specialist step everything after it moves up by one.
+  const shift = showEmployees ? 0 : 1;
   if (storeStep <= 2) return 1;
   if (storeStep === 3) return 2;
-  if (storeStep === 4) return 3;
-  if (storeStep === 5) return 4;
-  return 5;
+  if (storeStep === 4) return 3 - shift;
+  if (storeStep === 5) return 4 - shift;
+  return 5 - shift;
 }
 
 export default function ElegantLayout({ companySlug }: Props) {
@@ -60,6 +62,7 @@ export default function ElegantLayout({ companySlug }: Props) {
     anyPerson,
     employeesUI,
     customerDetails,
+    prikazZaposlenih,
   } = useBookingStore();
 
   const isSuccess = !!bookingConfirmation?.success;
@@ -83,7 +86,8 @@ export default function ElegantLayout({ companySlug }: Props) {
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
-  const visualStep = storeToVisualElegant(currentStep);
+  const visualStep = storeToVisualElegant(currentStep, prikazZaposlenih);
+  const totalSteps = prikazZaposlenih ? 5 : 4;
 
   // Sidebar step values (keys match store step numbers used in ElegantSidebar)
   const stepValues: Record<number, string | undefined> = {
@@ -170,7 +174,7 @@ export default function ElegantLayout({ companySlug }: Props) {
                   onClick={prevStep}
                   whileHover={{ x: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-600 transition-colors"
                   style={{ fontFamily: 'var(--font-inter)' }}
                 >
                   ← Nazaj
@@ -179,7 +183,7 @@ export default function ElegantLayout({ companySlug }: Props) {
               {!isSuccess && (
                 <span
                   className="text-sm font-medium"
-                  style={{ color: theme.primaryOnLight ?? theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+                  style={{ color: theme.primaryOnLight, fontFamily: 'var(--font-inter)' }}
                 >
                   {STEP_LABELS[currentStep]}
                 </span>
@@ -192,7 +196,7 @@ export default function ElegantLayout({ companySlug }: Props) {
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Mobile: pill dots */}
               <div className="flex items-center gap-1 md:hidden">
-                {[1, 2, 3, 4, 5].map((v) => (
+                {Array.from({ length: totalSteps }, (_, i) => i + 1).map((v) => (
                   <div
                     key={v}
                     className="rounded-full transition-all duration-300"
@@ -201,9 +205,9 @@ export default function ElegantLayout({ companySlug }: Props) {
                       height: 6,
                       background:
                         v === visualStep
-                          ? `linear-gradient(to right, ${theme.primarySolid ?? theme.primaryColor}, ${theme.secondaryColor ?? theme.primaryColor})`
+                          ? `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primarySolid})`
                           : v < visualStep
-                          ? theme.primaryColor
+                          ? theme.primarySolid
                           : '#E5E7EB',
                     }}
                   />
@@ -212,9 +216,9 @@ export default function ElegantLayout({ companySlug }: Props) {
               {/* Desktop: text */}
               <span
                 className="hidden md:block text-sm"
-                style={{ color: '#9CA3AF', fontFamily: 'var(--font-inter)' }}
+                style={{ color: '#6B7280', fontFamily: 'var(--font-inter)' }}
               >
-                Korak {visualStep} od 5
+                Korak {visualStep} od {totalSteps}
               </span>
             </div>
           ) : (
@@ -223,14 +227,14 @@ export default function ElegantLayout({ companySlug }: Props) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto px-6 md:px-12 py-8 md:py-10">
+        <main className="flex-1 overflow-x-clip px-6 md:px-12 py-8 md:py-10">
           <div className="max-w-2xl">
             {/* Mobile: back button */}
             {canGoBack && (
               <motion.button
                 onClick={prevStep}
                 whileHover={{ x: -2 }}
-                className="md:hidden flex items-center gap-1.5 text-sm text-gray-400 mb-6"
+                className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 mb-6"
                 style={{ fontFamily: 'var(--font-inter)' }}
               >
                 ← Nazaj

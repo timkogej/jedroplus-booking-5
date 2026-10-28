@@ -63,7 +63,7 @@ export default function ModernPaymentStep() {
         <div
           className="h-1 -mx-6 -mt-6 mb-6 rounded-t-2xl"
           style={{
-            background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.secondaryColor})`,
+            background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor})`,
           }}
         />
         <p
@@ -83,7 +83,7 @@ export default function ModernPaymentStep() {
             fontWeight: 500,
             fontSize: 'clamp(2.25rem, 6vw, 3.75rem)',
             letterSpacing: '-0.015em',
-            color: theme.primaryColor,
+            color: 'var(--t-accent)',
           }}
         >
           {amount.toFixed(2)} {currency}

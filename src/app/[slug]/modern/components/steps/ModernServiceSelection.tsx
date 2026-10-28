@@ -50,7 +50,7 @@ function ServiceChip({
       style={{
         background: `${primaryColor}14`,
         border: `1.5px solid ${primaryColor}30`,
-        color: primaryColor,
+        color: 'var(--t-accent)',
         fontFamily: 'var(--font-inter)',
       }}
     >
@@ -107,7 +107,7 @@ function ServiceRow({
       {isSelected && (
         <motion.div
           className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r"
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: theme.primarySolid }}
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
           transition={{ duration: 0.2 }}
@@ -120,8 +120,8 @@ function ServiceRow({
           <div
             className="mt-0.5 w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
             style={{
-              background: isSelected ? theme.primaryColor : 'transparent',
-              border: `2px solid ${isSelected ? theme.primaryColor : 'var(--b2)'}`,
+              background: isSelected ? theme.primarySolid : 'transparent',
+              border: `2px solid ${isSelected ? theme.primarySolid : 'var(--b2)'}`,
             }}
           >
             {isSelected && (
@@ -144,7 +144,7 @@ function ServiceRow({
             style={{
               fontFamily: 'var(--font-inter)',
               fontSize: '0.95rem',
-              color: isSelected ? theme.primaryColor : 'var(--t-primary)',
+              color: isSelected ? 'var(--t-accent)' : 'var(--t-primary)',
             }}
           >
             {service.naziv}
@@ -170,7 +170,7 @@ function ServiceRow({
                 finalCena={promo.finalCena}
                 size="sm"
                 variantStyle="modern"
-                accentColor={theme.primaryColor}
+                accentColor={theme.primarySolid}
               />
             </AnimatePresence>
           ) : (
@@ -296,7 +296,7 @@ export default function ModernServiceSelection() {
                   key={s.id}
                   service={s}
                   onRemove={() => removeService(s.id)}
-                  primaryColor={theme.primaryColor}
+                  primaryColor={theme.primarySolid}
                 />
               ))}
             </AnimatePresence>
@@ -375,7 +375,7 @@ export default function ModernServiceSelection() {
               {/* Category header */}
               <p
                 className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                style={{ color: theme.primaryColor, fontFamily: 'var(--font-inter)' }}
+                style={{ color: 'var(--t-accent)', fontFamily: 'var(--font-inter)' }}
               >
                 {category.name}
               </p>
@@ -433,7 +433,7 @@ export default function ModernServiceSelection() {
                   backgroundColor:
                     selectedServices.length === 0 || noEmployeeForCombination
                       ? 'var(--s3)'
-                      : theme.primaryColor,
+                      : theme.primarySolid,
                   color:
                     selectedServices.length === 0 || noEmployeeForCombination
                       ? 'var(--t-disabled)'

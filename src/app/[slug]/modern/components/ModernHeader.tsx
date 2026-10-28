@@ -6,20 +6,21 @@ import { useBookingStore } from '@/store/bookingStore';
 import type { SupportedLanguage } from '@/types';
 
 // Visual step definitions — maps to store step ranges
-const STEPS = [
-  { label: 'Storitev' },   // 0: store steps 1, 2
-  { label: 'Specialist' }, // 1: store step 3
-  { label: 'Datum' },      // 2: store step 4
-  { label: 'Podatki' },    // 3: store step 5
-  { label: 'Potrditev' },  // 4: store steps 6, 7
+const ALL_STEPS = [
+  { label: 'Storitev', storeStep: 1 }, // store steps 1, 2
+  { label: 'Specialist', storeStep: 3 },
+  { label: 'Datum', storeStep: 4 },
+  { label: 'Podatki', storeStep: 5 },
+  { label: 'Potrditev', storeStep: 6 }, // store steps 6, 7
 ];
 
-function storeToVisualIdx(storeStep: number): number {
-  if (storeStep <= 2) return 0;
-  if (storeStep === 3) return 1;
-  if (storeStep === 4) return 2;
-  if (storeStep === 5) return 3;
-  return 4; // 6+
+/** Index of the last shown step that the store step has reached. */
+function storeToVisualIdx(steps: typeof ALL_STEPS, storeStep: number): number {
+  let idx = 0;
+  steps.forEach((s, i) => {
+    if (s.storeStep <= storeStep) idx = i;
+  });
+  return idx;
 }
 
 function LanguageToggle({
@@ -44,7 +45,7 @@ function LanguageToggle({
             className="px-2.5 py-1 text-xs font-semibold uppercase transition-all"
             style={{
               fontFamily: 'var(--font-inter)',
-              background: isActive ? theme.primaryColor : 'transparent',
+              background: isActive ? theme.primarySolid : 'transparent',
               color: isActive ? '#ffffff' : 'var(--t-faint)',
               letterSpacing: '0.06em',
             }}
@@ -65,9 +66,11 @@ interface Props {
 }
 
 export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack }: Props) {
-  const { company, theme, language, setLanguage } = useBookingStore();
+  const { company, theme, language, setLanguage, prikazZaposlenih } = useBookingStore();
+  // The specialist step is skipped when the company hides employees online.
+  const STEPS = ALL_STEPS.filter((s) => prikazZaposlenih || s.storeStep !== 3);
 
-  const visualIdx = isSuccess ? STEPS.length - 1 : storeToVisualIdx(currentStep);
+  const visualIdx = isSuccess ? STEPS.length - 1 : storeToVisualIdx(STEPS, currentStep);
 
   // Center each dot: dot at index i is centered at (2i+1) / (2*N) of total width.
   // For N=5 dots: 10%, 30%, 50%, 70%, 90%.
@@ -161,7 +164,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
                       className="w-2 h-2 rounded-full"
                       animate={{
                         backgroundColor:
-                          isDone || isActive ? theme.primaryColor : 'var(--b2)',
+                          isDone || isActive ? theme.primarySolid : 'var(--b2)',
                         scale: isActive ? 1.4 : 1,
                         boxShadow: isActive
                           ? `0 0 8px ${theme.primaryColor}80`
@@ -208,7 +211,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
         >
           <motion.div
             className="h-full rounded-full"
-            style={{ backgroundColor: theme.primaryColor }}
+            style={{ backgroundColor: theme.primarySolid }}
             initial={{ width: '0%' }}
             animate={{ width: `${progressPercent}%` }}
             transition={{
