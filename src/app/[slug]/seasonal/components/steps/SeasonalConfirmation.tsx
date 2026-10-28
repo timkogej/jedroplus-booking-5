@@ -16,6 +16,7 @@ import {
 } from '@/lib/pricing';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
+import { shareBooking } from '@/lib/booking/share';
 
 interface Props {
   companySlug?: string;
@@ -37,7 +38,6 @@ const itemVariants: Variants = {
 // ── Elegant success screen ────────────────────────────────────
 function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
   const {
-    bookingConfirmation,
     selectedService,
     selectedDate,
     selectedTime,
@@ -58,15 +58,9 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
   const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
-    const text = `${language === 'en' ? 'My booking' : 'Moja rezervacija'}:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ${language === 'en' ? 'at' : 'ob'} ${bookingConfirmation?.cas}`;
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try { await navigator.share({ title: language === 'en' ? 'Booking confirmed' : 'Rezervacija potrjena', text }); } catch { /* cancelled */ }
-    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2200);
-      } catch { /* unavailable */ }
+    if ((await shareBooking()) === 'copied') {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
     }
   };
 
