@@ -23,6 +23,8 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import { dateLocale, datePattern, t } from '../../i18n';
 import SlotNotice from '@/components/shared/SlotNotice';
+import QuickSlotBar from '@/components/shared/QuickSlotBar';
+import { filterTimes } from '@/lib/booking/slots';
 
 interface Props {
   companySlug?: string;
@@ -78,6 +80,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
     setSlotsMap,
     setLoadingSlots,
     requiredResursiIds,
+    timeOfDay,
   } = useBookingStore();
 
   const {
@@ -196,7 +199,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
   // Derive time slots from slotsMap — no per-day fetch needed
   const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
-  const timeSlots = Array.isArray(daySlots) ? daySlots : [];
+  const timeSlots = filterTimes(Array.isArray(daySlots) ? daySlots : [], timeOfDay);
 
   const handleTimeSelect = useCallback(async (time: string) => {
     useBookingStore.setState({ selectedTime: time });
@@ -278,6 +281,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
       <SlotNotice />
+      <QuickSlotBar />
       {/* Heading */}
       <motion.div variants={itemVariants} className="mb-6">
         <h2

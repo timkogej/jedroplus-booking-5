@@ -14,6 +14,8 @@ import {
   resolvePrimaryPromotion,
 } from '@/lib/pricing';
 import { t } from '../../i18n';
+import { addBookingToCalendar } from '@/lib/booking/calendar';
+import CancellationPolicy from '@/components/shared/CancellationPolicy';
 
 interface Props {
   companySlug?: string;
@@ -42,8 +44,6 @@ function SuccessView() {
     selectedEmployeeId,
     anyPerson,
     selectedService,
-    selectedDate,
-    selectedTime,
     reset,
   } = useBookingStore();
   const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
@@ -55,33 +55,7 @@ function SuccessView() {
   const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
   const pricing = getBookingPricing(services, promotion, selectedAddOn);
 
-  const handleAddToCalendar = () => {
-    if (!selectedDate || !selectedTime || !selectedService) return;
-    const [hours, minutes] = selectedTime.split(':').map(Number);
-    const yr = selectedDate.getFullYear();
-    const mo = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const dy = String(selectedDate.getDate()).padStart(2, '0');
-    const hh = String(hours).padStart(2, '0');
-    const mm = String(minutes).padStart(2, '0');
-    const totalMin = hours * 60 + minutes + selectedService.trajanjeMin;
-    const endH = String(Math.floor(totalMin / 60) % 24).padStart(2, '0');
-    const endM = String(totalMin % 60).padStart(2, '0');
-    const ics = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Jedro+//Booking//SL',
-      'BEGIN:VEVENT',
-      `DTSTART:${yr}${mo}${dy}T${hh}${mm}00`,
-      `DTEND:${yr}${mo}${dy}T${endH}${endM}00`,
-      `SUMMARY:${selectedService.naziv}`,
-      `DESCRIPTION:Rezervacija storitve ${selectedService.naziv}`,
-      'END:VEVENT', 'END:VCALENDAR',
-    ].join('\r\n');
-    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'rezervacija.ics';
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-  };
+  const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
     const text = `${t(language, 'yourBooking')}:\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ${t(language, 'atPreposition')} ${bookingConfirmation?.cas}`;
@@ -254,7 +228,7 @@ function SuccessView() {
           onClick={handleAddToCalendar}
           className="flex items-center gap-2 px-6 py-3 text-white magazine-caps text-[9px] tracking-[0.18em] transition-opacity"
           style={{
-            background: `linear-gradient(135deg, var(--mag-bg-from, ${theme.bgFrom}), var(--mag-bg-to, ${theme.bgTo}))`,
+            background: theme.primarySolid,
           }}
           whileHover={{ opacity: 0.9 }}
           whileTap={{ scale: 0.98 }}
@@ -555,7 +529,8 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         disabled={isSubmitting}
         className="relative w-full md:w-auto px-12 py-4 text-white overflow-hidden transition-opacity"
         style={{
-          background: `linear-gradient(135deg, var(--mag-bg-from, ${theme.bgFrom}), var(--mag-bg-to, ${theme.bgTo}))`,
+          // Was the page background (pale) under white text; the brand colour reads.
+          background: theme.primarySolid,
         }}
         whileHover={{ opacity: isSubmitting ? 1 : 0.92, scale: isSubmitting ? 1 : 1.01 }}
         whileTap={{ scale: isSubmitting ? 1 : 0.99 }}
@@ -591,9 +566,10 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         )}
       </motion.button>
 
-      <p className="magazine-caps text-[9px] tracking-[0.18em] text-black/30 mt-4">
+      <p className="magazine-caps text-[9px] tracking-[0.18em] text-[#757575] mt-4">
         {t(language, 'emailNote')}
       </p>
+      <CancellationPolicy className="!text-left text-[#757575]" />
     </motion.div>
   );
 }

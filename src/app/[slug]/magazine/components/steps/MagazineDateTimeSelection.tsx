@@ -27,6 +27,8 @@ import { AddOnModal } from '@/components/shared/AddOnModal';
 import { t } from '../../i18n';
 import type { DaySlots } from '@/types';
 import SlotNotice from '@/components/shared/SlotNotice';
+import QuickSlotBar from '@/components/shared/QuickSlotBar';
+import { filterTimes } from '@/lib/booking/slots';
 
 interface Props {
   companySlug?: string;
@@ -93,6 +95,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
     setSlotsMap,
     setLoadingSlots,
     maxDniRezervacija,
+    timeOfDay,
   } = useBookingStore();
 
   const {
@@ -348,7 +351,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
   // Derive time slots from slotsMap — no extra API call
   const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
-  const timeSlots = Array.isArray(daySlots) ? daySlots : [];
+  const timeSlots = filterTimes(Array.isArray(daySlots) ? daySlots : [], timeOfDay);
 
   // ── Shared time-slot list component ────────────────────────────────────────
   const TimeSlotList = () => {
@@ -468,6 +471,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
       className="max-w-2xl"
     >
       <SlotNotice />
+      <QuickSlotBar />
       {/* Section header */}
       <div className="mb-8">
         <div className="w-8 h-[1px] mb-5" style={{ backgroundColor: theme.primarySolid }} />

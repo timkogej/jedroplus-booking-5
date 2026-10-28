@@ -11,6 +11,8 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
 import type { SeasonalTheme } from '../decorations/SeasonDetector';
 import SlotNotice from '@/components/shared/SlotNotice';
+import QuickSlotBar from '@/components/shared/QuickSlotBar';
+import { filterTimes } from '@/lib/booking/slots';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -62,6 +64,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
     selectDate,
     language,
     nextStep,
+    timeOfDay,
   } = useBookingStore();
 
   const {
@@ -250,7 +253,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
   // Derive time slots from slotsMap — no extra API call
   const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
-  const timeSlots = Array.isArray(daySlots) ? daySlots : [];
+  const timeSlots = filterTimes(Array.isArray(daySlots) ? daySlots : [], timeOfDay);
 
   const isSlotLoading = isLoadingSlots;
 
@@ -265,6 +268,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
   return (
     <div>
       <SlotNotice />
+      <QuickSlotBar />
       {/* Title */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

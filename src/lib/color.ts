@@ -42,10 +42,40 @@ export function contrastRatio(a: string, b: string): number {
  * contrast against `background` (default white). Colours that already pass are
  * returned unchanged.
  */
+/** Hue in degrees (0–360) of an RGB colour. */
+function hueOf(r: number, g: number, b: number): number {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  if (d === 0) return 0;
+  let h: number;
+  if (max === r) h = ((g - b) / d) % 6;
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+
+const AMBER_DARK: [number, number, number] = [146, 64, 14]; // #92400E
+
 export function ensureReadable(color: string, background = '#FFFFFF', minRatio = 4.5): string {
   const rgb = hexToRgb(color);
   if (!rgb) return color;
   let [r, g, b] = rgb;
+
+  // Yellow darkened toward black turns olive. Blend it toward deep amber
+  // instead, which reads as gold-brown and still carries white text.
+  const hue = hueOf(r, g, b);
+  if (hue >= 40 && hue <= 70 && contrastRatio(color, background) < minRatio) {
+    for (let t = 0.05; t <= 1.0001; t += 0.05) {
+      const mix = rgbToHex(
+        r + (AMBER_DARK[0] - r) * t,
+        g + (AMBER_DARK[1] - g) * t,
+        b + (AMBER_DARK[2] - b) * t,
+      );
+      if (contrastRatio(mix, background) >= minRatio) return mix;
+    }
+  }
+
   let guard = 0;
   while (contrastRatio(rgbToHex(r, g, b), background) < minRatio && guard < 40) {
     r *= 0.9;

@@ -7,9 +7,14 @@ import { getCompanyName } from '@/lib/plan.server';
  */
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const name = await getCompanyName(params.slug);
+  const title = name ? `Rezervacija — ${name}` : 'Rezervacija termina';
+  const description = name ? `Rezervirajte termin pri ${name} na spletu.` : 'Rezervirajte termin na spletu.';
+  // The picture comes from opengraph-image.tsx next to this file.
   return {
-    title: name ? `Rezervacija — ${name}` : 'Rezervacija termina',
-    description: name ? `Rezervirajte termin: ${name}.` : 'Rezervacija termina',
+    title,
+    description,
+    openGraph: { title, description, type: 'website', locale: 'sl_SI', siteName: name ?? 'Jedro+' },
+    twitter: { card: 'summary_large_image', title, description },
   };
 }
 

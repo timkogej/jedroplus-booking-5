@@ -75,8 +75,18 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
     try {
       const res = await fetch(`/api/branding?slug=${encodeURIComponent(companySlug)}`);
       if (res.ok) {
-        const branding = (await res.json()) as { logoUrl?: string | null };
+        const branding = (await res.json()) as {
+          logoUrl?: string | null;
+          address?: string | null;
+          phone?: string | null;
+          cancelDays?: number | null;
+          rescheduleDays?: number | null;
+        };
         data.company.logo_url = branding.logoUrl ?? null;
+        data.company.naslov = branding.address ?? null;
+        data.company.telefon = branding.phone ?? null;
+        data.company.cancelDays = branding.cancelDays ?? null;
+        data.company.rescheduleDays = branding.rescheduleDays ?? null;
       }
     } catch {
       // a missing logo must never break the booking page
