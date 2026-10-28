@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Libre_Baskerville, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import HtmlLang from "@/components/shared/HtmlLang";
+import CalendarChooser from "@/components/shared/CalendarChooser";
 
 const nunitoSans = Nunito_Sans({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({
         className={`${nunitoSans.variable} ${outfit.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <HtmlLang />
+        <CalendarChooser />
         {children}
       </body>
     </html>

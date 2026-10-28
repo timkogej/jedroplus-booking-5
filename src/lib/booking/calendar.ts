@@ -6,6 +6,7 @@
 // and in the phone's own time zone. On Android a downloaded .ics often opens
 // nothing, so there we open Google Calendar instead.
 
+import { create } from 'zustand';
 import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { getSelectedServices } from '@/lib/booking/submit';
@@ -132,20 +133,44 @@ export function googleCalendarUrl(event: BookingEvent): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+/** Opens the event in Google Calendar (web). */
+export function openInGoogleCalendar(): void {
+  const event = getBookingEvent();
+  if (event) window.open(googleCalendarUrl(event), '_blank', 'noopener');
+}
+
+/** Small store so any design can open the desktop calendar chooser. */
+export const useCalendarChooser = create<{ open: boolean; setOpen: (open: boolean) => void }>((set) => ({
+  open: false,
+  setOpen: (open) => set({ open }),
+}));
+
 /**
- * Adds the booked appointment to the client's calendar: Google Calendar on
- * Android, an .ics file everywhere else (iPhone and Mac open it in Calendar,
- * Windows in Outlook).
+ * Adds the booked appointment to the client's calendar.
+ * Android: Google Calendar. iPhone/iPad: the .ics file opens in Calendar.
+ * Computers: a small chooser (Google Calendar, or Apple Calendar / Outlook),
+ * because many people there use Google Calendar in the browser and a bare
+ * file download looks odd.
  */
 export function addBookingToCalendar(): void {
-  const event = getBookingEvent();
-  if (!event) return;
-
-  if (/Android/i.test(navigator.userAgent)) {
-    window.open(googleCalendarUrl(event), '_blank', 'noopener');
+  if (!getBookingEvent()) return;
+  const ua = navigator.userAgent;
+  if (/Android/i.test(ua)) {
+    openInGoogleCalendar();
     return;
   }
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    downloadIcs();
+    return;
+  }
+  useCalendarChooser.getState().setOpen(true);
+}
 
+/** Downloads the .ics file (Apple Calendar, Outlook). */
+export function downloadIcs(): void {
+  const event = getBookingEvent();
+  if (!event) return;
   const blob = new Blob([buildIcs(event)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

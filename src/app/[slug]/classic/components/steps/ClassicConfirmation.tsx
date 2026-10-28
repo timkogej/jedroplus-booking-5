@@ -17,6 +17,7 @@ import {
 import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
+import { shareBooking } from '@/lib/booking/share';
 
 interface Props {
   companySlug?: string;
@@ -142,17 +143,9 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
   const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
-    const text = `${t(language, 'bookingConfirmed')}\n${bookingConfirmation?.storitev}\n${bookingConfirmation?.datum} ob ${bookingConfirmation?.cas}`;
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title: t(language, 'bookingConfirmed'), text });
-      } catch { /* cancelled */ }
-    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch { /* unavailable */ }
+    if ((await shareBooking()) === 'copied') {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
     }
   };
 
