@@ -1,15 +1,16 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import CompanyLogo from '@/components/shared/CompanyLogo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { SupportedLanguage } from '@/types';
 import { getBookingPricing, resolvePrimaryPromotion } from '@/lib/pricing';
 import { isLightBackground } from '@/lib/color';
 import { t } from '../i18n';
+import { EASE, FONT, SPRING, atWord, dateLocale, shortDatePattern } from './ui';
 import ClassicSummaryCard from './ClassicSummaryCard';
 import ClassicServiceSelection from './steps/ClassicServiceSelection';
 import ClassicEmployeeSelection from './steps/ClassicEmployeeSelection';
@@ -35,16 +36,18 @@ export function getContrastMode(bgFrom: string, bgTo: string): 'light' | 'dark' 
 
 // ── Page transition variants ─────────────────────────────────────────────────
 const pageVariants: Variants = {
-  initial: { opacity: 0, x: 18 },
+  initial: { opacity: 0, y: 14, filter: 'blur(4px)' },
   animate: {
     opacity: 1,
-    x: 0,
-    transition: { duration: 0.28, ease: 'easeOut' as const },
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.42, ease: EASE },
   },
   exit: {
     opacity: 0,
-    x: -14,
-    transition: { duration: 0.18 },
+    y: -8,
+    filter: 'blur(2px)',
+    transition: { duration: 0.18, ease: 'easeIn' as const },
   },
 };
 
@@ -57,26 +60,21 @@ function storeToVisual(storeStep: number, prikazZaposlenih: boolean): number {
   return prikazZaposlenih ? 5 : 4; // steps 6+ — all done
 }
 
-// ── Language toggle ──────────────────────────────────────────────────────────
+// ── Language toggle: iOS segmented control ──────────────────────────────────
 function LanguageToggle({
   language,
   onToggle,
-  primaryColor,
-  contrastMode,
+  light,
 }: {
   language: SupportedLanguage;
   onToggle: (l: SupportedLanguage) => void;
-  primaryColor: string;
-  contrastMode: 'light' | 'dark';
+  light: boolean;
 }) {
   const options: SupportedLanguage[] = ['sl', 'en'];
-  const borderColor =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)';
-
   return (
     <div
-      className="flex rounded-lg overflow-hidden"
-      style={{ border: `1.5px solid ${borderColor}` }}
+      className="relative flex rounded-[10px] p-[2px]"
+      style={{ background: light ? 'rgba(118,118,128,0.12)' : 'rgba(255,255,255,0.16)' }}
     >
       {options.map((lang) => {
         const isActive = language === lang;
@@ -84,18 +82,23 @@ function LanguageToggle({
           <button
             key={lang}
             onClick={() => onToggle(lang)}
-            className="px-2.5 py-1 text-xs font-semibold uppercase transition-all"
+            aria-pressed={isActive}
+            className="relative z-10 h-7 w-10 text-[12px] font-semibold uppercase"
             style={{
-              fontFamily: 'var(--font-nunito)',
-              background: isActive ? primaryColor : 'transparent',
-              color: isActive
-                ? '#ffffff'
-                : contrastMode === 'light'
-                ? 'rgba(255,255,255,0.75)'
-                : 'rgba(0,0,0,0.6)',
-              letterSpacing: '0.06em',
+              fontFamily: FONT,
+              color: isActive ? '#1D1D1F' : light ? 'rgba(29,29,31,0.55)' : 'rgba(255,255,255,0.75)',
+              letterSpacing: '0.04em',
+              transition: 'color 0.2s',
             }}
           >
+            {isActive && (
+              <motion.span
+                layoutId="classic-lang"
+                className="absolute inset-0 -z-10 rounded-[8px]"
+                style={{ background: '#FFFFFF', boxShadow: '0 3px 8px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+                transition={SPRING}
+              />
+            )}
             {lang}
           </button>
         );
@@ -104,137 +107,74 @@ function LanguageToggle({
   );
 }
 
-// ── Animated stepper ─────────────────────────────────────────────────────────
+// ── Progress: thin segments with the step name ──────────────────────────────
 function ClassicStepper({
   steps,
   visualStep,
-  primaryColor,
-  contrastMode,
+  accent,
+  light,
+  language,
 }: {
   steps: Array<{ visual: number; label: string }>;
   visualStep: number;
-  primaryColor: string;
-  contrastMode: 'light' | 'dark';
+  accent: string;
+  light: boolean;
+  language: SupportedLanguage;
 }) {
-  const textMuted =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
-  const textActive =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.82)';
-  const trackBg =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)';
-  const nodeBg =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)';
-  const nodeBorder =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)';
-
-  // Progress fraction: 0 at step 1, 1 at final step
-  const progressFraction =
-    steps.length > 1
-      ? Math.max(0, Math.min(1, (visualStep - 1) / (steps.length - 1)))
-      : 1;
-
-  const activeLabel =
-    steps.find((s) => s.visual === Math.min(visualStep, steps.length))?.label ?? '';
+  const current = Math.min(visualStep, steps.length);
+  const activeLabel = steps.find((s) => s.visual === current)?.label ?? '';
+  const track = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.2)';
+  const muted = light ? 'rgba(29,29,31,0.5)' : 'rgba(255,255,255,0.65)';
+  const strong = light ? '#1D1D1F' : '#FFFFFF';
 
   return (
-    <div className="px-6 pt-1 pb-5">
-      {/* Track + nodes row */}
-      <div className="relative max-w-xs mx-auto">
-        {/* Base track */}
-        <div
-          className="absolute top-4 left-0 right-0 h-0.5 rounded-full"
-          style={{ background: trackBg }}
-        />
-        {/* Filled progress */}
-        <motion.div
-          className="absolute top-4 left-0 h-0.5 rounded-full"
-          style={{ background: primaryColor, originX: 0 }}
-          animate={{ width: `${progressFraction * 100}%` }}
-          transition={{ duration: 0.4, ease: 'easeOut' as const }}
-        />
-
-        {/* Step nodes */}
-        <div className="relative flex justify-between">
-          {steps.map((step) => {
-            const isDone = step.visual < visualStep;
-            const isActive = step.visual === visualStep;
-
-            return (
-              <div key={step.visual} className="flex flex-col items-center">
-                <motion.div
-                  className="w-8 h-8 rounded-full flex items-center justify-center z-10 relative"
-                  style={{
-                    background:
-                      isDone || isActive
-                        ? primaryColor
-                        : nodeBg,
-                    border: `2px solid ${
-                      isDone || isActive ? primaryColor : nodeBorder
-                    }`,
-                    boxShadow:
-                      isActive
-                        ? `0 0 0 4px ${primaryColor}22`
-                        : 'none',
-                  }}
-                  animate={
-                    isActive
-                      ? { scale: [1, 1.08, 1] }
-                      : { scale: 1 }
-                  }
-                  transition={{ duration: 2.2, repeat: Infinity }}
-                >
-                  {isDone ? (
-                    <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 11 11"
-                      fill="none"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M1.5 5.5l3 3 5-5" />
-                    </svg>
-                  ) : (
-                    <span
-                      className="text-xs font-bold"
-                      style={{
-                        color: isDone || isActive ? '#fff' : textMuted,
-                        fontFamily: 'var(--font-nunito)',
-                      }}
-                    >
-                      {step.visual}
-                    </span>
-                  )}
-                </motion.div>
-
-                {/* Label — desktop only */}
-                <span
-                  className="hidden md:block text-xs mt-1.5 font-medium transition-colors duration-300"
-                  style={{
-                    fontFamily: 'var(--font-nunito-sans)',
-                    color: isActive || isDone ? textActive : textMuted,
-                  }}
-                >
-                  {step.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+    <div className="mx-auto max-w-5xl px-5 pb-3 pt-1">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p
+            key={activeLabel}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.22 }}
+            className="text-[13px] font-semibold md:invisible"
+            style={{ color: strong, fontFamily: FONT }}
+          >
+            {activeLabel}
+          </motion.p>
+        </AnimatePresence>
+        <p className="text-[12px] font-medium tabular-nums" style={{ color: muted, fontFamily: FONT }}>
+          {t(language, 'stepOf').replace('{n}', String(current)).replace('{m}', String(steps.length))}
+        </p>
       </div>
-
-      {/* Active step name — mobile only */}
-      <p
-        className="md:hidden text-center text-xs mt-3 font-medium"
-        style={{
-          fontFamily: 'var(--font-nunito-sans)',
-          color: textActive,
-        }}
-      >
-        {activeLabel}
-      </p>
+      <div className="flex gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={current}>
+        {steps.map((step) => {
+          const filled = step.visual < visualStep ? 1 : step.visual === visualStep ? 0.5 : 0;
+          return (
+            <div key={step.visual} className="h-[4px] flex-1 overflow-hidden rounded-full" style={{ background: track }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: accent }}
+                initial={false}
+                animate={{ width: `${filled * 100}%` }}
+                transition={{ duration: 0.5, ease: EASE }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {/* Step names under the bar on wider screens */}
+      <div className="mt-2 hidden gap-1.5 md:flex">
+        {steps.map((step) => (
+          <span
+            key={step.visual}
+            className="flex-1 text-[12px] font-medium"
+            style={{ color: step.visual <= visualStep ? strong : muted, fontFamily: FONT, transition: 'color 0.3s' }}
+          >
+            {step.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
@@ -260,20 +200,31 @@ export default function ClassicLayout({ companySlug }: Props) {
     prikazZaposlenih,
   } = useBookingStore();
   const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Sticky parts of the steps sit right under the header, whatever its height.
+  useEffect(() => {
+    const header = headerRef.current;
+    const root = rootRef.current;
+    if (!header || !root) return;
+    const ro = new ResizeObserver(() => root.style.setProperty('--classic-header-h', `${header.offsetHeight}px`));
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, []);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
   // A sent request counts as finished too: no stepper or back link.
   const requestSent = useRequestStore((st) => st.sent);
   const isSuccess = !!bookingConfirmation?.success || requestSent;
   const contrastMode = getContrastMode(theme.bgFrom, theme.bgTo);
+  const light = contrastMode === 'dark';
   const canGoBack = currentStep > 1 && !isSuccess && currentStep !== 7;
 
   // Step 3 is skipped in the store when prikazZaposlenih=false.
 
-  const textPrimary =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-  const textSecondary =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.62)';
+  const textSecondary = light ? 'rgba(29,29,31,0.62)' : 'rgba(255,255,255,0.75)';
+  const accentOnPage = light ? theme.primaryOnLight : '#FFFFFF';
 
   // Build step list based on prikazZaposlenih flag
   const CLASSIC_STEPS = prikazZaposlenih
@@ -330,8 +281,8 @@ export default function ClassicLayout({ companySlug }: Props) {
       : undefined;
   const summaryDate = selectedDate
     ? selectedTime
-      ? `${format(selectedDate, 'd. MMM', { locale: sl })} ob ${selectedTime}`
-      : format(selectedDate, 'd. MMMM yyyy', { locale: sl })
+      ? `${format(selectedDate, shortDatePattern(language), { locale: dateLocale(language) })} ${atWord(language)} ${selectedTime}`
+      : format(selectedDate, 'd. MMMM yyyy', { locale: dateLocale(language) })
     : undefined;
   const summaryServices =
     selectedServices.length > 0
@@ -354,73 +305,99 @@ export default function ClassicLayout({ companySlug }: Props) {
 
   return (
     <div
-      className="min-h-screen"
+      ref={rootRef}
+      className="relative min-h-screen overflow-x-clip"
       style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom} 0%, ${theme.bgTo} 100%)`,
-        fontFamily: 'var(--font-nunito-sans)',
+        background: `linear-gradient(160deg, ${theme.bgFrom} 0%, ${theme.bgTo} 100%)`,
+        fontFamily: FONT,
       }}
     >
-      {/* ── Header ──────────────────────────────────────────────────── */}
-      <header className="flex items-center justify-between px-5 pt-6 pb-1 max-w-5xl mx-auto">
-        <motion.h1
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="text-xl font-bold tracking-tight"
-          style={{ fontFamily: 'var(--font-nunito)', color: textPrimary }}
-        >
-          <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} />
-        </motion.h1>
-
-        <LanguageToggle
-          language={language}
-          onToggle={setLanguage}
-          primaryColor={theme.primarySolid}
-          contrastMode={contrastMode}
+      {/* Soft brand-coloured light, drifting slowly */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div
+          className="classic-glow absolute -top-[30%] left-1/2 h-[70vh] w-[110vw] -translate-x-1/2 rounded-full"
+          style={{
+            background: `radial-gradient(closest-side, ${theme.primarySolid}${light ? '1F' : '33'}, transparent)`,
+            filter: 'blur(20px)',
+          }}
         />
+      </div>
+
+      {/* ── Header: frosted, stays on top ───────────────────────────── */}
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-30"
+        style={{
+          background: light ? 'rgba(255,255,255,0.62)' : 'rgba(0,0,0,0.22)',
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          boxShadow: `0 0.5px 0 ${light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.12)'}`,
+        }}
+      >
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-5">
+          <div className="flex min-w-0 items-center gap-2">
+            <AnimatePresence initial={false}>
+              {canGoBack && (
+                <motion.button
+                  key="back"
+                  onClick={prevStep}
+                  initial={{ opacity: 0, x: -6, width: 0 }}
+                  animate={{ opacity: 1, x: 0, width: 'auto' }}
+                  exit={{ opacity: 0, x: -6, width: 0 }}
+                  transition={{ duration: 0.25, ease: EASE }}
+                  whileTap={{ scale: 0.94 }}
+                  aria-label={t(language, 'back')}
+                  className="-ml-1.5 flex h-9 flex-shrink-0 items-center gap-1 overflow-hidden rounded-full pl-1.5 pr-2.5 text-[15px] font-medium"
+                  style={{ color: accentOnPage, fontFamily: FONT }}
+                >
+                  <svg width="10" height="17" viewBox="0 0 10 17" fill="none" aria-hidden="true">
+                    <path d="M8.5 1.5L1.5 8.5l7 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="hidden sm:inline">{t(language, 'back')}</span>
+                </motion.button>
+              )}
+            </AnimatePresence>
+            <motion.h1
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              className="min-w-0 truncate text-[17px] font-semibold"
+              style={{ fontFamily: FONT, color: light ? '#1D1D1F' : '#FFFFFF', letterSpacing: '-0.02em' }}
+            >
+              <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} />
+            </motion.h1>
+          </div>
+
+          <LanguageToggle language={language} onToggle={setLanguage} light={light} />
+        </div>
+
+        {/* ── Progress ─────────────────────────────────────────────── */}
+        <AnimatePresence initial={false}>
+          {showStepper && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <ClassicStepper
+                steps={CLASSIC_STEPS}
+                visualStep={visualStep}
+                accent={theme.primarySolid}
+                light={light}
+                language={language}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {/* ── Stepper ─────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showStepper && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-5xl mx-auto"
-          >
-            <ClassicStepper
-              steps={CLASSIC_STEPS}
-              visualStep={visualStep}
-              primaryColor={theme.primarySolid}
-              contrastMode={contrastMode}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* ── Content area ────────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="flex gap-6 items-start">
+      <main className="relative mx-auto max-w-5xl px-4 pb-24 pt-7 sm:px-5">
+        <div className="flex items-start gap-8">
           {/* Step content */}
-          <div className="flex-1 min-w-0">
-            {/* Back button */}
-            {canGoBack && (
-              <motion.button
-                onClick={prevStep}
-                whileHover={{ x: -2 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-1.5 mb-5 text-sm font-medium"
-                style={{
-                  fontFamily: 'var(--font-nunito-sans)',
-                  color: textSecondary,
-                }}
-              >
-                {t(language, 'back')}
-              </motion.button>
-            )}
-
+          <div className="min-w-0 flex-1">
             <AnimatePresence mode="wait">
               <motion.div
                 key={stepKey}
@@ -436,10 +413,7 @@ export default function ClassicLayout({ companySlug }: Props) {
 
           {/* Summary card — desktop only, during active flow */}
           {!isSuccess && currentStep < 6 && (
-            <div
-              className="hidden lg:block flex-shrink-0"
-              style={{ width: '268px' }}
-            >
+            <div className="hidden flex-shrink-0 lg:block" style={{ width: '300px' }}>
               <ClassicSummaryCard
                 services={
                   summaryServices.length > 0
@@ -478,23 +452,14 @@ export default function ClassicLayout({ companySlug }: Props) {
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="text-center pb-5 px-4">
-        <p
-          style={{
-            fontFamily: 'var(--font-nunito-sans)',
-            fontSize: '0.6rem',
-            color:
-              contrastMode === 'light'
-                ? 'rgba(255,255,255,0.18)'
-                : 'rgba(0,0,0,0.18)',
-          }}
-        >
+      <footer className="relative px-4 pb-6 text-center">
+        <p className="text-[11px]" style={{ fontFamily: FONT, color: textSecondary, opacity: 0.6 }}>
           {t(language, 'poweredBy')}{' '}
           <a
             href="https://jedroplus.si"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline transition-opacity hover:opacity-70"
+            className="font-semibold hover:underline"
           >
             Jedro+
           </a>

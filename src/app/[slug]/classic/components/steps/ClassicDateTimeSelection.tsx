@@ -15,7 +15,6 @@ import {
   startOfDay,
   addDays,
 } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { fetchTimeSlotsRange } from '@/lib/api';
 import {
@@ -27,11 +26,27 @@ import {
 } from '@/lib/promotionsApi';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnModal } from '@/components/shared/AddOnModal';
-import { getContrastMode } from '../ClassicLayout';
 import { t } from '../../i18n';
 import SlotNotice from '@/components/shared/SlotNotice';
 import QuickSlotBar from '@/components/shared/QuickSlotBar';
 import { filterTimes } from '@/lib/booking/slots';
+import {
+  CARD,
+  EASE,
+  FILL,
+  FONT,
+  INK,
+  INK_2,
+  INK_3,
+  PageTitle,
+  SPRING,
+  atWord,
+  dateLocale,
+  itemVariants,
+  listVariants,
+  longDatePattern,
+  useClassicColors,
+} from '../ui';
 
 // TODO: if backend returns selectable resources in the future, add explicit
 // resource-choice UI here. For now, resource availability is handled server-side.
@@ -40,42 +55,13 @@ interface Props {
   companySlug?: string;
 }
 
-const CARD_W = 68;
+const CARD_W = 60;
 const CARD_GAP = 8;
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.28, ease: 'easeOut' as const },
-  },
-};
-
 const slotVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.93 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.18, ease: 'easeOut' as const },
-  },
+  hidden: { opacity: 0, y: 6 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } },
 };
-
-function ScarcityDot({ count }: { count: number }) {
-  const cls =
-    count === 1 ? 'classic-pulse-red' : 'classic-pulse-orange';
-  return (
-    <span
-      className={`inline-block w-1.5 h-1.5 ${cls}`}
-      aria-hidden="true"
-    />
-  );
-}
 
 export default function ClassicDateTimeSelection({ companySlug }: Props) {
   const {
@@ -114,11 +100,9 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
   const [happyHourRanges, setHappyHourRanges] = useState<HappyHourRange[]>([]);
   const [showAddOnModal, setShowAddOnModal] = useState(false);
 
-  const contrastMode = getContrastMode(theme.bgFrom, theme.bgTo);
-  const textPrimary =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-  const textSecondary =
-    contrastMode === 'light' ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
+  const c = useClassicColors();
+  const loc = dateLocale(language);
+  const [visibleMonth, setVisibleMonth] = useState<Date>(selectedDate ?? new Date());
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -335,365 +319,255 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
   const daySlots = selectedDateKey ? slotsMap[selectedDateKey] : undefined;
   const timeSlots = filterTimes(Array.isArray(daySlots) ? daySlots : [], timeOfDay);
 
+  // Month name above the strip follows the first day in view.
+  const onStripScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const idx = Math.min(dates.length - 1, Math.max(0, Math.round(el.scrollLeft / (CARD_W + CARD_GAP))));
+    const d = dates[idx];
+    if (d && (d.getMonth() !== visibleMonth.getMonth() || d.getFullYear() !== visibleMonth.getFullYear())) setVisibleMonth(d);
+  };
+
+  const arrow = (dir: -1 | 1) => (
+    <motion.button
+      onClick={() => scrollBy(dir)}
+      whileTap={{ scale: 0.9 }}
+      transition={SPRING}
+      className="flex h-8 w-8 items-center justify-center rounded-full"
+      style={{ background: c.light ? 'rgba(118,118,128,0.12)' : 'rgba(255,255,255,0.18)', color: c.text }}
+      aria-label={dir < 0 ? 'scroll back' : 'scroll forward'}
+    >
+      <svg width="8" height="13" viewBox="0 0 8 14" fill="none" aria-hidden="true" style={{ transform: dir < 0 ? 'rotate(180deg)' : undefined }}>
+        <path d="M1 1l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </motion.button>
+  );
+
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
+    <motion.div variants={listVariants} initial="hidden" animate="visible">
       <SlotNotice />
       <QuickSlotBar />
-      {/* Title */}
-      <motion.div variants={itemVariants} className="mb-5">
-        <h2
-          className="text-3xl font-bold mb-1.5"
-          style={{ fontFamily: 'var(--font-nunito)', color: textPrimary }}
-        >
-          {t(language, 'chooseDateTime')}
-        </h2>
-        <p
-          style={{
-            fontFamily: 'var(--font-nunito-sans)',
-            fontSize: '0.9rem',
-            color: textSecondary,
-          }}
-        >
-          {t(language, 'chooseAppointment')}
-        </p>
-      </motion.div>
+      <PageTitle title={t(language, 'chooseDateTime')} subtitle={t(language, 'chooseAppointment')} />
 
-      {/* ── Horizontal date strip ── */}
-      <motion.div variants={itemVariants} className="mb-5">
-        <div className="flex items-center gap-2">
-          {/* Left arrow */}
-          <button
-            onClick={() => scrollBy(-1)}
-            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-opacity hover:opacity-70"
-            style={{
-              background: 'rgba(255,255,255,0.9)',
-              border: '1.5px solid rgba(0,0,0,0.07)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              color: '#6B7280',
-            }}
-            aria-label="scroll back"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          {/* Scrollable dates */}
-          <div className="flex-1 min-w-0">
-            <div
-              ref={scrollRef}
-              className="flex gap-2 overflow-x-auto py-2 px-0.5 classic-scrollbar-hide"
-              style={{ scrollSnapType: 'x mandatory' }}
+      {/* ── Date strip ── */}
+      <motion.div variants={itemVariants} className="mb-5 overflow-hidden px-2 pb-3 pt-4 sm:px-3" style={CARD}>
+        <div className="mb-3 flex items-center justify-between px-2">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.p
+              key={format(visibleMonth, 'yyyy-MM')}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              className="text-[17px] font-semibold first-cap"
+              style={{ fontFamily: FONT, color: INK, letterSpacing: '-0.015em' }}
             >
-              {isLoadingSlots
-                ? // Skeleton chips while loading
-                  Array.from({ length: 10 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex-shrink-0 rounded-2xl animate-pulse"
-                      style={{
-                        width: CARD_W,
-                        height: 88,
-                        background: 'rgba(255,255,255,0.5)',
-                        scrollSnapAlign: 'center',
-                      }}
-                    />
-                  ))
-                : dates.map((date, i) => {
-                    const dateKey = format(date, 'yyyy-MM-dd');
-                    const dayData = slotsMap[dateKey];
-                    const isAvailable =
-                      Array.isArray(dayData) && dayData.length > 0;
-                    const isGrayed = !isAvailable; // fully_booked, unavailable, empty, or undefined
-                    const scarceCount = isAvailable ? dayData.length : 0;
-                    const isScarce = isAvailable && scarceCount < 3;
-
-                    const isSelected = selectedDate
-                      ? isSameDay(date, selectedDate)
-                      : false;
-                    const isTodayDate = isToday(date);
-
-                    const scarceColor =
-                      scarceCount === 1 ? '#EF4444' : '#F97316';
-
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleDateSelect(date, isGrayed)}
-                        disabled={isGrayed}
-                        className="flex-shrink-0 flex flex-col items-center py-2.5 rounded-2xl relative"
-                        style={{
-                          width: CARD_W,
-                          scrollSnapAlign: 'center',
-                          background: isSelected
-                            ? theme.primarySolid
-                            : 'rgba(255,255,255,0.92)',
-                          border: isTodayDate && !isSelected
-                            ? `2px solid ${theme.primaryColor}50`
-                            : isSelected
-                            ? `2px solid ${theme.primarySolid}`
-                            : '2px solid transparent',
-                          boxShadow: isSelected
-                            ? `0 5px 18px ${theme.primaryColor}42`
-                            : '0 1px 6px rgba(0,0,0,0.05)',
-                          opacity: isGrayed ? 0.38 : 1,
-                          cursor: isGrayed ? 'not-allowed' : 'pointer',
-                          transform: isSelected ? 'scale(1.05)' : 'scale(1)',
-                          transition:
-                            'background 0.15s, transform 0.15s, box-shadow 0.15s, opacity 0.15s',
-                        }}
-                      >
-                        {/* Day of week */}
-                        <span
-                          style={{
-                            color: isSelected
-                              ? 'rgba(255,255,255,0.7)'
-                              : '#9CA3AF',
-                            fontFamily: 'var(--font-nunito-sans)',
-                            fontSize: '0.58rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.07em',
-                            marginBottom: 2,
-                          }}
-                        >
-                          {format(date, 'EEE', { locale: sl })
-                            .toUpperCase()
-                            .slice(0, 3)}
-                        </span>
-
-                        {/* Day number */}
-                        <span
-                          style={{
-                            color: isSelected ? '#ffffff' : '#1F2937',
-                            fontFamily: 'var(--font-nunito)',
-                            fontSize: '1.2rem',
-                            fontWeight: 700,
-                            lineHeight: 1,
-                            marginBottom: 2,
-                          }}
-                        >
-                          {date.getDate()}
-                        </span>
-
-                        {/* Month */}
-                        <span
-                          style={{
-                            color: isSelected
-                              ? 'rgba(255,255,255,0.65)'
-                              : '#9CA3AF',
-                            fontFamily: 'var(--font-nunito-sans)',
-                            fontSize: '0.6rem',
-                          }}
-                        >
-                          {format(date, 'MMM', { locale: sl })}
-                        </span>
-
-                        {/* Scarcity badge */}
-                        {isScarce && !isGrayed && (
-                          <div
-                            className="mt-1 flex items-center gap-0.5"
-                          >
-                            <ScarcityDot count={scarceCount} />
-                            <span
-                              style={{
-                                fontSize: '0.52rem',
-                                fontFamily: 'var(--font-nunito-sans)',
-                                fontWeight: 700,
-                                color: isSelected ? 'rgba(255,255,255,0.85)' : scarceColor,
-                              }}
-                            >
-                              {scarceCount}
-                            </span>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-            </div>
+              {format(visibleMonth, 'LLLL yyyy', { locale: loc })}
+            </motion.p>
+          </AnimatePresence>
+          <div className="flex gap-2">
+            {arrow(-1)}
+            {arrow(1)}
           </div>
+        </div>
 
-          {/* Right arrow */}
-          <button
-            onClick={() => scrollBy(1)}
-            className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-opacity hover:opacity-70"
-            style={{
-              background: 'rgba(255,255,255,0.9)',
-              border: '1.5px solid rgba(0,0,0,0.07)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              color: '#6B7280',
-            }}
-            aria-label="scroll forward"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+        <div
+          ref={scrollRef}
+          onScroll={onStripScroll}
+          className="classic-scrollbar-hide flex gap-2 overflow-x-auto px-2 pb-2 pt-1"
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {isLoadingSlots
+            ? Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="classic-skeleton flex-shrink-0 rounded-[18px]"
+                  style={{ width: CARD_W, height: 78, scrollSnapAlign: 'start' }}
+                />
+              ))
+            : dates.map((date, i) => {
+                const dateKey = format(date, 'yyyy-MM-dd');
+                const dayData = slotsMap[dateKey];
+                const isAvailable = Array.isArray(dayData) && dayData.length > 0;
+                const isGrayed = !isAvailable; // fully_booked, unavailable, empty, or undefined
+                const scarceCount = isAvailable ? dayData.length : 0;
+                const isScarce = isAvailable && scarceCount < 3;
+                const isSelected = selectedDate ? isSameDay(date, selectedDate) : false;
+                const isTodayDate = isToday(date);
+
+                return (
+                  <motion.button
+                    key={i}
+                    onClick={() => handleDateSelect(date, isGrayed)}
+                    disabled={isGrayed}
+                    whileTap={isGrayed ? undefined : { scale: 0.92 }}
+                    transition={SPRING}
+                    aria-pressed={isSelected}
+                    aria-label={format(date, longDatePattern(language), { locale: loc })}
+                    className="relative flex flex-shrink-0 flex-col items-center justify-center rounded-[18px] py-2.5"
+                    style={{
+                      width: CARD_W,
+                      scrollSnapAlign: 'start',
+                      cursor: isGrayed ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {isSelected && (
+                      <motion.span
+                        layoutId="classic-day"
+                        className="absolute inset-0 rounded-[18px]"
+                        style={{ background: theme.primarySolid, boxShadow: `0 8px 18px -6px ${theme.primarySolid}AA` }}
+                        transition={SPRING}
+                      />
+                    )}
+                    <span
+                      className="relative text-[11px] font-semibold uppercase"
+                      style={{
+                        fontFamily: FONT,
+                        letterSpacing: '0.05em',
+                        color: isSelected ? 'rgba(255,255,255,0.8)' : isGrayed ? INK_3 : INK_2,
+                        opacity: isGrayed && !isSelected ? 0.6 : 1,
+                      }}
+                    >
+                      {format(date, 'EEE', { locale: loc }).replace('.', '').slice(0, 3)}
+                    </span>
+                    <span
+                      className="relative mt-0.5 text-[22px] font-semibold leading-none tabular-nums"
+                      style={{
+                        fontFamily: FONT,
+                        color: isSelected ? '#FFFFFF' : isGrayed ? INK_3 : isTodayDate ? theme.primaryOnLight : INK,
+                        textDecoration: isGrayed ? 'line-through' : undefined,
+                        textDecorationColor: 'rgba(0,0,0,0.18)',
+                        opacity: isGrayed && !isSelected ? 0.55 : 1,
+                      }}
+                    >
+                      {date.getDate()}
+                    </span>
+                    {/* availability dot: brand = free, orange/red = last spots */}
+                    <span className="relative mt-1.5 flex h-[6px] items-center gap-[3px]">
+                      {!isGrayed && (
+                        <span
+                          className={isScarce ? (scarceCount === 1 ? 'classic-pulse-red' : 'classic-pulse-orange') : ''}
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: 999,
+                            background: isScarce
+                              ? undefined
+                              : isSelected
+                              ? 'rgba(255,255,255,0.85)'
+                              : theme.primarySolid,
+                          }}
+                        />
+                      )}
+                    </span>
+                  </motion.button>
+                );
+              })}
         </div>
       </motion.div>
 
       {/* ── Time slots ── */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {selectedDate && (
           <motion.div
-            variants={itemVariants}
-            initial="hidden"
-            animate="visible"
+            key={selectedDateKey}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="overflow-hidden"
+            style={CARD}
           >
-            <div
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: 'rgba(255,255,255,0.96)',
-                boxShadow: '0 4px 18px rgba(0,0,0,0.07)',
-              }}
-            >
-              {/* Header */}
-              <div
-                className="px-5 py-4 border-b flex items-center justify-between"
-                style={{ borderColor: 'rgba(0,0,0,0.05)' }}
-              >
-                <div>
-                  <p
-                    className="uppercase tracking-wide mb-0.5"
-                    style={{
-                      fontFamily: 'var(--font-nunito-sans)',
-                      fontSize: '0.6rem',
-                      color: '#6B7280',
-                      letterSpacing: '0.1em',
-                    }}
-                  >
-                    {t(language, 'availableSlots')}
+            <div className="flex items-center justify-between px-5 pb-3 pt-4">
+              <div>
+                <p className="text-[17px] font-semibold first-cap" style={{ fontFamily: FONT, color: INK, letterSpacing: '-0.015em' }}>
+                  {format(selectedDate, longDatePattern(language), { locale: loc })}
+                </p>
+                <p className="text-[13px]" style={{ fontFamily: FONT, color: INK_2 }}>
+                  {t(language, 'availableSlots')}
+                </p>
+              </div>
+              {!isLoadingSlots && timeSlots.length > 0 && (
+                <span
+                  className="rounded-full px-2.5 py-1 text-[13px] font-semibold tabular-nums"
+                  style={{ background: `${theme.primarySolid}14`, color: theme.primaryOnLight, fontFamily: FONT }}
+                >
+                  {timeSlots.length}
+                </span>
+              )}
+            </div>
+
+            <div className="px-4 pb-5 sm:px-5">
+              {isLoadingSlots ? (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="classic-skeleton h-12 rounded-[14px]" />
+                  ))}
+                </div>
+              ) : timeSlots.length === 0 ? (
+                <div className="py-8 text-center">
+                  <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full" style={{ background: FILL }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={INK_3} strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9.5" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                  </span>
+                  <p className="text-[15px] font-semibold" style={{ fontFamily: FONT, color: INK }}>
+                    {t(language, 'noSlotsForDay')}
                   </p>
-                  <p
-                    className="font-bold text-gray-800 first-cap"
-                    style={{ fontFamily: 'var(--font-nunito)', fontSize: '0.95rem' }}
-                  >
-                    {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
+                  <p className="mt-0.5 text-[14px]" style={{ fontFamily: FONT, color: INK_2 }}>
+                    {t(language, 'tryOtherDate')}
                   </p>
                 </div>
-
-                {!isLoadingSlots && timeSlots.length > 0 && (
-                  <div
-                    className="px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{
-                      background: `${theme.primaryColor}14`,
-                      color: theme.primaryOnLight,
-                      fontFamily: 'var(--font-nunito-sans)',
-                    }}
-                  >
-                    {timeSlots.length}
-                  </div>
-                )}
-              </div>
-
-              {/* Slot grid */}
-              <div className="p-4">
-                {isLoadingSlots ? (
-                  /* Skeleton */
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-11 rounded-xl animate-pulse"
-                        style={{ background: '#F3F4F6' }}
-                      />
-                    ))}
-                  </div>
-                ) : timeSlots.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div
-                      className="w-10 h-10 rounded-full mx-auto mb-3 flex items-center justify-center"
-                      style={{ background: '#F3F4F6' }}
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#9CA3AF"
-                        strokeWidth="2"
-                        strokeLinecap="round"
+              ) : (
+                <motion.div
+                  className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{ visible: { transition: { staggerChildren: 0.02 } } }}
+                >
+                  {timeSlots.map((time) => {
+                    const isSelected = selectedTime === time;
+                    const hhLabel = isHappyHour(time);
+                    return (
+                      <motion.button
+                        key={time}
+                        onClick={() => handleTimeSelect(time)}
+                        variants={slotVariants}
+                        whileHover={isSelected ? undefined : { y: -1 }}
+                        whileTap={{ scale: 0.94 }}
+                        aria-pressed={isSelected}
+                        className="relative flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-[14px] px-2 py-2 text-[16px] font-semibold tabular-nums"
+                        style={{
+                          fontFamily: FONT,
+                          background: isSelected ? theme.primarySolid : hhLabel ? `${theme.primarySolid}12` : FILL,
+                          color: isSelected ? '#FFFFFF' : INK,
+                          boxShadow: isSelected
+                            ? `0 8px 18px -6px ${theme.primarySolid}AA`
+                            : hhLabel
+                            ? `inset 0 0 0 1px ${theme.primarySolid}40`
+                            : 'none',
+                          transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
+                        }}
                       >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 8v4M12 16h.01" />
-                      </svg>
-                    </div>
-                    <p
-                      className="text-sm text-gray-500"
-                      style={{ fontFamily: 'var(--font-nunito-sans)' }}
-                    >
-                      {t(language, 'noSlotsForDay')}
-                    </p>
-                    <p
-                      className="text-xs text-gray-300 mt-1"
-                      style={{ fontFamily: 'var(--font-nunito-sans)' }}
-                    >
-                      {t(language, 'tryOtherDate')}
-                    </p>
-                  </div>
-                ) : (
-                  <motion.div
-                    className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2"
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                      visible: { transition: { staggerChildren: 0.025 } },
-                    }}
-                  >
-                    {timeSlots.map((time) => {
-                      const isSelected = selectedTime === time;
-                      const hhLabel = isHappyHour(time);
-                      return (
-                        <motion.button
-                          key={time}
-                          onClick={() => handleTimeSelect(time)}
-                          variants={slotVariants}
-                          className="classic-slot-btn py-2.5 px-2 rounded-xl text-sm font-semibold text-center flex flex-col items-center justify-center gap-0.5"
-                          style={{
-                            fontFamily: 'var(--font-nunito-sans)',
-                            background: isSelected
-                              ? theme.primarySolid
-                              : '#F8F9FA',
-                            color: isSelected ? '#ffffff' : '#374151',
-                            border: `2px solid ${
-                              isSelected ? theme.primarySolid : hhLabel ? `${theme.primaryColor}30` : 'transparent'
-                            }`,
-                            boxShadow: isSelected
-                              ? `0 4px 12px ${theme.primaryColor}38`
-                              : '0 1px 3px rgba(0,0,0,0.04)',
-                            transition:
-                              'background 0.13s, color 0.13s, box-shadow 0.13s, transform 0.13s',
-                            minHeight: 44,
-                          }}
-                          whileHover={
-                            !isSelected
-                              ? {
-                                  backgroundColor: `${theme.primaryColor}14`,
-                                  scale: 1.03,
-                                }
-                              : {}
-                          }
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <span>{time}</span>
-                          {hhLabel && (
-                            <span
-                              className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold leading-none"
-                              style={{
-                                background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primarySolid,
-                                color: '#ffffff',
-                                fontFamily: 'var(--font-nunito-sans)',
-                              }}
-                            >
-                              {hhLabel}
-                            </span>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </div>
+                        <span>{time}</span>
+                        {hhLabel && (
+                          <span
+                            className="rounded-full px-1.5 py-[1px] text-[10px] font-bold leading-tight"
+                            style={{
+                              background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primarySolid,
+                              color: '#FFFFFF',
+                              fontFamily: FONT,
+                            }}
+                          >
+                            {hhLabel}
+                          </span>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
@@ -701,21 +575,10 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
 
       {/* No date selected placeholder */}
       {!selectedDate && !isLoadingSlots && (
-        <motion.div variants={itemVariants}>
-          <div
-            className="rounded-2xl p-8 text-center"
-            style={{
-              background: 'rgba(255,255,255,0.95)',
-              boxShadow: '0 3px 14px rgba(0,0,0,0.06)',
-            }}
-          >
-            <p
-              className="text-sm text-gray-500"
-              style={{ fontFamily: 'var(--font-nunito-sans)' }}
-            >
-              {t(language, 'chooseAbove')}
-            </p>
-          </div>
+        <motion.div variants={itemVariants} className="p-8 text-center" style={CARD}>
+          <p className="text-[15px]" style={{ fontFamily: FONT, color: INK_2 }}>
+            {t(language, 'chooseAbove')}
+          </p>
         </motion.div>
       )}
 
@@ -723,48 +586,22 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
       <AnimatePresence>
         {selectedDate && selectedTime && (
           <motion.div
-            className="mt-4 px-4 py-3 rounded-2xl flex items-center gap-3"
-            style={{
-              background: `${theme.primaryColor}12`,
-              border: `1px solid ${theme.primaryColor}28`,
-            }}
+            className="mt-4 flex items-center gap-3 rounded-[16px] px-4 py-3"
+            style={{ background: '#FFFFFF', boxShadow: `inset 0 0 0 1px ${theme.primarySolid}30` }}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.25 }}
           >
-            <div
-              className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: theme.primarySolid }}
-            >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 11 11"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full" style={{ background: theme.primarySolid }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M1.5 5.5l3 3 5-5" />
               </svg>
-            </div>
-            <p
-              className="text-sm first-cap"
-              style={{
-                fontFamily: 'var(--font-nunito-sans)',
-                color: '#374151',
-              }}
-            >
-              <span className="font-semibold">
-                {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
-              </span>{' '}
-              ob{' '}
-              <span
-                className="font-semibold"
-                style={{ color: theme.primaryOnLight }}
-              >
+            </span>
+            <p className="text-[15px] first-cap" style={{ fontFamily: FONT, color: INK }}>
+              <span className="font-semibold">{format(selectedDate, longDatePattern(language), { locale: loc })}</span>{' '}
+              {atWord(language)}{' '}
+              <span className="font-semibold" style={{ color: theme.primaryOnLight }}>
                 {selectedTime}
               </span>
             </p>
