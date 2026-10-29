@@ -9,9 +9,36 @@
   --border: #e5e7eb;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
+}
+
+/* No double-tap zoom and no 300 ms tap delay on phones. */
+button,
+a,
+input,
+textarea,
+select,
+label,
+[role='button'],
+[role='switch'] {
+  touch-action: manipulation;
+}
+
+/* iOS zooms into any field with text under 16px. Keep fields at 16px on
+   phones in every design. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 @layer utilities {
