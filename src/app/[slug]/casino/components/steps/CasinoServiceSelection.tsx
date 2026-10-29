@@ -9,6 +9,7 @@ import type { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 const SUITS = ['♠', '♥', '♦', '♣'];
 
@@ -302,6 +303,9 @@ export default function CasinoServiceSelection() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="casino" />
 
       {/* ── Category pill strip ── */}
       {categories.length > 1 && (

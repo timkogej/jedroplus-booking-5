@@ -81,12 +81,14 @@ export async function fetchInitData(companySlug: string): Promise<InitResponse> 
           phone?: string | null;
           cancelDays?: number | null;
           rescheduleDays?: number | null;
+          country?: string | null;
         };
         data.company.logo_url = branding.logoUrl ?? null;
         data.company.naslov = branding.address ?? null;
         data.company.telefon = branding.phone ?? null;
         data.company.cancelDays = branding.cancelDays ?? null;
         data.company.rescheduleDays = branding.rescheduleDays ?? null;
+        if (branding.country) data.company.country = branding.country;
       }
     } catch {
       // a missing logo must never break the booking page

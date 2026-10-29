@@ -9,6 +9,7 @@ import type { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { getContrastMode } from '../ClassicLayout';
 import { t } from '../../i18n';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -345,6 +346,9 @@ export default function ClassicServiceSelection() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="classic" />
 
       {/* ── Category pill strip ── */}
       {categories.length > 1 && (

@@ -17,6 +17,7 @@ import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
+import { startNewBooking } from '@/lib/booking/newBooking';
 
 
 interface Props {
@@ -320,10 +321,7 @@ function SuccessView() {
         </div>
 
         <motion.button
-          onClick={() => {
-            usePromotionsStore.getState().resetSelections();
-            window.location.reload();
-          }}
+          onClick={startNewBooking}
           className="w-full py-4 rounded-2xl text-white font-semibold text-sm relative overflow-hidden"
           style={{
             backgroundColor: theme.primarySolid,

@@ -17,6 +17,10 @@ import CasinoEmployeeSelection from './steps/CasinoEmployeeSelection';
 import CasinoDateTimeSelection from './steps/CasinoDateTimeSelection';
 import CasinoCustomerDetails from './steps/CasinoCustomerDetails';
 import CasinoConfirmation from './steps/CasinoConfirmation';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { useRequestStore } from '@/lib/booking/request';
+import { casinoLook } from '@/components/shared/request/looks';
 
 interface CasinoLayoutProps {
   companySlug: string;
@@ -275,14 +279,26 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
 
   const stepInfo = getStepInfo(currentStep, language);
   const stepKey = `step-${currentStep}-${!!bookingConfirmation?.success}`;
-  const canGoBack = currentStep > 1 && !bookingConfirmation?.success;
-  const isSuccess = !!bookingConfirmation?.success;
+  // A sent request counts as finished too: no stepper or back link.
+  const requestSent = useRequestStore((st) => st.sent);
+  const isSuccess = !!bookingConfirmation?.success || requestSent;
+  const canGoBack = currentStep > 1 && !isSuccess;
 
   // Hide the summary card on step 5 (customer details) — it's shown inside the step itself
-  const showSummaryCard = !isSuccess && currentStep !== 5;
+  // Request mode: the shared request screens carry their own heading and
+  // show the chosen service, so the casino title and summary step aside there.
+  const requestFlow = useBookingStore((st) => st.company?.booking_mode === 'request');
+  const requestOwnsHeader = requestFlow && (currentStep === 4 || currentStep === 6);
+  const showSummaryCard = !isSuccess && currentStep !== 5 && !requestFlow;
   const selectedServices = pickedServices.length > 0 ? pickedServices : selectedService ? [selectedService] : [];
   const promotion = resolvePrimaryPromotion(selectedServices, serviceDiscounts, activePromotion);
   const pricing = getBookingPricing(selectedServices, promotion, selectedAddOn);
+
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const company = useBookingStore((s) => s.company);
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = casinoLook();
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -292,9 +308,9 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
       case 1:
       case 2: return <CasinoServiceSelection />;
       case 3: return <CasinoEmployeeSelection />;
-      case 4: return <CasinoDateTimeSelection companySlug={companySlug} />;
+      case 4: return isRequest ? <RequestWhenStep look={requestLook} /> : <CasinoDateTimeSelection companySlug={companySlug} />;
       case 5: return <CasinoCustomerDetails />;
-      case 6: return <CasinoConfirmation companySlug={companySlug} />;
+      case 6: return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <CasinoConfirmation companySlug={companySlug} />;
       default: return null;
     }
   };
@@ -340,6 +356,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
             >
               {canGoBack && <BackButton onClick={prevStep} label={t(language, 'back')} />}
 
+              {!requestOwnsHeader && (<>
               {/* Step heading */}
               <h2
                 className="font-bold mb-0.5"
@@ -404,6 +421,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
               )}
 
               <div className="mc-divider mt-4" />
+              </>)}
             </motion.div>
           </AnimatePresence>
         )}

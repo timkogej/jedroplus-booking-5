@@ -16,6 +16,7 @@ import { dateLocale, datePattern, t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
+import { startNewBooking } from '@/lib/booking/newBooking';
 
 interface Props {
   companySlug?: string;
@@ -199,7 +200,7 @@ function SuccessView() {
         </div>
 
         <button
-          onClick={() => { usePromotionsStore.getState().resetSelections(); window.location.reload(); }}
+          onClick={startNewBooking}
           className="w-full py-4 rounded-xl text-white font-medium text-sm transition-opacity hover:opacity-90"
           style={{
             backgroundColor: theme.primarySolid,

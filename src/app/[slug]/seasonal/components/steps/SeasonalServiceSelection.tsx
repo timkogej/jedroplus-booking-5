@@ -8,6 +8,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -173,6 +174,9 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
           Katera storitev vas zanima?
         </p>
       </motion.div>
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="seasonal" />
 
       <motion.div
         variants={containerVariants}

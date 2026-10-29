@@ -155,6 +155,12 @@ export interface Company {
   multiple_services_online?: boolean;
   /** Default ISO language code for notification emails e.g. 'sl'. NEW COLUMN — run ALTER TABLE */
   defaultLanguage?: SupportedLanguage;
+  /**
+   * 'instant' = the client books a free time (default).
+   * 'request' = the client sends a request (when suits them + what they want)
+   * and the salon picks the time in Jedro+ ("Zahteve za termin").
+   */
+  booking_mode?: 'instant' | 'request';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

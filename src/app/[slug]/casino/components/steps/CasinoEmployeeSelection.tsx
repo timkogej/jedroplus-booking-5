@@ -328,8 +328,9 @@ export default function CasinoEmployeeSelection() {
   const handleSurprise = useCallback(() => {
     if (isSpinning || filteredEmployees.length === 0) return;
 
-    // Randomly pick the winner from eligible employees
-    const winner = filteredEmployees[Math.floor(Math.random() * filteredEmployees.length)];
+    // The button says "anyone available": the spin is only a flourish, the
+    // booking goes out as any_person so every specialist's free times show.
+    // It used to pick one employee at random, which hid everyone else's times.
     setIsSpinning(true);
 
     const totalSteps = filteredEmployees.length === 1
@@ -350,15 +351,11 @@ export default function CasinoEmployeeSelection() {
 
     const cycle = () => {
       if (step >= totalSteps) {
-        // Land on winner
-        setRouletteHighlight(winner.id);
-        // Hold the winner highlight, then advance
+        setRouletteHighlight(null);
         setTimeout(() => {
           setIsSpinning(false);
-          setRouletteHighlight(null);
-          // any_person = false — concrete employee chosen locally at random
-          selectEmployee(winner.id, false);
-        }, 850);
+          selectEmployee(null, true);
+        }, 350);
         return;
       }
 

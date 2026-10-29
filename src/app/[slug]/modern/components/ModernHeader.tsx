@@ -1,4 +1,5 @@
 'use client';
+import { REQUEST_TEXT, isRequestMode } from '@/lib/booking/request';
 
 import { motion } from 'framer-motion';
 import CompanyLogo from '@/components/shared/CompanyLogo';
@@ -13,6 +14,11 @@ const ALL_STEPS = [
   { label: 'Podatki', storeStep: 5 },
   { label: 'Potrditev', storeStep: 6 }, // store steps 6, 7
 ];
+
+/** In request mode the date step is the client's wish, not a booked time. */
+function labelOf(step: { label: string; storeStep: number }): string {
+  return step.storeStep === 4 && isRequestMode() ? REQUEST_TEXT.sl.stepLabel : step.label;
+}
 
 /** Index of the last shown step that the store step has reached. */
 function storeToVisualIdx(steps: typeof ALL_STEPS, storeStep: number): number {
@@ -156,7 +162,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
                         transition: 'color 0.3s',
                       }}
                     >
-                      {step.label}
+                      {labelOf(step)}
                     </span>
 
                     {/* Dot */}
@@ -198,7 +204,7 @@ export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack
                 className="text-xs font-medium"
                 style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
               >
-                {STEPS[visualIdx]?.label} · {visualIdx + 1}/{STEPS.length}
+                {STEPS[visualIdx] ? labelOf(STEPS[visualIdx]) : ''} · {visualIdx + 1}/{STEPS.length}
               </p>
             </div>
           </motion.div>

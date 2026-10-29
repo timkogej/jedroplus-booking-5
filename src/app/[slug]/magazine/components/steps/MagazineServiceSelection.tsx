@@ -8,6 +8,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.06 } },
@@ -134,6 +135,9 @@ export default function MagazineServiceSelection() {
           {t(language, 'servicesSubtitle')}
         </p>
       </motion.div>
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="magazine" />
 
       <div className="space-y-8">
         {categories.map((category, catIndex) => {

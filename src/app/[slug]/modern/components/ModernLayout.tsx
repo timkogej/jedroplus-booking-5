@@ -12,6 +12,10 @@ import ModernDateTimeSelection from './steps/ModernDateTimeSelection';
 import ModernCustomerDetails from './steps/ModernCustomerDetails';
 import ModernConfirmation from './steps/ModernConfirmation';
 import ModernPaymentStep from './steps/ModernPaymentStep';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { useRequestStore } from '@/lib/booking/request';
+import { modernLook } from '@/components/shared/request/looks';
 
 interface CssVars {
   '--t-primary': string;
@@ -105,9 +109,17 @@ export default function ModernLayout({ companySlug }: Props) {
 
   const cssVars = useMemo(() => computeCssVars(theme), [theme]);
 
-  const isSuccess = !!bookingConfirmation?.success;
+  // A sent request counts as finished too: no stepper or back link.
+  const requestSent = useRequestStore((st) => st.sent);
+  const isSuccess = !!bookingConfirmation?.success || requestSent;
   const canGoBack = currentStep > 1 && !isSuccess;
   const stepKey = `step-${currentStep}-${isSuccess}`;
+
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const company = useBookingStore((s) => s.company);
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = modernLook(theme);
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -121,11 +133,11 @@ export default function ModernLayout({ companySlug }: Props) {
         // Never reached when prikazZaposlenih=false: the store skips to step 4.
         return <ModernEmployeeSelection />;
       case 4:
-        return <ModernDateTimeSelection companySlug={companySlug} />;
+        return isRequest ? <RequestWhenStep look={requestLook} /> : <ModernDateTimeSelection companySlug={companySlug} />;
       case 5:
         return <ModernCustomerDetails />;
       case 6:
-        return <ModernConfirmation companySlug={companySlug} />;
+        return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <ModernConfirmation companySlug={companySlug} />;
       case 7:
         return <ModernPaymentStep />;
       default:

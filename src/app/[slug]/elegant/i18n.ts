@@ -1,3 +1,4 @@
+import { REQUEST_TEXT, isRequestMode } from '@/lib/booking/request';
 // src/app/[slug]/elegant/i18n.ts
 //
 // Texts of the elegant design in Slovenian and English. Before this file the
@@ -220,6 +221,7 @@ export type ElegantKey = keyof Dict;
 /** Text for `key` in `lang` (Slovenian when the language is unknown). */
 export function t<K extends ElegantKey>(lang: SupportedLanguage | undefined, key: K): Dict[K] {
   const dict = (translations[lang ?? 'sl'] ?? translations.sl) as unknown as Dict;
+  if (key === 'stepDateTime' && isRequestMode()) return REQUEST_TEXT[lang === 'en' ? 'en' : 'sl'].stepLabel as Dict[K];
   return dict[key];
 }
 

@@ -17,6 +17,8 @@ export interface Branding {
   cancelDays: number | null;
   /** Days before the appointment until which clients may reschedule. */
   rescheduleDays: number | null;
+  /** ISO country code from Jedro+ ("country_code"), e.g. SI. */
+  country: string | null;
 }
 
 const EMPTY: Branding = {
@@ -26,6 +28,7 @@ const EMPTY: Branding = {
   phone: null,
   cancelDays: null,
   rescheduleDays: null,
+  country: null,
 };
 
 export async function getBranding(slug: string): Promise<Branding> {
@@ -90,7 +93,20 @@ export async function getBranding(slug: string): Promise<Branding> {
       /* policy is optional */
     }
 
-    return { name, logoUrl, address, phone, cancelDays, rescheduleDays };
+    let country: string | null = null;
+    try {
+      const countryRes = await fetch(`${table}?select=country_code&${byCompany(companyId)}`, {
+        headers,
+        next: { revalidate: 300 },
+      });
+      const rows = (await countryRes.json()) as { country_code?: string | null }[];
+      const code = Array.isArray(rows) ? rows[0]?.country_code : null;
+      country = typeof code === 'string' && code.trim() ? code.trim().toUpperCase() : null;
+    } catch {
+      /* country is optional */
+    }
+
+    return { name, logoUrl, address, phone, cancelDays, rescheduleDays, country };
   } catch {
     return EMPTY;
   }
