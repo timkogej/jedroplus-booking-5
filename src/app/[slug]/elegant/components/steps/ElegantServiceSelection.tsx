@@ -8,6 +8,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -153,6 +154,9 @@ export default function ElegantServiceSelection() {
           {t(language, 'serviceQuestion')}
         </p>
       </motion.div>
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="elegant" />
 
       <div className="space-y-5">
         {categories.map((category) => {

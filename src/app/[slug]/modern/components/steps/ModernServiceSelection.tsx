@@ -9,6 +9,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
@@ -323,6 +324,9 @@ export default function ModernServiceSelection() {
           </AnimatePresence>
         </motion.div>
       )}
+
+      {/* Request mode: for clients who don't know which service they need */}
+      <RequestUnsureCard design="modern" />
 
       {/* ── Category pill strip (scrollable, click to jump) ── */}
       {categories.length > 1 && (

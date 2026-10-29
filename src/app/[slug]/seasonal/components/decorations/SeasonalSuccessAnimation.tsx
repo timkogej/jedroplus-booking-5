@@ -18,6 +18,9 @@ export default function SeasonalSuccessAnimation({ isActive, seasonalTheme }: Pr
     if (holiday === 'womensday' || holiday === 'mothersday') return ['💐', '🌷', '💗', '🌸', '✨'];
     if (holiday === 'martinovo') return ['🍇', '🍂', '🍁', '⭐', '✨'];
     if (holiday === 'miklavz') return ['🎁', '❄️', '⭐', '🍬', '✨'];
+    if (holiday === 'befana') return ['🧦', '🍬', '⭐', '🍫', '✨'];
+    if (holiday === 'halloween') return ['🎃', '🍂', '🌙', '🍬', '✨'];
+    if (holiday === 'thanksgiving') return ['🍂', '🍁', '🥧', '⭐', '✨'];
     if (holiday === 'valentine') return ['💕', '💖', '💗', '❤️', '💘'];
     if (holiday === 'easter') return ['🥚', '🐰', '🌷', '🐣', '✨'];
     if (holiday === 'newyear') return ['🎉', '🥂', '✨', '🎊', '⭐'];

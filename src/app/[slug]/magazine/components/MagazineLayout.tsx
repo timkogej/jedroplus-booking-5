@@ -10,6 +10,10 @@ import MagazineServiceSelection from './steps/MagazineServiceSelection';
 import MagazineDateTimeSelection from './steps/MagazineDateTimeSelection';
 import MagazineCustomerDetails from './steps/MagazineCustomerDetails';
 import MagazineConfirmation from './steps/MagazineConfirmation';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { useRequestStore } from '@/lib/booking/request';
+import { magazineLook } from '@/components/shared/request/looks';
 
 interface MagazineLayoutProps {
   companySlug: string;
@@ -33,7 +37,8 @@ const pageVariants: Variants = {
 
 function EditorialPanel() {
   const { currentStep, theme, bookingConfirmation, language } = useBookingStore();
-  const step = bookingConfirmation?.success ? 6 : currentStep;
+  const requestSentHeader = useRequestStore((st) => st.sent);
+  const step = bookingConfirmation?.success || requestSentHeader ? 6 : currentStep;
 
   type PanelKey = 1 | 2 | 3 | 4 | 5 | 6;
   const panels: Record<PanelKey, { eyebrow: string; headline: string; quote: string; accent: string }> = {
@@ -177,9 +182,18 @@ function EditorialPanel() {
 
 export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
   const { currentStep, bookingConfirmation, language, prevStep } = useBookingStore();
+  // A sent request is finished: no back link.
+  const requestSent = useRequestStore((st) => st.sent);
 
   const showBackButton =
-    !bookingConfirmation?.success && currentStep > 1;
+    !bookingConfirmation?.success && !requestSent && currentStep > 1;
+
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const company = useBookingStore((s) => s.company);
+  const theme = useBookingStore((s) => s.theme);
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = magazineLook(theme);
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -192,11 +206,11 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
       case 3:
         return <MagazineEmployeeSelection />;
       case 4:
-        return <MagazineDateTimeSelection companySlug={companySlug} />;
+        return isRequest ? <RequestWhenStep look={requestLook} /> : <MagazineDateTimeSelection companySlug={companySlug} />;
       case 5:
         return <MagazineCustomerDetails />;
       case 6:
-        return <MagazineConfirmation companySlug={companySlug} />;
+        return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <MagazineConfirmation companySlug={companySlug} />;
       default:
         return null;
     }

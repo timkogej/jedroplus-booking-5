@@ -17,6 +17,7 @@ import {
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
+import { startNewBooking } from '@/lib/booking/newBooking';
 
 interface Props {
   companySlug?: string;
@@ -47,7 +48,6 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
     customerDetails,
     theme,
     language,
-    reset,
   } = useBookingStore();
 
   const [copied, setCopied] = useState(false);
@@ -65,9 +65,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
   };
 
   const handleNewBooking = () => {
-    usePromotionsStore.getState().resetSelections();
-    reset();
-    if (typeof window !== 'undefined') window.location.reload();
+    startNewBooking();
   };
 
   const t = {

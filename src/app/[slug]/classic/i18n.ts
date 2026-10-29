@@ -1,3 +1,4 @@
+import { REQUEST_TEXT, isRequestMode } from '@/lib/booking/request';
 import type { SupportedLanguage } from '@/types';
 
 export const translations = {
@@ -206,5 +207,6 @@ export const translations = {
 export type TranslationKey = keyof typeof translations.sl;
 
 export function t(language: SupportedLanguage, key: TranslationKey): string {
+  if (key === 'stepAppointment' && isRequestMode()) return REQUEST_TEXT[language === 'en' ? 'en' : 'sl'].stepLabel;
   return translations[language][key];
 }

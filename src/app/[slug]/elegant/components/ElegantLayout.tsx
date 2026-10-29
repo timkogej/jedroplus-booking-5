@@ -13,6 +13,10 @@ import ElegantConfirmation from './steps/ElegantConfirmation';
 import ElegantSummary from './ElegantSummary';
 import { dateLocale, datePattern, t } from '../i18n';
 import type { SupportedLanguage } from '@/types';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { useRequestStore } from '@/lib/booking/request';
+import { elegantLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug: string;
@@ -104,9 +108,16 @@ export default function ElegantLayout({ companySlug }: Props) {
     setLanguage,
   } = useBookingStore();
 
-  const isSuccess = !!bookingConfirmation?.success;
+  // A sent request counts as finished too: no stepper or back link.
+  const requestSent = useRequestStore((st) => st.sent);
+  const isSuccess = !!bookingConfirmation?.success || requestSent;
   const canGoBack = currentStep > 1 && !isSuccess;
   const stepKey = `step-${currentStep}-${isSuccess}`;
+
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = elegantLook(theme);
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -116,9 +127,9 @@ export default function ElegantLayout({ companySlug }: Props) {
       case 1:
       case 2: return <ElegantServiceSelection />;
       case 3: return <ElegantEmployeeSelection />;
-      case 4: return <ElegantDateTimeSelection companySlug={companySlug} />;
+      case 4: return isRequest ? <RequestWhenStep look={requestLook} /> : <ElegantDateTimeSelection companySlug={companySlug} />;
       case 5: return <ElegantCustomerDetails />;
-      case 6: return <ElegantConfirmation companySlug={companySlug} />;
+      case 6: return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <ElegantConfirmation companySlug={companySlug} />;
       default: return null;
     }
   };

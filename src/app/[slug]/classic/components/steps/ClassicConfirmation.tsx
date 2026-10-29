@@ -18,6 +18,7 @@ import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
+import { startNewBooking } from '@/lib/booking/newBooking';
 
 interface Props {
   companySlug?: string;
@@ -105,7 +106,6 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
     employeesUI,
     customerDetails,
     language,
-    reset,
   } = useBookingStore();
   const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
@@ -368,10 +368,7 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
           </div>
 
           <button
-            onClick={() => {
-              usePromotionsStore.getState().resetSelections();
-              reset();
-            }}
+            onClick={startNewBooking}
             className="w-full py-3.5 rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
             style={{
               fontFamily: 'var(--font-nunito)',

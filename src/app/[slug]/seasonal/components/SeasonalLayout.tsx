@@ -12,6 +12,10 @@ import SeasonalEmployeeSelection from './steps/SeasonalEmployeeSelection';
 import SeasonalDateTimeSelection from './steps/SeasonalDateTimeSelection';
 import SeasonalCustomerDetails from './steps/SeasonalCustomerDetails';
 import SeasonalConfirmation from './steps/SeasonalConfirmation';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { REQUEST_TEXT, isRequestMode, useRequestStore } from '@/lib/booking/request';
+import { seasonalLook } from '@/components/shared/request/looks';
 
 // ── Time-of-day background tint (always light) ────────────────────────────────
 function getTimeOfDayTint(): { bgFrom: string; bgTo: string } {
@@ -82,7 +86,12 @@ export default function SeasonalLayout({ companySlug }: Props) {
   // The specialist step is skipped when the company hides employees online.
   const visibleSteps = STEPS.filter((s) => prikazZaposlenih || s.storeStep !== 3);
 
-  const seasonalTheme = useMemo(() => getCurrentSeasonalTheme(), []);
+  // Holidays of the salon's country, named in the page language.
+  const country = useBookingStore((st) => st.company?.country);
+  const seasonalTheme = useMemo(
+    () => getCurrentSeasonalTheme(new Date(), country, language === 'en' ? 'en' : 'sl'),
+    [country, language],
+  );
   const { config } = seasonalTheme;
 
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
@@ -123,12 +132,19 @@ export default function SeasonalLayout({ companySlug }: Props) {
     '--b3': 'rgba(0,0,0,0.14)',
   }), [config]);
 
-  const isSuccess = !!bookingConfirmation?.success;
+  // A sent request counts as finished too: no stepper or back link.
+  const requestSent = useRequestStore((st) => st.sent);
+  const isSuccess = !!bookingConfirmation?.success || requestSent;
   const canGoBack = currentStep > 1 && !isSuccess;
   const displayStep = isSuccess ? 7 : currentStep;
   const stepKey = `step-${currentStep}-${isSuccess}`;
 
   const emoji = getSeasonEmoji(seasonalTheme);
+
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = seasonalLook(theme, seasonalTheme.config.headingFont);
 
   const renderStep = () => {
     if (bookingConfirmation?.success) {
@@ -138,9 +154,9 @@ export default function SeasonalLayout({ companySlug }: Props) {
       case 1:
       case 2: return <SeasonalServiceSelection seasonalTheme={seasonalTheme} />;
       case 3: return <SeasonalEmployeeSelection seasonalTheme={seasonalTheme} />;
-      case 4: return <SeasonalDateTimeSelection companySlug={companySlug} seasonalTheme={seasonalTheme} />;
+      case 4: return isRequest ? <RequestWhenStep look={requestLook} /> : <SeasonalDateTimeSelection companySlug={companySlug} seasonalTheme={seasonalTheme} />;
       case 5: return <SeasonalCustomerDetails seasonalTheme={seasonalTheme} />;
-      case 6: return <SeasonalConfirmation companySlug={companySlug} seasonalTheme={seasonalTheme} />;
+      case 6: return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <SeasonalConfirmation companySlug={companySlug} seasonalTheme={seasonalTheme} />;
       default: return null;
     }
   };
@@ -258,7 +274,9 @@ export default function SeasonalLayout({ companySlug }: Props) {
               const isDone = displayStep > step.storeStep;
               const isActive = displayStep === step.storeStep;
               const isLast = i === visibleSteps.length - 1;
-              const label = language === 'en' ? step.labelEn : step.label;
+              const label = step.storeStep === 4 && isRequestMode()
+                ? REQUEST_TEXT[language === 'en' ? 'en' : 'sl'].stepLabel
+                : language === 'en' ? step.labelEn : step.label;
 
               return (
                 <div key={step.number} className="contents">

@@ -17,6 +17,10 @@ import ClassicDateTimeSelection from './steps/ClassicDateTimeSelection';
 import ClassicCustomerDetails from './steps/ClassicCustomerDetails';
 import ClassicConfirmation from './steps/ClassicConfirmation';
 import ClassicPaymentStep from './steps/ClassicPaymentStep';
+import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
+import RequestReview from '@/components/shared/request/RequestReview';
+import { useRequestStore } from '@/lib/booking/request';
+import { classicLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug: string;
@@ -258,7 +262,9 @@ export default function ClassicLayout({ companySlug }: Props) {
   const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
   const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
 
-  const isSuccess = !!bookingConfirmation?.success;
+  // A sent request counts as finished too: no stepper or back link.
+  const requestSent = useRequestStore((st) => st.sent);
+  const isSuccess = !!bookingConfirmation?.success || requestSent;
   const contrastMode = getContrastMode(theme.bgFrom, theme.bgTo);
   const canGoBack = currentStep > 1 && !isSuccess && currentStep !== 7;
 
@@ -286,6 +292,11 @@ export default function ClassicLayout({ companySlug }: Props) {
   const visualStep = storeToVisual(currentStep, prikazZaposlenih);
   const showStepper = !isSuccess && currentStep < 7;
 
+  // Request mode (company.booking_mode='request'): no free-time calendar;
+  // the client says when suits them and the salon picks the time.
+  const isRequest = company?.booking_mode === 'request';
+  const requestLook = classicLook(theme);
+
   const renderStep = () => {
     if (bookingConfirmation?.success) {
       return <ClassicConfirmation companySlug={companySlug} />;
@@ -297,11 +308,11 @@ export default function ClassicLayout({ companySlug }: Props) {
       case 3:
         return <ClassicEmployeeSelection />;
       case 4:
-        return <ClassicDateTimeSelection companySlug={companySlug} />;
+        return isRequest ? <RequestWhenStep look={requestLook} /> : <ClassicDateTimeSelection companySlug={companySlug} />;
       case 5:
         return <ClassicCustomerDetails />;
       case 6:
-        return <ClassicConfirmation companySlug={companySlug} />;
+        return isRequest ? <RequestReview look={requestLook} companySlug={companySlug} /> : <ClassicConfirmation companySlug={companySlug} />;
       case 7:
         return <ClassicPaymentStep />;
       default:

@@ -116,6 +116,8 @@ interface BookingState {
     storitev: string;
     datum: string;
     cas: string;
+    /** Appointment ID from the API, e.g. "OB-000007". */
+    terminId?: string;
   } | null;
 
   // ── Actions — init ───────────────────────────────────────────────────────────
@@ -308,6 +310,11 @@ export const useBookingStore = create<BookingState>((set, get) => {
    * goes to whoever is free.
    */
   function resolveStep(step: BookingStep): Partial<BookingState> {
+    // Request mode ("povpraševanje"): the client says when suits them and the
+    // salon picks the person, so the employee step is skipped as well.
+    if (step === 3 && get().company?.booking_mode === 'request') {
+      return { currentStep: 4 as BookingStep, selectedEmployeeId: null, anyPerson: true };
+    }
     if (step === 3 && !get().prikazZaposlenih) {
       return { currentStep: 4 as BookingStep, selectedEmployeeId: null, anyPerson: true };
     }
@@ -341,7 +348,9 @@ export const useBookingStore = create<BookingState>((set, get) => {
         resursi: resursi ?? [],
         storitveResursiMap: storitveResursiMap ?? {},
         multipleServicesAllowed: company.multiple_services_online ?? false,
-        prikazZaposlenih: company.prikaz_zaposlenih_rezervacija ?? true,
+        // In request mode the salon assigns the person, so no employee step
+        // (the request step offers an optional preference instead).
+        prikazZaposlenih: company.booking_mode === 'request' ? false : company.prikaz_zaposlenih_rezervacija ?? true,
         maxDniRezervacija: company.max_dnevi_rezervacija ?? 60,
         stripeEnabled: company.stripe_enabled ?? false,
         stripePaymentMode: company.stripe_payment_mode ?? 'full',
@@ -473,7 +482,7 @@ export const useBookingStore = create<BookingState>((set, get) => {
       } else if (currentStep === 3) {
         // Step 3 can be reached by skipping step 2 via selectCategoryAndService
         set({ currentStep: 1 as BookingStep });
-      } else if (currentStep === 4 && !get().prikazZaposlenih) {
+      } else if (currentStep === 4 && (!get().prikazZaposlenih || get().company?.booking_mode === 'request')) {
         // Employee step is hidden: back from the calendar goes to the services
         set({ currentStep: 1 as BookingStep });
       } else if (currentStep > 1) {
@@ -511,9 +520,29 @@ export const useBookingStore = create<BookingState>((set, get) => {
     setBookingConfirmation: (bookingConfirmation) => set({ bookingConfirmation }),
 
     reset: () => {
-      // Preserve the user's language choice across resets
-      const language = getPersistedLanguage();
-      set({ ...initialState, language });
+      // "Nova rezervacija": clear only what the client chose. The salon's data
+      // (company, services, employees, colours …) stays, because the page
+      // loads it once; wiping it left an empty page.
+      const s = get();
+      set({
+        ...initialState,
+        theme: s.theme,
+        company: s.company,
+        employeesUI: s.employeesUI,
+        categories: s.categories,
+        services: s.services,
+        servicesByCategory: s.servicesByCategory,
+        employeesByServiceId: s.employeesByServiceId,
+        resursi: s.resursi,
+        storitveResursiMap: s.storitveResursiMap,
+        multipleServicesAllowed: s.multipleServicesAllowed,
+        prikazZaposlenih: s.prikazZaposlenih,
+        maxDniRezervacija: s.maxDniRezervacija,
+        stripeEnabled: s.stripeEnabled,
+        stripePaymentMode: s.stripePaymentMode,
+        stripeDepositPercent: s.stripeDepositPercent,
+        language: s.language,
+      });
     },
   };
 });

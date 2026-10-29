@@ -17,6 +17,7 @@ import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
+import { startNewBooking } from '@/lib/booking/newBooking';
 
 interface Props {
   companySlug?: string;
@@ -82,7 +83,6 @@ function SuccessView() {
     anyPerson,
     employeesUI,
     totalDurationMin,
-    reset,
     customerDetails,
     language,
   } = useBookingStore();
@@ -116,9 +116,9 @@ function SuccessView() {
     }
   };
 
-  const refNum = bookingConfirmation?.cas
-    ? `MCB-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`
-    : 'MCB-2026';
+  // The appointment's real ID from the API (e.g. OB-000007), which the salon
+  // can find in its calendar. It used to be a random made-up number.
+  const refNum = bookingConfirmation?.terminId;
 
   return (
     <>
@@ -215,9 +215,11 @@ function SuccessView() {
             <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.58rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c' }}>
               {t(language, 'winningTicket')}
             </span>
-            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.55rem', letterSpacing: '0.12em', color: 'rgba(201,168,76,0.4)' }}>
-              #{refNum}
-            </span>
+            {refNum && (
+              <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.55rem', letterSpacing: '0.12em', color: 'rgba(201,168,76,0.6)' }}>
+                #{refNum}
+              </span>
+            )}
           </div>
 
           <div className="px-5 py-4">
@@ -281,7 +283,7 @@ function SuccessView() {
           </div>
 
           <button
-            onClick={() => { usePromotionsStore.getState().resetSelections(); reset(); }}
+            onClick={startNewBooking}
             className="mc-btn-gold w-full"
           >
             {t(language, 'newBooking')}
@@ -366,6 +368,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
           storitev: serviceName,
           datum: datumDisplay,
           cas: selectedTime,
+          terminId: response.terminId,
         });
       } else {
         setError(response.message || t(language, 'bookingFailed'));

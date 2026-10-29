@@ -11,6 +11,6 @@ export const revalidate = 300;
 
 export async function GET(request: Request) {
   const slug = new URL(request.url).searchParams.get('slug')?.trim() ?? '';
-  const { logoUrl, address, phone, cancelDays, rescheduleDays } = await getBranding(slug);
-  return NextResponse.json({ logoUrl, address, phone, cancelDays, rescheduleDays });
+  const { logoUrl, address, phone, cancelDays, rescheduleDays, country } = await getBranding(slug);
+  return NextResponse.json({ logoUrl, address, phone, cancelDays, rescheduleDays, country });
 }
