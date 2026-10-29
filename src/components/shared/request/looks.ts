@@ -27,20 +27,21 @@ export function classicLook(theme: Theme): RequestLook {
 
 /** Modern uses its own CSS variables, so it follows light and dark backgrounds. */
 export function modernLook(theme: Theme): RequestLook {
+  // Modern is always dark (see app/[slug]/modern/components/brand.ts).
   return {
     text: 'var(--t-primary)',
     muted: 'var(--t-muted)',
-    surface: 'var(--s2)',
+    surface: 'rgba(255,255,255,0.06)',
     surfaceText: 'var(--t-primary)',
     surfaceMuted: 'var(--t-muted)',
-    border: 'var(--b2)',
+    border: 'rgba(255,255,255,0.1)',
     accent: theme.primarySolid,
     onAccent: '#FFFFFF',
     accentText: 'var(--t-accent)',
-    radius: 20,
-    fontHeading: 'var(--font-clash)',
+    radius: 22,
+    fontHeading: 'var(--font-inter)',
     fontBody: 'var(--font-inter)',
-    ctaBg: theme.bgTo,
+    ctaBg: '#07070B',
     ctaBleed: 16,
   };
 }

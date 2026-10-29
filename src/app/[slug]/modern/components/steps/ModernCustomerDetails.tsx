@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
@@ -10,6 +10,9 @@ import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
 import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import ModernButton from '../ModernButton';
+import { MODERN_BG, SPRING } from '../brand';
+import { FONT, GLASS, SectionLabel, Title, itemVariants, listVariants } from '../ui';
 
 interface FormErrors {
   firstName?: string;
@@ -20,28 +23,14 @@ interface FormErrors {
   privacyConsent?: string;
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.32, ease: 'easeOut' as const },
-  },
-};
-
 function ModernLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
   return (
     <label
-      className="block mb-1.5 text-xs font-semibold tracking-wide"
-      style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
+      className="mb-2 block px-1 text-[13px] font-semibold"
+      style={{ color: 'var(--t-soft)', fontFamily: FONT }}
     >
       {children}
-      {required && <span className="text-red-400 ml-0.5">*</span>}
+      {required && <span className="ml-0.5" style={{ color: 'var(--t-faint)' }}>*</span>}
     </label>
   );
 }
@@ -63,8 +52,6 @@ function ModernInput({
   hasError?: boolean;
   primaryColor: string;
 }) {
-  const [focused, setFocused] = useState(false);
-
   return (
     <input
       {...contactFieldAttrs(field)}
@@ -72,14 +59,9 @@ function ModernInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      aria-invalid={hasError}
+      data-accent={primaryColor}
       className={`modern-input ${hasError ? 'error' : ''}`}
-      style={{
-        borderColor: hasError ? '#EF4444' : focused ? primaryColor : 'var(--b2)',
-        boxShadow: focused && !hasError ? `0 0 0 3px ${primaryColor}18` : undefined,
-        outline: 'none',
-      }}
     />
   );
 }
@@ -140,7 +122,6 @@ export default function ModernCustomerDetails() {
     }
   };
 
-  const isFormComplete = firstName && lastName && email && phone && privacyConsent && !isSubmitting;
 
   const errorText = (msg?: string) =>
     msg ? (
@@ -148,8 +129,8 @@ export default function ModernCustomerDetails() {
         initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
         exit={{ opacity: 0, height: 0 }}
-        className="text-xs mt-1"
-        style={{ color: '#EF4444', fontFamily: 'var(--font-inter)' }}
+        className="mt-1.5 px-1 text-[13px]"
+        style={{ color: '#FF8A80', fontFamily: FONT }}
       >
         {msg}
       </motion.p>
@@ -161,27 +142,37 @@ export default function ModernCustomerDetails() {
     { value: 'other', label: t(language, 'salutationOther') },
   ];
 
+  const toggle = (on: boolean, onClick: () => void, label: React.ReactNode, hasError?: boolean, first?: boolean) => (
+    <div className="flex items-center gap-4 px-5 py-4" style={{ borderTop: first ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
+      <span className="flex-1 text-[15px] leading-5" style={{ color: hasError ? '#FF8A80' : 'var(--t-soft)', fontFamily: FONT }}>
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        onClick={onClick}
+        className="relative h-[31px] w-[51px] flex-shrink-0 rounded-full"
+        style={{
+          background: on ? 'var(--brand-grad)' : 'rgba(255,255,255,0.14)',
+          boxShadow: hasError ? '0 0 0 2px #FF453A' : on ? '0 0 16px -4px var(--brand-glow)' : 'none',
+          transition: 'background 0.25s, box-shadow 0.25s',
+        }}
+      >
+        <motion.span
+          className="absolute top-[2px] h-[27px] w-[27px] rounded-full bg-white"
+          style={{ boxShadow: '0 3px 8px rgba(0,0,0,0.3)' }}
+          initial={false}
+          animate={{ left: on ? 22 : 2 }}
+          transition={SPRING}
+        />
+      </button>
+    </div>
+  );
+
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
-      {/* Heading */}
-      <motion.div variants={itemVariants} className="mb-8">
-        <h2
-          className="mb-2"
-          style={{
-            color: 'var(--t-primary)',
-            fontFamily: 'var(--font-clash)',
-            fontWeight: 400,
-            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
-            letterSpacing: '-0.015em',
-            lineHeight: 1.1,
-          }}
-        >
-          {t(language, 'yourDetails')}
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          {t(language, 'fillContact')}
-        </p>
-      </motion.div>
+    <motion.div variants={listVariants} initial="hidden" animate="visible">
+      <Title title={t(language, 'yourDetails')} subtitle={t(language, 'fillContact')} />
 
       {/* Add-on selector */}
       <motion.div variants={itemVariants}>
@@ -193,272 +184,134 @@ export default function ModernCustomerDetails() {
         />
       </motion.div>
 
-      {/* Form card */}
-      <motion.div
-        variants={itemVariants}
-        className="rounded-2xl p-6 modern-glass mb-4"
-        style={{
-          backgroundColor: 'var(--s2)',
-          border: '1px solid var(--b2)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-      >
-        {/* Name row */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
+      {/* Contact */}
+      <motion.div variants={itemVariants} className="mb-6 p-5 sm:p-6" style={GLASS}>
+        <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <ModernLabel required>{t(language, 'firstNameLabel')}</ModernLabel>
-            <ModernInput
-              field="firstName"
-              value={firstName}
-              onChange={setFirstName}
-              placeholder="Janez"
-              hasError={!!errors.firstName}
-              primaryColor={theme.primarySolid}
-            />
+            <ModernInput field="firstName" value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} primaryColor={theme.primarySolid} />
             <AnimatePresence>{errorText(errors.firstName)}</AnimatePresence>
           </div>
           <div>
             <ModernLabel required>{t(language, 'lastNameLabel')}</ModernLabel>
-            <ModernInput
-              field="lastName"
-              value={lastName}
-              onChange={setLastName}
-              placeholder="Novak"
-              hasError={!!errors.lastName}
-              primaryColor={theme.primarySolid}
-            />
+            <ModernInput field="lastName" value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} primaryColor={theme.primarySolid} />
             <AnimatePresence>{errorText(errors.lastName)}</AnimatePresence>
           </div>
         </div>
 
-        {/* Email */}
         <div className="mb-5">
           <ModernLabel required>{t(language, 'emailLabel')}</ModernLabel>
-          <ModernInput
-            field="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="janez@email.com"
-            type="email"
-            hasError={!!errors.email}
-            primaryColor={theme.primarySolid}
-          />
+          <ModernInput field="email" value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} primaryColor={theme.primarySolid} />
           <AnimatePresence>{errorText(errors.email || fieldErrors.email)}</AnimatePresence>
         </div>
 
-        {/* Phone */}
-        <div className="mb-5">
+        <div>
           <ModernLabel required>{t(language, 'phoneLabel')}</ModernLabel>
-          <ModernInput
-            field="phone"
-            value={phone}
-            onChange={setPhone}
-            placeholder="041 123 456"
-            type="tel"
-            hasError={!!errors.phone}
-            primaryColor={theme.primarySolid}
-          />
+          <ModernInput field="phone" value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} primaryColor={theme.primarySolid} />
           <AnimatePresence>{errorText(errors.phone)}</AnimatePresence>
-        </div>
-
-        {/* Salutation */}
-        <div className="mb-5">
-          <ModernLabel>{t(language, 'salutationLabel')}</ModernLabel>
-          <div className="flex gap-2 mt-1">
-            {salutations.map((opt) => {
-              const isSelected = gender === opt.value;
-              return (
-                <motion.button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setGender(isSelected ? '' : opt.value)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-                  style={{
-                    fontFamily: 'var(--font-inter)',
-                    backgroundColor: isSelected ? `${theme.primaryColor}20` : 'var(--s1)',
-                    border: `1px solid ${isSelected ? theme.primarySolid : errors.gender ? '#EF4444' : 'var(--b2)'}`,
-                    color: isSelected ? 'var(--t-accent)' : 'var(--t-muted)',
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {opt.label}
-                </motion.button>
-              );
-            })}
-          </div>
-          <AnimatePresence>{errorText(errors.gender)}</AnimatePresence>
-        </div>
-
-        {/* Notes */}
-        <div className="mb-6">
-          <ModernLabel>{t(language, 'notesLabel')}</ModernLabel>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder={t(language, 'notesPlaceholder')}
-            rows={3}
-            className="modern-textarea"
-          />
-        </div>
-
-        {/* Honeypot */}
-        <input
-          type="text"
-          name="website"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          tabIndex={-1}
-          aria-hidden="true"
-          autoComplete="off"
-          style={{ position: 'absolute', left: '-9999px' }}
-        />
-
-        {/* Checkboxes */}
-        <div className="space-y-3">
-          {/* Marketing — optional */}
-          <label className="flex items-start gap-3 cursor-pointer">
-            <motion.button
-              type="button"
-              role="checkbox"
-              aria-checked={gdprMarketing}
-              className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-              style={{
-                backgroundColor: gdprMarketing ? theme.primarySolid : 'var(--s1)',
-                border: `1.5px solid ${gdprMarketing ? theme.primarySolid : 'var(--b2)'}`,
-              }}
-              onClick={() => setGdprMarketing(!gdprMarketing)}
-              whileTap={{ scale: 0.9 }}
-            >
-              {gdprMarketing && (
-                <motion.svg
-                  className="w-3 h-3 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </motion.svg>
-              )}
-            </motion.button>
-            <span
-              className="text-sm leading-relaxed"
-              style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
-            >
-              {t(language, 'marketingLabel')}
-            </span>
-          </label>
-
-          {/* Privacy consent — required */}
-          <div>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <motion.button
-                type="button"
-                role="checkbox"
-                aria-checked={privacyConsent}
-                className="w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-                style={{
-                  backgroundColor: privacyConsent ? theme.primarySolid : 'var(--s1)',
-                  border: `1.5px solid ${
-                    errors.privacyConsent
-                      ? '#EF4444'
-                      : privacyConsent
-                      ? theme.primarySolid
-                      : 'var(--b2)'
-                  }`,
-                  boxShadow: errors.privacyConsent ? '0 0 0 3px rgba(239,68,68,0.12)' : 'none',
-                }}
-                onClick={() => {
-                  setPrivacyConsent(!privacyConsent);
-                  if (errors.privacyConsent) setErrors((prev) => ({ ...prev, privacyConsent: undefined }));
-                }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {privacyConsent && (
-                  <motion.svg
-                    className="w-3 h-3 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </motion.svg>
-                )}
-              </motion.button>
-              <span
-                className="text-sm leading-relaxed"
-                style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
-              >
-                {t(language, 'privacyLabel')}{' '}
-                <a
-                  href="https://jedroplus.com/privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline transition-colors"
-                  style={{ color: 'var(--t-accent)' }}
-                >
-                  {t(language, 'privacyLinkLabel')}
-                </a>
-                <span className="text-red-400 ml-0.5">*</span>
-              </span>
-            </label>
-            <AnimatePresence>{errorText(errors.privacyConsent)}</AnimatePresence>
-          </div>
         </div>
       </motion.div>
 
+      {/* Salutation */}
+      <motion.div variants={itemVariants} className="mb-6">
+        <SectionLabel>{t(language, 'salutationLabel')}</SectionLabel>
+        <div className="flex rounded-full p-1" style={{ background: 'rgba(255,255,255,0.06)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+          {salutations.map((opt) => {
+            const isSelected = gender === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setGender(isSelected ? '' : opt.value)}
+                className="relative h-10 flex-1 rounded-full text-[14px] font-bold"
+                style={{ fontFamily: FONT, color: isSelected ? '#FFFFFF' : 'var(--t-muted)', transition: 'color 0.2s' }}
+              >
+                {isSelected && (
+                  <motion.span
+                    layoutId="modern-salutation"
+                    className="absolute inset-0 rounded-full"
+                    style={{ background: 'var(--brand-grad)', boxShadow: '0 6px 16px -6px var(--brand-a)' }}
+                    transition={SPRING}
+                  />
+                )}
+                <span className="relative">{opt.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        <AnimatePresence>{errorText(errors.gender)}</AnimatePresence>
+      </motion.div>
+
+      {/* Notes */}
+      <motion.div variants={itemVariants} className="mb-6">
+        <SectionLabel>{t(language, 'notesLabel')}</SectionLabel>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={t(language, 'notesPlaceholder')}
+          rows={3}
+          className="modern-textarea"
+        />
+      </motion.div>
+
+      {/* Honeypot */}
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        aria-hidden="true"
+        autoComplete="off"
+        style={{ position: 'absolute', left: '-9999px' }}
+      />
+
+      {/* Consents */}
+      <motion.div variants={itemVariants} className="overflow-hidden" style={{ ...GLASS, borderRadius: 22 }}>
+        {toggle(gdprMarketing, () => setGdprMarketing(!gdprMarketing), t(language, 'marketingLabel'), false, true)}
+        {toggle(
+          privacyConsent,
+          () => {
+            setPrivacyConsent(!privacyConsent);
+            if (errors.privacyConsent) setErrors((prev) => ({ ...prev, privacyConsent: undefined }));
+          },
+          <>
+            {t(language, 'privacyLabel')}
+            <span style={{ color: 'var(--t-faint)' }}> *</span>
+          </>,
+          !!errors.privacyConsent,
+        )}
+      </motion.div>
+      <div className="mt-2 flex flex-wrap items-baseline justify-between gap-2 px-1">
+        <a
+          href="https://jedroplus.com/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[13px] font-semibold hover:underline"
+          style={{ color: 'var(--brand-glow)', fontFamily: FONT }}
+        >
+          {t(language, 'privacyLinkLabel')} ›
+        </a>
+        <AnimatePresence>{errorText(errors.privacyConsent)}</AnimatePresence>
+      </div>
+
       {/* Submit error */}
       {error && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-4 text-sm text-center"
-          style={{ color: '#EF4444', fontFamily: 'var(--font-inter)' }}
-        >
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 text-center text-[14px]" style={{ color: '#FF8A80', fontFamily: FONT }}>
           {error}
         </motion.p>
       )}
 
-      <motion.div
-        variants={itemVariants}
-        className="booking-sticky-cta"
-        style={stickyCtaStyle(theme.bgTo, 16)}
-      >
-        <motion.button
+      <motion.div variants={itemVariants} className="booking-sticky-cta mt-8" style={stickyCtaStyle(MODERN_BG, 16)}>
+        <ModernButton
           onClick={handleSubmit}
-          disabled={!isFormComplete}
-          className="w-full py-4 rounded-2xl font-semibold text-white transition-all relative overflow-hidden"
-          style={{
-            backgroundColor: isFormComplete ? theme.primarySolid : 'var(--s3)',
-            color: isFormComplete ? '#ffffff' : 'var(--t-disabled)',
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.975rem',
-            cursor: isFormComplete ? 'pointer' : 'not-allowed',
-            boxShadow: isFormComplete ? `0 8px 28px ${theme.primaryColor}40` : 'none',
-          }}
-          whileHover={isFormComplete ? { scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}50` } : {}}
-          whileTap={isFormComplete ? { scale: 0.98 } : {}}
+          loading={isSubmitting}
+          loadingText={t(language, 'sending')}
         >
-          {isFormComplete && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)',
-                backgroundSize: '200% 100%',
-              }}
-              animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
-              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2 }}
-            />
-          )}
-          {isSubmitting ? t(language, 'sending') : t(language, 'nextToConfirm')}
-        </motion.button>
+          {t(language, 'nextToConfirm')}
+          <span aria-hidden="true">→</span>
+        </ModernButton>
       </motion.div>
     </motion.div>
   );

@@ -36,17 +36,15 @@ export function getContrastMode(bgFrom: string, bgTo: string): 'light' | 'dark' 
 
 // ── Page transition variants ─────────────────────────────────────────────────
 const pageVariants: Variants = {
-  initial: { opacity: 0, y: 14, filter: 'blur(4px)' },
+  initial: { opacity: 0, y: 14 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     transition: { duration: 0.42, ease: EASE },
   },
   exit: {
     opacity: 0,
     y: -8,
-    filter: 'blur(2px)',
     transition: { duration: 0.18, ease: 'easeIn' as const },
   },
 };
