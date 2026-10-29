@@ -1,3 +1,76 @@
+/* ── Type: San Francisco on Apple devices, Inter elsewhere ── */
+.classic-root {
+  --font-classic: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    var(--font-inter), 'Helvetica Neue', Arial, sans-serif;
+  --font-nunito: var(--font-classic);
+  --font-nunito-sans: var(--font-classic);
+  font-family: var(--font-classic);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01';
+  letter-spacing: -0.006em;
+}
+.classic-root h1,
+.classic-root h2,
+.classic-root h3 {
+  letter-spacing: -0.022em;
+}
+.classic-root button {
+  -webkit-tap-highlight-color: transparent;
+}
+.classic-root input::placeholder,
+.classic-root textarea::placeholder {
+  color: #A1A1AA;
+}
+
+/* Soft light that drifts slowly behind the page */
+@keyframes classic-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(4%, 3%, 0) scale(1.08); }
+}
+.classic-glow {
+  animation: classic-drift 18s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .classic-glow { animation: none; }
+}
+
+/* Shimmer for loading placeholders */
+@keyframes classic-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.classic-skeleton {
+  background: linear-gradient(90deg, rgba(0,0,0,0.045) 25%, rgba(0,0,0,0.085) 50%, rgba(0,0,0,0.045) 75%);
+  background-size: 200% 100%;
+  animation: classic-shimmer 1.4s ease-in-out infinite;
+}
+.classic-skeleton-light {
+  background: linear-gradient(90deg, rgba(255,255,255,0.35) 25%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.35) 75%);
+  background-size: 200% 100%;
+  animation: classic-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Grouped list rows: hairline between rows, inset from the left */
+.classic-row + .classic-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--row-inset, 16px);
+  right: 0;
+  height: 1px;
+  background: rgba(60, 60, 67, 0.12);
+  transform: scaleY(0.5);
+  transform-origin: top;
+}
+@media (min-resolution: 2dppx) {
+  .classic-row + .classic-row::before { transform: scaleY(0.5); }
+}
+.classic-row {
+  position: relative;
+}
+
 /* ── Scrollbar hide — horizontal date swiper ── */
 .classic-scrollbar-hide {
   -ms-overflow-style: none;
@@ -90,7 +163,3 @@
   color: #fff;
 }
 
-/* ── Time slot hover lift ── */
-.classic-slot-btn:hover {
-  transform: translateY(-1px);
-}

@@ -168,7 +168,7 @@ export default function RequestWhenStep({ look }: { look: RequestLook }) {
               className="mt-3 text-[14px] font-medium"
               style={{ color: look.text, fontFamily: look.fontBody }}
             >
-              <svg aria-hidden="true" className="mr-1.5 inline-block align-[-3px]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={look.accentText} strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+              <svg aria-hidden="true" className="mr-1.5 inline-block align-[-3px]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={look.accent} strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
               {formatRange(req.dateFrom, req.dateTo, lang)}
             </motion.p>
           )}

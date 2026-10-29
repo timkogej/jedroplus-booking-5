@@ -8,18 +8,18 @@ import type { RequestLook } from './look';
 export function classicLook(theme: Theme): RequestLook {
   const light = isLightBackground(theme.bgFrom, theme.bgTo);
   return {
-    text: light ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)',
-    muted: light ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.7)',
-    surface: 'rgba(255,255,255,0.97)',
-    surfaceText: '#1F2937',
-    surfaceMuted: '#6B7280',
-    border: '#E5E7EB',
+    text: light ? '#1D1D1F' : 'rgba(255,255,255,0.96)',
+    muted: light ? 'rgba(29,29,31,0.62)' : 'rgba(255,255,255,0.72)',
+    surface: '#FFFFFF',
+    surfaceText: '#1D1D1F',
+    surfaceMuted: '#6E6E73',
+    border: 'rgba(60,60,67,0.14)',
     accent: theme.primarySolid,
     onAccent: '#FFFFFF',
     accentText: theme.primaryOnLight,
-    radius: 18,
-    fontHeading: 'var(--font-nunito)',
-    fontBody: 'var(--font-nunito-sans)',
+    radius: 22,
+    fontHeading: 'var(--font-classic, var(--font-nunito))',
+    fontBody: 'var(--font-classic, var(--font-nunito-sans))',
     ctaBg: theme.bgTo,
     ctaBleed: 16,
   };
