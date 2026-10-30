@@ -9,6 +9,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
 import Photo, { anyPhoto } from '@/components/shared/Photo';
+import { t } from '../../i18n';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 function formatDuration(minutes: number): string {
@@ -44,7 +45,7 @@ function ServiceRow({
   /** Some service has a photo: every row gets the thumbnail slot. */
   withThumb: boolean;
 }) {
-  const { theme, selectedService, selectCategoryAndService } = useBookingStore();
+  const { theme, selectedService, selectCategoryAndService, language } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
   const isSelected = selectedService?.id === service.id;
   const promo = serviceDiscounts[String(service.id)];
@@ -86,7 +87,7 @@ function ServiceRow({
             }}
             imgClassName="transition-transform duration-500 group-hover:scale-[1.06]"
             fallback={
-              <span className="font-bold" style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.3rem', color: theme.primarySolid }} aria-hidden="true">
+              <span className="font-bold" style={{ fontFamily: 'var(--font-inter)', fontSize: '1.3rem', color: theme.primarySolid }} aria-hidden="true">
                 {service.naziv.trim().charAt(0).toUpperCase()}
               </span>
             }
@@ -96,7 +97,7 @@ function ServiceRow({
           <h3
             className="font-semibold leading-snug mb-0.5"
             style={{
-              fontFamily: 'var(--font-quicksand)',
+              fontFamily: 'var(--font-inter)',
               fontSize: '0.95rem',
               color: isSelected ? theme.primarySolid : 'var(--t-primary)',
             }}
@@ -106,7 +107,7 @@ function ServiceRow({
           {service.opis && (
             <p
               className="line-clamp-2 text-sm leading-relaxed"
-              style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}
+              style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
             >
               {service.opis}
             </p>
@@ -130,14 +131,14 @@ function ServiceRow({
           ) : (
             <p
               className="font-bold"
-              style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
+              style={{ fontFamily: 'var(--font-inter)', fontSize: '1.05rem', color: 'var(--t-primary)' }}
             >
-              {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
+              {servicePriceLabel(service.cena, formatBookingPrice) ?? t(language, 'priceOnRequest')}
             </p>
           )}
           <p
             className="flex items-center justify-end gap-1 text-xs mt-0.5"
-            style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}
+            style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <circle cx="12" cy="12" r="10" />
@@ -156,14 +157,14 @@ interface Props {
 }
 
 export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
-  const { theme, categories, servicesByCategory } = useBookingStore();
+  const { theme, categories, servicesByCategory, language } = useBookingStore();
   const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
 
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
-        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)', fontSize: '0.9rem' }}>
-          Ni razpoložljivih storitev.
+        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)', fontSize: '0.9rem' }}>
+          {t(language, 'noServices')}
         </p>
       </div>
     );
@@ -178,22 +179,17 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
         className="mb-8"
       >
         <h2
-          className="text-3xl font-bold mb-2"
+          className="text-3xl font-normal mb-2"
           style={{
             color: 'var(--t-primary)',
-            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
+            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-inter)',
           }}
         >
-          Izberite{' '}
-          <span
-            className="seasonal-gradient-text"
-            style={{ backgroundImage: `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor})` }}
-          >
-            storitev
-          </span>
+          {t(language, 'serviceA')}{' '}
+          <span style={{ color: theme.primarySolid }}>{t(language, 'serviceB')}</span>
         </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
-          Katera storitev vas zanima?
+        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
+          {t(language, 'serviceHint')}
         </p>
       </motion.div>
 
@@ -215,7 +211,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
               {/* Category header */}
               <p
                 className="text-xs font-semibold mb-2 tracking-widest uppercase"
-                style={{ color: theme.primarySolid, fontFamily: 'var(--font-quicksand)' }}
+                style={{ color: theme.primarySolid, fontFamily: 'var(--font-inter)' }}
               >
                 {category.name}
               </p>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
+import { t } from '../../i18n';
 import SeasonalCard from '../SeasonalCard';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
 
@@ -22,7 +23,7 @@ const itemVariants: Variants = {
 };
 
 function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
-  const { theme, anyPerson } = useBookingStore();
+  const { theme, anyPerson, language } = useBookingStore();
 
   return (
     <motion.div variants={itemVariants}>
@@ -52,12 +53,12 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
           <div className="flex-1 min-w-0 text-left">
             <p
               className="font-semibold"
-              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)', fontSize: '0.975rem' }}
+              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)', fontSize: '0.975rem' }}
             >
-              Kdorkoli
+              {t(language, 'anyone')}
             </p>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
-              Dodelimo vam prvega prostega specialista
+            <p className="text-sm mt-0.5" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
+              {t(language, 'anyoneHint')}
             </p>
           </div>
         </div>
@@ -82,34 +83,22 @@ function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: 
               className={big ? 'w-14 h-14 rounded-full' : 'w-12 h-12 rounded-full'}
               style={{ backgroundColor: theme.primarySolid, boxShadow: employee.slika_url ? `0 0 0 2px #fff, 0 0 0 3.5px ${theme.primarySolid}55` : undefined }}
               fallback={
-                <span className="text-white font-bold text-base" style={{ fontFamily: 'var(--font-quicksand)' }}>
+                <span className="text-white font-bold text-base" style={{ fontFamily: 'var(--font-inter)' }}>
                   {employee.initials}
                 </span>
               }
             />
-            <AnimatePresence>
-              {isSelected && (
-                <motion.div
-                  className="absolute inset-0 rounded-full"
-                  style={{ border: `2px solid ${theme.primarySolid}` }}
-                  initial={{ scale: 1, opacity: 0.7 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut' as const }}
-                />
-              )}
-            </AnimatePresence>
           </div>
 
           <div className="flex-1 min-w-0 text-left">
             <p
               className="font-semibold"
-              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)', fontSize: '0.975rem' }}
+              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)', fontSize: '0.975rem' }}
             >
               {employee.label}
             </p>
             {employee.subtitle && (
-              <p className="text-sm mt-0.5" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
+              <p className="text-sm mt-0.5" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
                 {employee.subtitle}
               </p>
             )}
@@ -125,7 +114,7 @@ interface Props {
 }
 
 export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
-  const { employeesUI, eligibleEmployeeIds, selectEmployee, theme } = useBookingStore();
+  const { employeesUI, eligibleEmployeeIds, selectEmployee, theme, language } = useBookingStore();
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter((e) => eligibleSet.has(String(e.id)));
@@ -133,8 +122,8 @@ export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
   if (eligibleEmployeeIds.length === 0) {
     return (
       <div className="text-center py-16">
-        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)', fontSize: '0.9rem' }}>
-          Za to storitev ni razpoložljivega osebja.
+        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)', fontSize: '0.9rem' }}>
+          {t(language, 'noStaff')}
         </p>
       </div>
     );
@@ -149,24 +138,17 @@ export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
         className="mb-8"
       >
         <h2
-          className="text-3xl font-bold mb-2"
+          className="text-3xl font-normal mb-2"
           style={{
             color: 'var(--t-primary)',
-            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
+            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-inter)',
           }}
         >
-          Izberite{' '}
-          <span
-            className="seasonal-gradient-text"
-            style={{
-              backgroundImage: `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor})`,
-            }}
-          >
-            specialista
-          </span>
+          {t(language, 'staffA')}{' '}
+          <span style={{ color: theme.primarySolid }}>{t(language, 'staffB')}</span>
         </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
-          Kdo naj vas postreže?
+        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
+          {t(language, 'staffHint')}
         </p>
       </motion.div>
 
@@ -182,8 +164,8 @@ export default function SeasonalEmployeeSelection({ seasonalTheme }: Props) {
           <>
             <motion.div variants={itemVariants} className="flex items-center gap-3 my-2">
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
-              <span className="text-xs" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}>
-                ali izberi osebo
+              <span className="text-xs" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}>
+                {t(language, 'orPick')}
               </span>
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
             </motion.div>

@@ -86,7 +86,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
                       color: isDone || isActive ? '#ffffff' : 'var(--t-muted)',
                       border: `1.5px solid ${isDone || isActive ? theme.primarySolid : 'var(--b2)'}`,
                       boxShadow: isActive ? `0 0 14px ${theme.primaryColor}50` : 'none',
-                      fontFamily: 'var(--font-quicksand)',
+                      fontFamily: 'var(--font-inter)',
                     }}
                     animate={
                       isActive
@@ -120,7 +120,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
                     <p
                       className="text-sm leading-tight transition-colors duration-300"
                       style={{
-                        fontFamily: 'var(--font-quicksand)',
+                        fontFamily: 'var(--font-inter)',
                         fontWeight: isActive ? 600 : 400,
                         color: isActive
                           ? 'var(--t-primary)'
@@ -136,7 +136,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="text-xs mt-0.5 truncate"
-                        style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}
+                        style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
                       >
                         {value}
                       </motion.p>
@@ -155,7 +155,7 @@ export default function SeasonalSidebar({ currentStep, stepValues, seasonalTheme
         >
           <p
             className="text-xs"
-            style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}
+            style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
           >
             {seasonalTheme.config.name}
           </p>

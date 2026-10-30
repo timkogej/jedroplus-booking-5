@@ -18,7 +18,7 @@ interface Props {
 
 export default function SeasonalDecorations({ seasonalTheme, primaryColor, reducedCount }: Props) {
   const { config } = seasonalTheme;
-  const count = reducedCount ? 10 : 20;
+  const count = reducedCount ? 6 : 12;
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

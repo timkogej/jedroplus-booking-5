@@ -31,7 +31,7 @@ export default function SeasonalButton({
       style={{
         backgroundColor: variant === 'primary' ? theme.primarySolid : 'var(--s2)',
         color: variant === 'primary' ? '#ffffff' : 'var(--t-primary)',
-        fontFamily: 'var(--font-quicksand)',
+        fontFamily: 'var(--font-inter)',
         fontSize: '0.975rem',
         border: variant === 'secondary' ? '1px solid var(--b2)' : 'none',
         boxShadow:

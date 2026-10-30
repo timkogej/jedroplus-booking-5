@@ -15,6 +15,7 @@ import SeasonalConfirmation from './steps/SeasonalConfirmation';
 import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
 import RequestReview from '@/components/shared/request/RequestReview';
 import { REQUEST_TEXT, isRequestMode, useRequestStore } from '@/lib/booking/request';
+import { t } from '../i18n';
 import { seasonalLook } from '@/components/shared/request/looks';
 
 // ── Time-of-day background tint (always light) ────────────────────────────────
@@ -96,12 +97,21 @@ export default function SeasonalLayout({ companySlug }: Props) {
 
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Falling leaves and floating emojis are off for people who asked their device for less motion.
+  const [calm, setCalm] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onMq = () => setCalm(mq.matches);
+    onMq();
+    mq.addEventListener('change', onMq);
+    return () => {
+      window.removeEventListener('resize', check);
+      mq.removeEventListener('change', onMq);
+    };
   }, []);
 
   useEffect(() => {
@@ -121,8 +131,8 @@ export default function SeasonalLayout({ companySlug }: Props) {
     '--t-primary': '#111827',
     '--t-soft': '#374151',
     '--t-muted': '#6B7280',
-    '--t-faint': '#9CA3AF',
-    '--t-disabled': '#D1D5DB',
+    '--t-faint': '#6B7280',
+    '--t-disabled': '#9CA3AF',
     '--s1': '#F9FAFB',
     '--s2': config.cardBg,
     '--s2h': config.cardBgHover,
@@ -171,17 +181,21 @@ export default function SeasonalLayout({ companySlug }: Props) {
       }}
     >
       {/* Seasonal decorations (snowflakes, leaves, etc.) */}
-      <SeasonalDecorations
-        seasonalTheme={seasonalTheme}
-        primaryColor={theme.primaryColor}
-        reducedCount={isMobile}
-      />
+      {!calm && (
+        <>
+          <SeasonalDecorations
+            seasonalTheme={seasonalTheme}
+            primaryColor={theme.primaryColor}
+            reducedCount={isMobile}
+          />
 
-      {/* Floating emojis */}
-      <FloatingEmojis
-        seasonalTheme={seasonalTheme}
-        count={isMobile ? 8 : 14}
-      />
+          {/* Floating emojis */}
+          <FloatingEmojis
+            seasonalTheme={seasonalTheme}
+            count={isMobile ? 4 : 8}
+          />
+        </>
+      )}
 
       {/* Subtle seasonal accent glow */}
       <div className="fixed inset-0 z-[1] pointer-events-none overflow-hidden">
@@ -207,7 +221,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
       <div className="relative z-10 min-h-screen flex flex-col">
 
         {/* ── Top bar: company pill (centered) + language toggle (right) ── */}
-        <div className="relative grid grid-cols-3 items-center px-5 pt-6 pb-2 max-w-2xl mx-auto w-full">
+        <div className="relative grid grid-cols-3 items-center px-5 pt-6 pb-2 max-w-lg mx-auto w-full">
           {/* Empty left column — balances the language toggle */}
           <div />
 
@@ -229,8 +243,8 @@ export default function SeasonalLayout({ companySlug }: Props) {
               className="text-xs font-semibold tracking-wide"
               style={{
                 color: '#374151',
-                fontFamily: 'var(--font-stardom, serif)',
-                letterSpacing: '0.02em',
+                fontFamily: 'var(--font-inter)',
+                letterSpacing: '0.01em',
               }}
             >
               {company?.naziv ?? 'Booking'}
@@ -268,7 +282,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
         </div>
 
         {/* ── Progress indicator ── */}
-        <div className="px-5 pb-4 max-w-2xl mx-auto w-full">
+        <div className="px-5 pb-4 max-w-lg mx-auto w-full">
           <div className="flex items-start">
             {visibleSteps.map((step, i) => {
               const isDone = displayStep > step.storeStep;
@@ -305,8 +319,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                           : '0 1px 3px rgba(0,0,0,0.06)',
                         backdropFilter: 'blur(4px)',
                       }}
-                      animate={isActive ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-                      transition={{ duration: 2.5, repeat: isActive ? Infinity : 0 }}
+                      
                     >
                       {isDone ? (
                         <motion.svg
@@ -332,11 +345,11 @@ export default function SeasonalLayout({ companySlug }: Props) {
                     <span
                       className="hidden sm:block text-center"
                       style={{
-                        fontSize: '0.58rem',
+                        fontSize: '0.7rem',
                         fontFamily: 'var(--font-inter)',
                         fontWeight: isActive ? 600 : 400,
-                        color: isActive ? '#374151' : isDone ? '#6B7280' : '#C0C8D4',
-                        maxWidth: 52,
+                        color: isActive ? '#111827' : '#6B7280',
+                        maxWidth: 72,
                         lineHeight: 1.2,
                         letterSpacing: '0.02em',
                       }}
@@ -413,9 +426,9 @@ export default function SeasonalLayout({ companySlug }: Props) {
         <footer className="py-4 text-center flex-shrink-0">
           <p
             className="text-xs"
-            style={{ color: '#C0C8D4', fontFamily: 'var(--font-inter)' }}
+            style={{ color: '#8A93A3', fontFamily: 'var(--font-inter)' }}
           >
-            © {new Date().getFullYear()} · Jedro+ · Rezervacijski Sistem
+            © {new Date().getFullYear()} · Jedro+ · {t(language, 'footer')}
           </p>
         </footer>
       </div>

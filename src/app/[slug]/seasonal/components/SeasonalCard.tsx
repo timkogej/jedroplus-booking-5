@@ -23,11 +23,10 @@ export default function SeasonalCard({ children, selected, onClick, className = 
           ? `2px solid ${theme.primarySolid}`
           : '1px solid var(--b2)',
         boxShadow: selected
-          ? `0 0 0 1px ${theme.primaryColor}30, 0 8px 24px rgba(0,0,0,0.3)`
-          : '0 2px 8px rgba(0,0,0,0.25)',
+          ? `0 0 0 1px ${theme.primaryColor}30, 0 6px 18px rgba(0,0,0,0.07)`
+          : '0 1px 4px rgba(0,0,0,0.05)',
       }}
       whileHover={{
-        scale: 1.012,
         backgroundColor: selected ? `${theme.primaryColor}2a` : 'var(--s2h)',
       }}
       whileTap={{ scale: 0.985 }}

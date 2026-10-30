@@ -57,7 +57,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
 
           <h1
             className="truncate font-semibold text-xs md:text-sm"
-            style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)' }}
+            style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)' }}
           >
             <CompanyLogo name={company?.naziv ?? 'Booking'} logoUrl={company?.logo_url} maxHeight={28} />
           </h1>
@@ -69,7 +69,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
               backgroundColor: 'var(--s1)',
               color: 'var(--t-faint)',
               border: '1px solid var(--b1)',
-              fontFamily: 'var(--font-quicksand)',
+              fontFamily: 'var(--font-inter)',
             }}
           >
             {emoji} {seasonalTheme.config.name}
@@ -100,7 +100,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
               style={{
                 backgroundColor: 'var(--s2)',
                 color: 'var(--t-muted)',
-                fontFamily: 'var(--font-quicksand)',
+                fontFamily: 'var(--font-inter)',
                 border: '1px solid var(--b1)',
               }}
             >
@@ -114,7 +114,7 @@ export default function SeasonalHeader({ currentStep, isSuccess, canGoBack, onBa
               backgroundColor: `${theme.primaryColor}20`,
               color: theme.primarySolid,
               border: `1px solid ${theme.primaryColor}40`,
-              fontFamily: 'var(--font-quicksand)',
+              fontFamily: 'var(--font-inter)',
             }}
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -62,11 +62,11 @@ function CategoryCard({ category, onSelect }: { category: Category; onSelect: (c
         <CategoryIcon selected={isSelected} />
         <h3
           className="font-semibold text-base mb-1"
-          style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-quicksand)' }}
+          style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)' }}
         >
           {category.name}
         </h3>
-        <p className="text-sm" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-quicksand)' }}>
+        <p className="text-sm" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}>
           {servicesCountLabel(serviceCount)}
         </p>
       </SeasonalCard>
@@ -84,7 +84,7 @@ export default function SeasonalCategorySelection({ seasonalTheme }: Props) {
   if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-20">
-        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)', fontSize: '0.9rem' }}>
+        <p style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)', fontSize: '0.9rem' }}>
           Ni razpoložljivih kategorij.
         </p>
       </div>
@@ -103,7 +103,7 @@ export default function SeasonalCategorySelection({ seasonalTheme }: Props) {
           className="text-3xl font-bold mb-3"
           style={{
             color: 'var(--t-primary)',
-            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-quicksand)',
+            fontFamily: seasonalTheme.config.headingFont ?? 'var(--font-inter)',
           }}
         >
           Izberite{' '}
@@ -116,7 +116,7 @@ export default function SeasonalCategorySelection({ seasonalTheme }: Props) {
             kategorijo
           </span>
         </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-quicksand)' }}>
+        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
           Katero vrsto storitve iščete?
         </p>
       </motion.div>
