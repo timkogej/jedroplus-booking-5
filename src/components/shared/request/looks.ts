@@ -84,23 +84,23 @@ export function seasonalLook(theme: Theme, headingFont?: string): RequestLook {
   };
 }
 
-/** Casino keeps its gold on green until the casino redesign. */
-export function casinoLook(): RequestLook {
+/** Casino: dark card room in the company colours (see casino/components/ui.tsx). */
+export function casinoLook(theme: Theme): RequestLook {
   return {
-    text: '#F3E9D2',
-    muted: '#A89060',
-    surface: 'rgba(10, 40, 20, 0.82)',
-    surfaceText: '#F3E9D2',
-    surfaceMuted: '#A89060',
-    border: 'rgba(201, 168, 76, 0.28)',
-    accent: '#C9A84C',
-    onAccent: '#0B1A10',
-    accentText: '#E8C96D',
-    radius: 10,
+    text: '#F6F3EE',
+    muted: 'rgba(246,243,238,0.62)',
+    surface: 'rgba(255,255,255,0.05)',
+    surfaceText: '#F6F3EE',
+    surfaceMuted: 'rgba(246,243,238,0.62)',
+    border: 'rgba(255,255,255,0.12)',
+    accent: theme.primarySolid,
+    onAccent: '#FFFFFF',
+    accentText: theme.primaryOnDark,
+    radius: 14,
     fontHeading: 'var(--font-playfair)',
-    fontBody: 'var(--font-cormorant)',
+    fontBody: 'var(--font-inter)',
     capsLabels: true,
-    ctaBg: '#060F08',
+    ctaBg: '#09090C',
     ctaBleed: 16,
   };
 }

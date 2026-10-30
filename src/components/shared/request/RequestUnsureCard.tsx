@@ -13,7 +13,7 @@ function lookFor(design: DesignName, theme: Parameters<typeof classicLook>[0]): 
     case 'modern': return modernLook(theme);
     case 'elegant': return elegantLook(theme);
     case 'seasonal': return seasonalLook(theme);
-    case 'casino': return casinoLook();
+    case 'casino': return casinoLook(theme);
     case 'magazine': return magazineLook(theme);
     default: return classicLook(theme);
   }

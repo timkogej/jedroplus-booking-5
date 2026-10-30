@@ -17,7 +17,7 @@ export default async function CasinoRootLayout({
   }
 
   return (
-    <div>
+    <div className="casino-root">
       {children}
     </div>
   );

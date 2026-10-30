@@ -1,113 +1,136 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
-import { usePromotionsStore } from '@/store/promotionsStore';
-import {
-  formatBookingPrice,
-  getBookingPricing,
-  resolvePrimaryPromotion,
-} from '@/lib/pricing';
 import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import CasinoTicket from '../CasinoTicket';
+import { CREAM, CX_BG, EASE, ErrorNote, FAINT, FONT_BODY, FONT_HEAD, MUTED, Spinner, atWord, dateLocale, mix, spokenDate } from '../ui';
 
 interface Props {
   companySlug?: string;
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}min` : `${h}h`;
-}
+const REEL_SYMBOLS = ['♠', '♥', '♦', '♣', '7', '◆'];
+const REEL_H = 60;
 
-// ── Gold particle effect ──────────────────────────────────────
-function GoldParticles({ active }: { active: boolean }) {
-  const [particles, setParticles] = useState<Array<{
-    id: number; x: number; delay: number; duration: number;
-  }>>([]);
-
-  useEffect(() => {
-    if (!active) return;
-    const newParticles = Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      x: 10 + Math.random() * 80,
-      delay: Math.random() * 0.8,
-      duration: 1.8 + Math.random() * 1.2,
-    }));
-    setParticles(newParticles);
-    const timer = setTimeout(() => setParticles([]), 4000);
-    return () => clearTimeout(timer);
-  }, [active]);
-
-  if (!particles.length) return null;
+// ── One slot machine reel that spins and lands on `value` ──────────
+function Reel({ value, width, duration, delay }: { value: string; width: number; duration: number; delay: number }) {
+  const strip = useMemo(() => {
+    const n = 14;
+    return [...Array.from({ length: n }, (_, i) => REEL_SYMBOLS[(i * 5 + value.length) % REEL_SYMBOLS.length]), value];
+  }, [value]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute select-none"
-          style={{ left: `${p.x}%`, bottom: '0%', color: '#c9a84c' }}
-          initial={{ y: 0, opacity: 0, scale: 0 }}
-          animate={{
-            y: -(200 + Math.random() * 300),
-            opacity: [0, 0.8, 0.6, 0],
-            scale: [0, 1, 0.7, 0],
+    <div
+      className="relative overflow-hidden rounded-[12px]"
+      style={{
+        width,
+        height: REEL_H,
+        background: 'linear-gradient(180deg, #07070a 0%, #1b1b22 50%, #07070a 100%)',
+        boxShadow: `inset 0 0 0 1px ${mix('--cx-glow', 35)}, inset 0 8px 14px -8px rgba(0,0,0,0.9), inset 0 -8px 14px -8px rgba(0,0,0,0.9)`,
+      }}
+    >
+      <motion.div
+        initial={{ y: 0 }}
+        animate={{ y: -(strip.length - 1) * REEL_H }}
+        transition={{ duration, delay, ease: [0.15, 0.6, 0.25, 1] }}
+      >
+        {strip.map((s, i) => {
+          const last = i === strip.length - 1;
+          return (
+            <div
+              key={i}
+              className="flex items-center justify-center font-black tabular-nums"
+              style={{
+                height: REEL_H,
+                fontFamily: FONT_HEAD,
+                fontSize: last ? (value.length > 3 ? 28 : 30) : 30,
+                color: last ? '#fff' : mix('--cx-glow', 55),
+              }}
+            >
+              {s}
+            </div>
+          );
+        })}
+      </motion.div>
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-1/2" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.06), transparent)' }} />
+    </div>
+  );
+}
+
+// ── Chips flying out when the reels land ───────────────────────────
+function ChipBurst() {
+  const [chips] = useState(() =>
+    Array.from({ length: 26 }, (_, i) => {
+      const angle = (i / 26) * Math.PI * 2 + Math.random() * 0.3;
+      const dist = 120 + Math.random() * 140;
+      return {
+        id: i,
+        dx: Math.cos(angle) * dist,
+        dy: Math.sin(angle) * dist * 0.8 - 30,
+        size: 9 + Math.random() * 9,
+        rot: Math.random() * 540 - 270,
+        dur: 1.3 + Math.random() * 0.8,
+        delay: 2.05 + Math.random() * 0.15,
+        tone: i % 3,
+      };
+    }),
+  );
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {chips.map((c) => (
+        <span
+          key={c.id}
+          className="cx-confetti"
+          style={{
+            width: c.size,
+            height: c.size,
+            background: c.tone === 0 ? 'var(--cx-a)' : c.tone === 1 ? 'var(--cx-glow2)' : '#F6F3EE',
+            border: `${Math.max(1.5, c.size * 0.16)}px dashed rgba(255,255,255,0.6)`,
+            ['--dx' as string]: `${c.dx}px`,
+            ['--dy' as string]: `${c.dy}px`,
+            ['--rot' as string]: `${c.rot}deg`,
+            ['--dur' as string]: `${c.dur}s`,
+            ['--delay' as string]: `${c.delay}s`,
           }}
-          transition={{ duration: p.duration, delay: p.delay, ease: 'easeOut' as const }}
-        >
-          ◆
-        </motion.div>
+        />
       ))}
     </div>
   );
 }
 
-// ── Success view ──────────────────────────────────────────────
-function SuccessView() {
-  const {
-    bookingConfirmation,
-    selectedService,
-    selectedServices,
-    selectedEmployeeId,
-    anyPerson,
-    employeesUI,
-    totalDurationMin,
-    customerDetails,
-    language,
-  } = useBookingStore();
-  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
+const ICON_CAL = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4M12 13.5v4M10 15.5h4" />
+  </svg>
+);
+const ICON_SHARE = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 3v12M7.5 7.5L12 3l4.5 4.5" />
+    <path d="M5 12v6a3 3 0 003 3h8a3 3 0 003-3v-6" />
+  </svg>
+);
 
+// ── Success: jackpot ───────────────────────────────────────────────
+function SuccessView() {
+  const { bookingConfirmation, selectedDate, selectedTime, customerDetails, language } = useBookingStore();
   const [copied, setCopied] = useState(false);
-  const [showParticles, setShowParticles] = useState(false);
-  const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
-  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
+  const [landed, setLanded] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setShowParticles(true), 400);
-    const t2 = setTimeout(() => setShowParticles(false), 4500);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const id = window.setTimeout(() => setLanded(true), 2050);
+    return () => window.clearTimeout(id);
   }, []);
-
-  const primaryService = selectedServices[0] ?? selectedService;
-  const services = selectedServices.length > 0 ? selectedServices : primaryService ? [primaryService] : [];
-  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
-  const pricing = getBookingPricing(services, promotion, selectedAddOn);
-  const displayServices = selectedServices.length > 1
-    ? selectedServices.map((s) => s.naziv).join(' + ')
-    : primaryService?.naziv;
-
-  const handleAddToCalendar = () => addBookingToCalendar();
 
   const handleShare = async () => {
     if ((await shareBooking()) === 'copied') {
@@ -116,194 +139,148 @@ function SuccessView() {
     }
   };
 
-  // The appointment's real ID from the API (e.g. OB-000007), which the salon
-  // can find in its calendar. It used to be a random made-up number.
-  const refNum = bookingConfirmation?.terminId;
+  const loc = dateLocale(language);
+  const reels = selectedDate && selectedTime
+    ? [
+        { value: String(selectedDate.getDate()), width: 70 },
+        { value: format(selectedDate, 'MMM', { locale: loc }).replace('.', '').toUpperCase(), width: 92 },
+        { value: selectedTime, width: 120 },
+      ]
+    : [
+        { value: '♠', width: 70 },
+        { value: '♦', width: 70 },
+        { value: '♣', width: 70 },
+      ];
+
+  const firstName = customerDetails?.firstName?.trim();
+  const time = selectedTime ?? bookingConfirmation?.cas ?? '';
+  const when = selectedDate ? `${spokenDate(selectedDate, language)} ${atWord(language)} ${time}` : `${bookingConfirmation?.datum ?? ''} ${time}`;
 
   return (
-    <>
-      <GoldParticles active={showParticles} />
-
-      <div className="text-center py-2">
-        {/* Success icon */}
+    <div className="relative mx-auto max-w-lg pt-2">
+      {/* The machine */}
+      <div className="relative">
+        <ChipBurst />
         <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3, type: 'spring', stiffness: 220, damping: 18 }}
-          className="mb-6"
-        >
-          <div className="flex items-center justify-center gap-2 mb-4">
-            {['◆', '◆', '◆'].map((s, i) => (
-              <motion.span
-                key={i}
-                style={{ color: '#c9a84c', fontFamily: 'Georgia, serif', fontSize: i === 1 ? '1.2rem' : '0.7rem' }}
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-              >
-                {s}
-              </motion.span>
-            ))}
-          </div>
-
-          <div
-            className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
-            style={{
-              background: 'rgba(13, 59, 30, 0.8)',
-              border: '2px solid rgba(201, 168, 76, 0.6)',
-              boxShadow: '0 0 24px rgba(201, 168, 76, 0.2)',
-            }}
-          >
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6, type: 'spring', stiffness: 350 }}
-              style={{ color: '#c9a84c', fontSize: '1.6rem' }}
-            >
-              ✓
-            </motion.span>
-          </div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="font-bold italic"
-            style={{
-              fontFamily: 'var(--font-playfair)',
-              fontSize: '1.6rem',
-              color: '#f5edd6',
-              letterSpacing: '0.02em',
-            }}
-          >
-            {t(language, 'bookingConfirmed')}
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            style={{
-              fontFamily: 'var(--font-oswald)',
-              fontSize: '0.58rem',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              color: '#a89060',
-              marginTop: '0.4rem',
-            }}
-          >
-            {t(language, 'seatReserved')}
-          </motion.p>
-        </motion.div>
-
-        {/* Confirmation ticket */}
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          className="rounded-lg overflow-hidden mb-6 text-left"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="relative mx-auto w-fit rounded-[20px] p-2.5"
           style={{
-            background: 'rgba(8, 30, 15, 0.85)',
-            border: '1px solid rgba(201, 168, 76, 0.45)',
-            boxShadow: '0 0 30px rgba(201, 168, 76, 0.08)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))',
+            boxShadow: `inset 0 0 0 1px ${mix('--cx-glow', 40)}`,
           }}
         >
-          <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
-
-          <div
-            className="px-5 py-3 flex items-center justify-between"
-            style={{ background: 'rgba(13, 59, 30, 0.4)', borderBottom: '1px solid rgba(201,168,76,0.12)' }}
-          >
-            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.58rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#c9a84c' }}>
-              {t(language, 'winningTicket')}
-            </span>
-            {refNum && (
-              <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.55rem', letterSpacing: '0.12em', color: 'rgba(201,168,76,0.6)' }}>
-                #{refNum}
-              </span>
-            )}
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-6 -z-10 rounded-[40px]"
+            style={{ background: `radial-gradient(closest-side, ${mix('--cx-glow', 45)}, transparent)` }}
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={landed ? { opacity: [0, 1, 0.55], scale: [0.6, 1.15, 1] } : { opacity: 0 }}
+            transition={{ duration: 1.1, ease: EASE }}
+          />
+          <div className="flex gap-2">
+            {reels.map((r, i) => (
+              <Reel key={i} value={r.value} width={r.width} duration={1.1 + i * 0.4} delay={0.25} />
+            ))}
           </div>
-
-          <div className="px-5 py-4">
-            {[
-              { label: t(language, 'fieldService'),    value: bookingConfirmation?.storitev ?? displayServices },
-              { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined },
-              { label: t(language, 'fieldDate'),       value: bookingConfirmation?.datum },
-              { label: t(language, 'fieldTime'),       value: bookingConfirmation?.cas },
-              { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
-            ]
-              .filter((r) => r.value)
-              .map((row, i) => (
-                <div key={i} className="mc-summary-row">
-                  <span className="mc-summary-label">{row.label}</span>
-                  <span className="text-right" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6', maxWidth: '60%' }}>
-                    {row.value}
-                  </span>
-                </div>
-              ))}
-
-            {customerDetails && (
-              <div className="mc-summary-row">
-                <span className="mc-summary-label">Gost</span>
-                <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6' }}>
-                  {customerDetails.firstName} {customerDetails.lastName}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="mx-5" style={{ borderTop: '1px dashed rgba(201,168,76,0.2)' }} />
-
-          {primaryService && (
-            <div className="px-5 py-3 flex items-center justify-between">
-              <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a89060' }}>
-                {t(language, 'fieldTotal')}
-              </span>
-              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
-                {pricing.hasDiscount && (
-                  <span style={{ display: 'block', fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
-                    {formatBookingPrice(pricing.originalTotal)}
-                  </span>
-                )}
-                {formatBookingPrice(pricing.finalTotal)}
-              </span>
-            </div>
-          )}
-
-          <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
-        </motion.div>
-
-        {/* Action buttons */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }} className="space-y-3">
-          <div className="flex gap-3">
-            <button onClick={handleAddToCalendar} className="mc-btn-secondary flex-1" style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}>
-              {t(language, 'addToCalendar')}
-            </button>
-            <button onClick={handleShare} className="mc-btn-secondary flex-1" style={{ fontSize: '0.65rem', letterSpacing: '0.15em' }}>
-              {copied ? t(language, 'copied') : t(language, 'share')}
-            </button>
-          </div>
-
-          <button
-            onClick={startNewBooking}
-            className="mc-btn-gold w-full"
-          >
-            {t(language, 'newBooking')}
-          </button>
+          {/* Win line */}
+          <motion.span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-1 top-1/2 h-[2px] -translate-y-1/2 rounded-full"
+            style={{ background: 'var(--cx-grad)', boxShadow: '0 0 12px var(--cx-glow)', transformOrigin: 'left' }}
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={landed ? { scaleX: 1, opacity: [0, 1, 0.5] } : {}}
+            transition={{ duration: 0.6, ease: EASE }}
+          />
         </motion.div>
       </div>
-    </>
+
+      <div className="relative mt-9 text-center">
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.1, duration: 0.6, ease: EASE }}
+          className="text-[20px] italic"
+          style={{ fontFamily: FONT_HEAD, color: 'var(--cx-glow)' }}
+        >
+          {firstName ? t(language, 'thanksName').replace('{name}', firstName) : t(language, 'seatReserved')}
+        </motion.p>
+        <motion.h2
+          initial={{ opacity: 0, y: 14, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 2.2, duration: 0.7, ease: EASE }}
+          className="mt-1 font-black leading-none"
+          style={{ fontFamily: FONT_HEAD, fontSize: 'clamp(2.6rem, 11vw, 3.6rem)', color: CREAM, letterSpacing: '-0.02em' }}
+        >
+          {t(language, 'bookingConfirmed')}
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.4, duration: 0.6 }}
+          className="mx-auto mt-3 max-w-sm text-[16px] leading-6"
+          style={{ fontFamily: FONT_BODY, color: MUTED }}
+        >
+          {t(language, 'seeYou')} {when}.
+        </motion.p>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2.5, duration: 0.8, ease: EASE }}
+        className="mt-9"
+      >
+        <CasinoTicket mode="done" refNum={bookingConfirmation?.terminId} />
+      </motion.div>
+
+      {customerDetails?.email && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.8 }}
+          className="mt-5 text-center text-[14px]"
+          style={{ fontFamily: FONT_BODY, color: FAINT }}
+        >
+          {t(language, 'willSendTo')} <span style={{ color: MUTED }}>{customerDetails.email}</span>
+        </motion.p>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2.9, duration: 0.6, ease: EASE }}
+        className="mt-7 space-y-3"
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => addBookingToCalendar()} className="cx-btn-ghost">
+            {ICON_CAL}
+            {t(language, 'addToCalendar')}
+          </button>
+          <button onClick={handleShare} className="cx-btn-ghost">
+            {ICON_SHARE}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span key={copied ? 'c' : 's'} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.15 }}>
+                {copied ? `✓ ${t(language, 'copied')}` : t(language, 'share')}
+              </motion.span>
+            </AnimatePresence>
+          </button>
+        </div>
+        <button onClick={startNewBooking} className="cx-btn w-full">
+          {t(language, 'newBooking')}
+        </button>
+      </motion.div>
+    </div>
   );
 }
 
-// ── Pre-submit confirmation view ──────────────────────────────
+// ── Pre-submit review ──────────────────────────────────────────────
 export default function CasinoConfirmation({ companySlug }: Props) {
   useSlotRecheck(companySlug);
   const {
-    employeesUI,
-    selectedEmployeeId,
-    anyPerson,
     selectedService,
     selectedServices,
-    totalDurationMin,
     selectedDate,
     selectedTime,
     customerDetails,
@@ -311,26 +288,18 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     isSubmitting,
     setSubmitting,
     setBookingConfirmation,
+    goToStep,
     language,
   } = useBookingStore();
-  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
-  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
-  const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
   if (bookingConfirmation?.success) {
     return <SuccessView />;
   }
 
   const primaryService = selectedServices[0] ?? selectedService;
-  const services = selectedServices.length > 0 ? selectedServices : primaryService ? [primaryService] : [];
-  const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
-  const pricing = getBookingPricing(services, promotion, selectedAddOn);
-  const displayServices = selectedServices.length > 1
-    ? selectedServices.map((s) => s.naziv).join(' + ')
-    : primaryService?.naziv;
 
   const handleConfirm = async () => {
     if (!companySlug || !primaryService || !selectedDate || !selectedTime || !customerDetails) {
@@ -346,7 +315,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
 
       if (response.success) {
         const serviceName = result.serviceName;
-        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+        const datumDisplay = format(selectedDate, language === 'en' ? 'MMMM d, yyyy' : 'd. MMMM yyyy', { locale: dateLocale(language) });
 
         if (response.requiresPayment === true) {
           setRedirecting(true);
@@ -385,133 +354,72 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     }
   };
 
-  const rows = [
-    { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined },
-    { label: t(language, 'fieldService'),    value: displayServices },
-    { label: t(language, 'fieldDuration'),   value: primaryService ? formatDuration(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) : undefined },
-    { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },
-    { label: t(language, 'fieldTime'),       value: selectedTime },
-    { label: 'Ime',   value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
-    { label: 'Email', value: customerDetails?.email },
-    { label: 'Tel.',  value: customerDetails?.phone },
-    { label: 'Dodatek', value: selectedAddOn ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})` : undefined },
-  ].filter((r) => r.value);
+  const busy = isSubmitting || redirecting;
 
   return (
     <div>
-      <p
-        className="italic mb-6"
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '1.05rem',
-          color: 'rgba(232,217,184,0.6)',
-          lineHeight: 1.7,
-        }}
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="mb-6 text-[16px] leading-6"
+        style={{ fontFamily: FONT_BODY, color: MUTED }}
       >
         {t(language, 'reviewIntro')}
-      </p>
+      </motion.p>
 
-      {/* Review card */}
-      <div
-        className="rounded-lg overflow-hidden mb-6"
-        style={{
-          background: 'rgba(8, 30, 15, 0.85)',
-          border: '1px solid rgba(201, 168, 76, 0.35)',
-          boxShadow: '0 0 24px rgba(201, 168, 76, 0.06)',
-        }}
-      >
-        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)' }} />
-
-        <div className="px-5 py-3" style={{ background: 'rgba(13, 59, 30, 0.4)', borderBottom: '1px solid rgba(201,168,76,0.1)' }}>
-          <p style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: '#a89060' }}>
-            {t(language, 'reviewLabel')}
-          </p>
-        </div>
-
-        <div className="px-5 py-4">
-          {rows.map((row, i) => (
-            <div key={i} className="mc-summary-row" style={{ borderBottomColor: 'rgba(201,168,76,0.07)' }}>
-              <span className="mc-summary-label">{row.label}</span>
-              <span className="text-right" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.95rem', color: '#f5edd6', maxWidth: '65%' }}>
-                {row.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="mx-5" style={{ borderTop: '1px solid rgba(201,168,76,0.12)' }} />
-
-        {primaryService && (
-          <div className="px-5 py-3 flex items-center justify-between">
-            <span style={{ fontFamily: 'var(--font-oswald)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#a89060' }}>
-              {t(language, 'fieldTotal')}
-            </span>
-            <div className="text-right">
-                {pricing.hasDiscount && (
-                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.9rem', color: '#a89060', textDecoration: 'line-through' }}>
-                  {formatBookingPrice(pricing.originalTotal)}
-                </div>
-              )}
-              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.5rem', fontWeight: 700, color: '#e8c96d' }}>
-                {formatBookingPrice(pricing.finalTotal)}
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div className="h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.3), transparent)' }} />
+      {/* The card is dealt face down and turns over */}
+      <div style={{ perspective: 1400 }}>
+        <motion.div
+          initial={{ rotateY: -100, opacity: 0, y: 30 }}
+          animate={{ rotateY: 0, opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.1 }}
+          style={{ transformOrigin: 'center', backfaceVisibility: 'hidden' }}
+        >
+          <CasinoTicket mode="review" onEdit={(step) => goToStep(step)} />
+        </motion.div>
       </div>
 
-      {/* Error */}
       <AnimatePresence>
         {error && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-5 rounded-lg px-4 py-3 flex items-center gap-3"
-            style={{ background: 'rgba(192, 57, 43, 0.08)', border: '1px solid rgba(192,57,43,0.3)' }}
-          >
-            <span style={{ color: '#c0392b', flexShrink: 0 }}>◆</span>
-            <p className="mc-error">{error}</p>
-          </motion.div>
+          <div className="mt-5">
+            <ErrorNote>{error}</ErrorNote>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* Confirm CTA */}
-      <div className="flex justify-center">
-        <button
+      <div className="booking-sticky-cta mt-7 flex flex-col items-center" style={stickyCtaStyle(CX_BG, 16)}>
+        <motion.button
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5, ease: EASE }}
           onClick={handleConfirm}
-          disabled={isSubmitting}
-          className="mc-btn-gold w-full max-w-sm py-4 relative overflow-hidden"
+          disabled={busy}
+          className="cx-btn w-full max-w-md"
         >
-          {isSubmitting ? (
-            <div className="flex items-center justify-center gap-3">
-              <motion.div
-                className="w-4 h-4 border-2 rounded-full"
-                style={{ borderColor: '#060f08', borderTopColor: 'transparent' }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' as const }}
-              />
-              <span>
-                {redirecting
-                  ? t(language, 'redirectingToPayment')
-                  : t(language, 'confirmingBtn')}
-              </span>
-            </div>
+          {busy ? (
+            <>
+              <Spinner />
+              {redirecting ? t(language, 'redirectingToPayment') : t(language, 'confirmingBtn')}
+            </>
           ) : (
-            t(language, 'confirmBtn')
+            <>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem' }} aria-hidden="true">♣</span>
+              {t(language, 'confirmBtn')}
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '1rem' }} aria-hidden="true">♣</span>
+            </>
           )}
-        </button>
+        </motion.button>
       </div>
 
-      <p
-        className="text-center mt-3 italic"
-        style={{ fontFamily: 'var(--font-cormorant)', fontSize: '0.82rem', color: 'rgba(201,168,76,0.3)' }}
-      >
-        {t(language, 'confirmEmailNote')}
-      </p>
-      <CancellationPolicy />
+      {customerDetails?.email && (
+        <p className="mt-3 text-center text-[13px]" style={{ fontFamily: FONT_BODY, color: FAINT }}>
+          {t(language, 'willSendTo')} <span style={{ color: MUTED }}>{customerDetails.email}</span>
+        </p>
+      )}
+      <div className="mt-2">
+        <CancellationPolicy />
+      </div>
     </div>
   );
 }
