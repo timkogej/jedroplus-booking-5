@@ -1,16 +1,6 @@
 import { redirect } from 'next/navigation';
 import { proDesignsAllowed } from '@/lib/plan.server';
-import { Source_Serif_4 } from 'next/font/google';
-import '@/styles/playfair.css';
 import './styles/magazine.css';
-
-const sourceSerif = Source_Serif_4({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-source-serif',
-  display: 'swap',
-});
 
 export default async function MagazineRootLayout({
   children,
@@ -27,7 +17,7 @@ export default async function MagazineRootLayout({
   }
 
   return (
-    <div className={`${sourceSerif.variable}`}>
+    <div>
       {children}
     </div>
   );
