@@ -121,7 +121,7 @@ export default function ClassicEmployeeSelection() {
                 setLocalEmployeeId(emp.id);
                 setLocalAnyPerson(false);
               },
-              <Avatar initials={emp.initials} color={theme.primarySolid} />,
+              <Avatar initials={emp.initials} photo={emp.slika_url} color={theme.primarySolid} />,
               emp.label,
               emp.subtitle || undefined,
             );

@@ -4,6 +4,7 @@
 // buttons and date helpers. Everything takes its colour from the company.
 
 import type { CSSProperties, ReactNode } from 'react';
+import Photo from '@/components/shared/Photo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { enUS, sl } from 'date-fns/locale';
@@ -125,12 +126,15 @@ export function Chip({
   on = false,
   dim = false,
   spin = false,
+  photo,
   children,
 }: {
   size?: number;
   on?: boolean;
   dim?: boolean;
   spin?: boolean;
+  /** A face inside the chip (staff photo); `children` show while it loads or without one. */
+  photo?: string | null;
   children?: ReactNode;
 }) {
   const edge = Math.max(3, Math.round(size * 0.11));
@@ -157,7 +161,7 @@ export function Chip({
       />
       {/* Inner face. */}
       <span
-        className="relative flex items-center justify-center rounded-full"
+        className={`relative flex items-center justify-center rounded-full ${photo ? 'overflow-hidden' : ''}`}
         style={{
           width: size - edge * 2.6,
           height: size - edge * 2.6,
@@ -170,6 +174,15 @@ export function Chip({
           lineHeight: 1,
         }}
       >
+        {photo && <Photo src={photo} className="absolute inset-0 rounded-full" fallback={children} />}
+        {/* Darken the face a little under the check. */}
+        {photo && (
+          <span
+            className="pointer-events-none absolute inset-0 rounded-full transition-opacity duration-300"
+            style={{ background: 'rgba(0,0,0,0.45)', opacity: on ? 1 : 0 }}
+            aria-hidden="true"
+          />
+        )}
         <AnimatePresence mode="wait" initial={false}>
           {on ? (
             <motion.svg
@@ -187,10 +200,12 @@ export function Chip({
               exit={{ scale: 0.4, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 520, damping: 24 }}
               aria-hidden="true"
+              className="relative"
+              style={photo ? { filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.6))' } : undefined}
             >
               <motion.path d="M2.5 6.2l2.4 2.4 4.6-5" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3, delay: 0.05 }} />
             </motion.svg>
-          ) : (
+          ) : photo ? null : (
             <motion.span key="face" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {children}
             </motion.span>

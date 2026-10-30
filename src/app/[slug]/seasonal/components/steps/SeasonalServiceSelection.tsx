@@ -8,6 +8,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { SeasonalTheme } from '../decorations/SeasonDetector';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 function formatDuration(minutes: number): string {
@@ -35,10 +36,13 @@ function ServiceRow({
   service,
   category,
   isLast,
+  withThumb,
 }: {
   service: Service;
   category: Category;
   isLast: boolean;
+  /** Some service has a photo: every row gets the thumbnail slot. */
+  withThumb: boolean;
 }) {
   const { theme, selectedService, selectCategoryAndService } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
@@ -70,7 +74,24 @@ function ServiceRow({
         />
       )}
 
-      <div className="flex items-start justify-between gap-4">
+      <div className={`flex justify-between gap-4 ${withThumb ? 'items-center' : 'items-start'}`}>
+        {withThumb && (
+          <Photo
+            src={service.slika_url}
+            className="h-14 w-14 flex-shrink-0 rounded-2xl"
+            style={{
+              backgroundColor: `${theme.primaryColor}14`,
+              boxShadow: isSelected ? `0 0 0 2px ${theme.primarySolid}` : 'inset 0 0 0 1px var(--b1)',
+              transition: 'box-shadow 0.25s',
+            }}
+            imgClassName="transition-transform duration-500 group-hover:scale-[1.06]"
+            fallback={
+              <span className="font-bold" style={{ fontFamily: 'var(--font-quicksand)', fontSize: '1.3rem', color: theme.primarySolid }} aria-hidden="true">
+                {service.naziv.trim().charAt(0).toUpperCase()}
+              </span>
+            }
+          />
+        )}
         <div className="flex-1 min-w-0">
           <h3
             className="font-semibold leading-snug mb-0.5"
@@ -136,6 +157,7 @@ interface Props {
 
 export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
   const { theme, categories, servicesByCategory } = useBookingStore();
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
 
   if (!categories || categories.length === 0) {
     return (
@@ -209,6 +231,7 @@ export default function SeasonalServiceSelection({ seasonalTheme }: Props) {
                     service={service}
                     category={category}
                     isLast={i === services.length - 1}
+                    withThumb={withThumbs}
                   />
                 ))}
               </div>

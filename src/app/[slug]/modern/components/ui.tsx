@@ -4,6 +4,7 @@
 // and small controls in the company colours.
 
 import type { CSSProperties, ReactNode } from 'react';
+import Photo from '@/components/shared/Photo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { enUS, sl } from 'date-fns/locale';
 import type { SupportedLanguage } from '@/types';
@@ -116,11 +117,31 @@ export function CheckDot({ on, size = 24 }: { on: boolean; size?: number }) {
   );
 }
 
-export function Avatar({ initials, size = 44 }: { initials: string; size?: number }) {
+export function Avatar({ initials, size = 44, photo }: { initials: string; size?: number; photo?: string | null }) {
+  const shadow = '0 8px 20px -8px var(--brand-a), inset 0 1px 0 rgba(255,255,255,0.3)';
+  const letters = (
+    <span
+      className="flex h-full w-full items-center justify-center font-bold text-white"
+      style={{ fontSize: size * 0.34, background: 'var(--brand-grad)', fontFamily: FONT }}
+    >
+      {initials}
+    </span>
+  );
+  if (photo) {
+    // Photo inside a thin ring in the brand gradient.
+    return (
+      <span
+        className="relative block flex-shrink-0 rounded-full"
+        style={{ width: size, height: size, padding: Math.max(2, Math.round(size / 24)), background: 'var(--brand-grad)', boxShadow: shadow }}
+      >
+        <Photo src={photo} className="h-full w-full rounded-full" fallback={letters} style={{ background: '#1c1c22' }} />
+      </span>
+    );
+  }
   return (
     <span
       className="relative flex flex-shrink-0 items-center justify-center rounded-full font-bold text-white"
-      style={{ width: size, height: size, fontSize: size * 0.34, background: 'var(--brand-grad)', fontFamily: FONT, boxShadow: '0 8px 20px -8px var(--brand-a), inset 0 1px 0 rgba(255,255,255,0.3)' }}
+      style={{ width: size, height: size, fontSize: size * 0.34, background: 'var(--brand-grad)', fontFamily: FONT, boxShadow: shadow }}
     >
       {initials}
     </span>

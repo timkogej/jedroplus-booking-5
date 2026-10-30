@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import ModernCard from '../ModernCard';
@@ -75,6 +76,8 @@ function EmployeeCard({
 }) {
   const { selectedEmployeeId, anyPerson } = useBookingStore();
   const isSelected = !anyPerson && selectedEmployeeId === employee.id;
+  // Larger avatars only when someone has a photo; the same size for everyone.
+  const big = useBookingStore((s) => anyPhoto(s.employeesUI));
 
   return (
     <motion.div variants={itemVariants}>
@@ -82,7 +85,7 @@ function EmployeeCard({
         <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
-            <Avatar initials={employee.initials} size={48} />
+            <Avatar initials={employee.initials} size={big ? 56 : 48} photo={employee.slika_url} />
             {/* Pulse ring when selected — slowed to 3 s cycle for a calm feel */}
             <AnimatePresence>
               {isSelected && (

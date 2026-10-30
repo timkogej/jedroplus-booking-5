@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import { t } from '../../i18n';
@@ -108,6 +109,8 @@ function EmployeeCard({
 }) {
   const { theme, selectedEmployeeId, anyPerson } = useBookingStore();
   const isSelected = !anyPerson && selectedEmployeeId === employee.id;
+  // Larger avatars only when someone has a photo; the same size for everyone.
+  const big = useBookingStore((s) => anyPhoto(s.employeesUI));
 
   return (
     <motion.button
@@ -125,15 +128,21 @@ function EmployeeCard({
       <div className="flex items-center gap-4">
         {/* Avatar */}
         <div
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full p-[2px] transition-all duration-500"
-          style={{ background: isSelected ? `conic-gradient(from 140deg, ${theme.primarySolid}, ${theme.primaryColor}, ${theme.primarySolid})` : '#EEECE8' }}
+          className={`flex flex-shrink-0 items-center justify-center rounded-full p-[2px] transition-all duration-500 ${big ? 'h-14 w-14' : 'h-12 w-12'}`}
+          style={{ background: isSelected ? `conic-gradient(from 140deg, ${theme.primarySolid}, ${theme.primaryColor}, ${theme.primarySolid})` : big ? '#E7DFCF' : '#EEECE8' }}
         >
-          <span
-            className="flex h-full w-full items-center justify-center rounded-full border-2 border-white text-white"
-            style={{ background: `linear-gradient(145deg, ${theme.primaryColor}, ${theme.primarySolid})`, fontFamily: 'var(--font-playfair)', fontSize: '1rem' }}
-          >
-            {employee.initials}
-          </span>
+          <Photo
+            src={employee.slika_url}
+            className="h-full w-full rounded-full border-2 border-white"
+            fallback={
+              <span
+                className="flex h-full w-full items-center justify-center text-white"
+                style={{ background: `linear-gradient(145deg, ${theme.primaryColor}, ${theme.primarySolid})`, fontFamily: 'var(--font-playfair)', fontSize: '1.05rem' }}
+              >
+                {employee.initials}
+              </span>
+            }
+          />
         </div>
 
         <div className="text-left flex-1">

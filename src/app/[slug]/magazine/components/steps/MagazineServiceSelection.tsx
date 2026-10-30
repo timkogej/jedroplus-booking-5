@@ -8,6 +8,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 const containerVariants: Variants = {
@@ -29,9 +30,12 @@ function formatDuration(minutes: number): string {
 function ServiceCard({
   service,
   category,
+  withThumb,
 }: {
   service: Service;
   category: Category;
+  /** Some service has a photo: every card gets the photo column. */
+  withThumb: boolean;
 }) {
   const { selectedService, selectCategoryAndService, theme } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
@@ -61,7 +65,21 @@ function ServiceCard({
             : '0 1px 8px rgba(0,0,0,0.03)',
         }}
       >
-        <div className="p-4 flex items-start gap-4">
+        <div className="flex items-stretch">
+        {withThumb && (
+          <Photo
+            src={service.slika_url}
+            className="w-[92px] min-h-[104px] flex-shrink-0 sm:w-[132px]"
+            style={{ backgroundColor: `${theme.primaryColor}0A` }}
+            imgClassName="transition-transform duration-700 group-hover:scale-[1.05]"
+            fallback={
+              <span className="magazine-serif text-[2.4rem] italic leading-none" style={{ color: `${theme.primarySolid}AA` }} aria-hidden="true">
+                {service.naziv.trim().charAt(0).toUpperCase()}
+              </span>
+            }
+          />
+        )}
+        <div className="p-4 flex flex-1 min-w-0 items-start gap-4">
           <div className="flex-1 min-w-0">
             <h3
               className="magazine-serif text-[1.05rem] leading-snug mb-1 transition-colors duration-300"
@@ -102,6 +120,7 @@ function ServiceCard({
             )}
           </div>
         </div>
+        </div>
 
         <motion.div
           className="absolute bottom-0 left-0 h-[2px]"
@@ -116,6 +135,7 @@ function ServiceCard({
 
 export default function MagazineServiceSelection() {
   const { categories, servicesByCategory, theme, language } = useBookingStore();
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
 
   return (
     <motion.div
@@ -165,7 +185,7 @@ export default function MagazineServiceSelection() {
 
               <div className="space-y-2.5">
                 {services.map((service) => (
-                  <ServiceCard key={service.id} service={service} category={category} />
+                  <ServiceCard key={service.id} service={service} category={category} withThumb={withThumbs} />
                 ))}
               </div>
             </motion.div>

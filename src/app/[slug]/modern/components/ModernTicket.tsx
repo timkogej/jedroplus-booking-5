@@ -10,6 +10,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { formatBookingPrice, getBookingPricing, resolvePrimaryPromotion } from '@/lib/pricing';
 import { t } from '../i18n';
 import { EASE, MODERN_BG } from './brand';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { Avatar, FONT, dateLocale, formatDuration, longDatePattern } from './ui';
 
 function addMinutes(time: string, minutes: number): string {
@@ -50,6 +51,7 @@ export default function ModernTicket({
   const end = time && totalDuration > 0 ? addMinutes(time, totalDuration) : '';
   const employee = employeesUI.find((e) => e.id === selectedEmployeeId);
   const personShown = showEmployee && (anyPerson || !!employee);
+  const thumbs = anyPhoto(services);
 
   const rise = (i: number) => ({
     initial: { opacity: 0, y: 8 },
@@ -124,7 +126,7 @@ export default function ModernTicket({
                     </svg>
                   </span>
                 ) : (
-                  <Avatar initials={employee?.initials ?? ''} size={28} />
+                  <Avatar initials={employee?.initials ?? ''} size={28} photo={employee?.slika_url} />
                 )}
                 <span className="text-[14px] font-semibold" style={{ fontFamily: FONT, color: 'var(--t-primary)' }}>
                   {anyPerson ? t(language, 'anyone') : employee?.label}
@@ -157,9 +159,22 @@ export default function ModernTicket({
           {services.map((s, i) => {
             const discounted = i === 0 && pricing.promotion && pricing.primaryFinalPrice < pricing.primaryOriginalPrice;
             return (
-              <motion.div key={s.id} {...rise(3 + i)} className="flex items-baseline justify-between gap-4">
-                <span className="text-[16px] font-semibold" style={{ fontFamily: FONT, color: 'var(--t-primary)' }}>
-                  {s.naziv}
+              <motion.div key={s.id} {...rise(3 + i)} className={`flex justify-between gap-4 ${thumbs ? 'items-center' : 'items-baseline'}`}>
+                <span className="flex min-w-0 items-center gap-3 text-[16px] font-semibold" style={{ fontFamily: FONT, color: 'var(--t-primary)' }}>
+                  {thumbs && (
+                    <Photo
+                      src={s.slika_url}
+                      eager
+                      className="h-11 w-11 flex-shrink-0 rounded-[12px]"
+                      style={{ background: 'rgba(255,255,255,0.06)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }}
+                      fallback={
+                        <span style={{ background: 'var(--brand-grad)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                          {s.naziv.trim().charAt(0).toUpperCase()}
+                        </span>
+                      }
+                    />
+                  )}
+                  <span>{s.naziv}</span>
                 </span>
                 <span className="flex-shrink-0 text-[16px] font-semibold tabular-nums" style={{ fontFamily: FONT, color: 'var(--t-soft)' }}>
                   {discounted && (

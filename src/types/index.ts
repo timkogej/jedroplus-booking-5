@@ -36,6 +36,8 @@ export interface EmployeeUI {
   subtitle: string;
   /** Two-letter initials for avatar fallback e.g. "AN" */
   initials: string;
+  /** Photo ("Osebe".slika_url), square; null → initials. */
+  slika_url?: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,6 +59,8 @@ export interface Service {
   opis: string;
   trajanjeMin: number;
   cena: number;
+  /** Photo ("Storitve".slika_url), 4:3; null → the design's own look. */
+  slika_url?: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

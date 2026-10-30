@@ -9,6 +9,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import { t } from '../../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -35,11 +36,14 @@ function ServiceRow({
   category,
   isFirst,
   isMultiMode,
+  withThumb,
 }: {
   service: Service;
   category: Category;
   isFirst: boolean;
   isMultiMode: boolean;
+  /** Some service has a photo: every row gets the photo slot. */
+  withThumb: boolean;
 }) {
   const { theme, selectedService, selectedServices, selectCategoryAndService, addService, multipleServicesAllowed, language } =
     useBookingStore();
@@ -100,6 +104,24 @@ function ServiceRow({
               )}
             </AnimatePresence>
           </span>
+        )}
+
+        {withThumb && (
+          <Photo
+            src={service.slika_url}
+            className="h-14 w-14 flex-shrink-0 rounded-xl sm:h-[76px] sm:w-[76px]"
+            style={{
+              background: '#F7F3EC',
+              boxShadow: isSelected ? `0 0 0 1.5px ${theme.primarySolid}` : 'inset 0 0 0 1px #EDE6D8',
+              transition: 'box-shadow 0.3s',
+            }}
+            imgClassName="transition-transform duration-700 group-hover:scale-[1.06]"
+            fallback={
+              <span style={{ fontFamily: 'var(--font-playfair)', fontSize: '1.6rem', fontStyle: 'italic', color: theme.primaryOnLight }} aria-hidden="true">
+                {service.naziv.trim().charAt(0).toUpperCase()}
+              </span>
+            }
+          />
         )}
 
         <div className="min-w-0 flex-1">
@@ -175,6 +197,7 @@ export default function ElegantServiceSelection() {
 
   // Step 2: the client picked a service and may add up to two more.
   const isMultiMode = currentStep === 2 && multipleServicesAllowed;
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
   const canContinue = selectedServices.length > 0 && !noEmployeeForCombination;
 
   if (!categories || categories.length === 0) {
@@ -268,7 +291,7 @@ export default function ElegantServiceSelection() {
 
               <div className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: '#EEECE8', boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 12px 32px -20px rgba(60,40,10,0.15)' }}>
                 {services.map((service, i) => (
-                  <ServiceRow key={service.id} service={service} category={category} isFirst={i === 0} isMultiMode={isMultiMode} />
+                  <ServiceRow key={service.id} service={service} category={category} isFirst={i === 0} isMultiMode={isMultiMode} withThumb={withThumbs} />
                 ))}
               </div>
             </motion.div>

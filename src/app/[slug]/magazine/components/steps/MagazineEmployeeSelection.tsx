@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import { t } from '../../i18n';
@@ -20,6 +21,8 @@ export default function MagazineEmployeeSelection() {
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter(emp => eligibleSet.has(String(emp.id)));
+  // Larger portraits only when someone has a photo; the same size for everyone.
+  const big = anyPhoto(employeesUI);
   const noEmployeesAvailable = eligibleEmployeeIds.length === 0;
 
   const renderCard = (employee: EmployeeUI | null, isAnyOption = false) => {
@@ -129,17 +132,28 @@ export default function MagazineEmployeeSelection() {
             backgroundColor: isSelected ? `${theme.primaryColor}04` : 'transparent',
           }}
         >
-          {/* Avatar / initials */}
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 magazine-serif text-sm"
-            style={{
-              border: `1.5px solid ${isSelected ? theme.primarySolid : 'rgba(0,0,0,0.12)'}`,
-              backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
-              color: isSelected ? theme.primarySolid : '#6B6B6B',
-            }}
-          >
-            {employee!.initials || '?'}
-          </div>
+          {/* Portrait, or initials */}
+          {employee!.slika_url ? (
+            <Photo
+              src={employee!.slika_url}
+              className={`${big ? 'w-14 h-14' : 'w-12 h-12'} rounded-full flex-shrink-0 transition-all duration-300`}
+              style={{ boxShadow: `0 0 0 1.5px ${isSelected ? theme.primarySolid : 'rgba(0,0,0,0.12)'}, 0 0 0 4px #fff` }}
+              imgClassName="transition-[filter] duration-500 group-hover:grayscale-0"
+              imgStyle={{ filter: isSelected ? 'none' : 'grayscale(0.35)' }}
+              fallback={<span className="magazine-serif text-sm" style={{ color: '#6B6B6B' }}>{employee!.initials || '?'}</span>}
+            />
+          ) : (
+            <div
+              className={`${big ? 'w-14 h-14' : 'w-12 h-12'} rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 magazine-serif text-sm`}
+              style={{
+                border: `1.5px solid ${isSelected ? theme.primarySolid : 'rgba(0,0,0,0.12)'}`,
+                backgroundColor: isSelected ? `${theme.primaryColor}10` : 'transparent',
+                color: isSelected ? theme.primarySolid : '#6B6B6B',
+              }}
+            >
+              {employee!.initials || '?'}
+            </div>
+          )}
 
           {/* Info */}
           <div className="flex-1 min-w-0">

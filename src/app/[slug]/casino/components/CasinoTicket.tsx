@@ -5,6 +5,7 @@
 // review (with edit links) and on the success page (with a "confirmed" stamp).
 
 import type { ReactNode } from 'react';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useBookingStore } from '@/store/bookingStore';
@@ -41,8 +42,18 @@ function Section({ label, action, children }: { label: string; action?: ReactNod
 }
 
 /** "name ........ price" like on a menu card. */
-function Line({ name, value, sub, accent }: { name: string; value?: string; sub?: string; accent?: boolean }) {
+function Line({ name, value, sub, accent, thumb }: { name: string; value?: string; sub?: string; accent?: boolean; thumb?: ReactNode }) {
   const color = accent ? 'var(--cx-glow)' : CREAM;
+  if (thumb) {
+    return (
+      <div className="flex items-center gap-3 py-1.5">
+        {thumb}
+        <div className="min-w-0 flex-1">
+          <Line name={name} value={value} sub={sub} accent={accent} />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="py-1">
       <div className="flex items-baseline gap-2">
@@ -212,6 +223,17 @@ export default function CasinoTicket({ mode, onEdit, refNum }: Props) {
             name={s.naziv}
             sub={formatDuration(s.trajanjeMin)}
             value={s.cena ? formatBookingPrice(Number(s.cena)) : undefined}
+            thumb={
+              anyPhoto(services) ? (
+                <Photo
+                  src={s.slika_url}
+                  eager
+                  className="h-11 w-11 flex-shrink-0 rounded-[10px]"
+                  style={{ background: mix('--cx-glow', 10), boxShadow: `inset 0 0 0 1px ${mix('--cx-glow', 22)}` }}
+                  fallback={<span style={{ fontFamily: 'Georgia, serif', color: 'var(--cx-glow)', fontSize: 18 }}>♠</span>}
+                />
+              ) : undefined
+            }
           />
         ))}
         {selectedAddOn && (
@@ -225,7 +247,7 @@ export default function CasinoTicket({ mode, onEdit, refNum }: Props) {
       {showEmployee && (
         <Section label={t(language, 'fieldSpecialist')} action={edit && <EditButton onClick={() => edit(3)} label={editLabel} />}>
           <div className="flex items-center gap-3">
-            <Chip size={40}>{anyPerson ? '♣' : employee?.initials ?? '♣'}</Chip>
+            <Chip size={anyPerson || !employee?.slika_url ? 40 : 46} photo={anyPerson ? null : employee?.slika_url}>{anyPerson ? '♣' : employee?.initials ?? '♣'}</Chip>
             <div className="min-w-0">
               <p className="text-[16px] font-semibold" style={{ fontFamily: FONT_BODY, color: CREAM }}>
                 {anyPerson ? t(language, 'anyoneAvailable') : employee?.label ?? '—'}

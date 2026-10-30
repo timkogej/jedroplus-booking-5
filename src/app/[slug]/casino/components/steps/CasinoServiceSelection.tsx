@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { forwardRef, useRef, useCallback } from 'react';
 import { servicePriceLabel } from '@/lib/text';
 import { formatBookingPrice } from '@/lib/pricing';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,7 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import { t } from '../../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 import {
   CREAM,
@@ -31,9 +32,14 @@ import {
 } from '../ui';
 
 // ── Selected service chip (step 2) ─────────────────────────────
-function ServiceChip({ service, onRemove, label }: { service: Service; onRemove: () => void; label: string }) {
+// forwardRef: the chip list animates with AnimatePresence mode="popLayout", which needs the element.
+const ServiceChip = forwardRef<HTMLDivElement, { service: Service; onRemove: () => void; label: string }>(function ServiceChip(
+  { service, onRemove, label },
+  ref
+) {
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -57,7 +63,7 @@ function ServiceChip({ service, onRemove, label }: { service: Service; onRemove:
       </button>
     </motion.div>
   );
-}
+});
 
 function ServiceCard({
   service,
@@ -65,12 +71,15 @@ function ServiceCard({
   isSelected,
   showCheck,
   onSelect,
+  withThumb,
 }: {
   service: Service;
   suitIndex: number;
   isSelected: boolean;
   showCheck: boolean;
   onSelect: () => void;
+  /** Some service has a photo: every card gets the photo tile. */
+  withThumb: boolean;
 }) {
   const { serviceDiscounts } = usePromotionsStore();
   const theme = useBookingStore((s) => s.theme);
@@ -89,7 +98,41 @@ function ServiceCard({
       <PointerGlow />
 
       <div className="relative flex items-start gap-3.5 p-4">
-        {/* Suit corner, like on a playing card */}
+        {withThumb ? (
+          // Photo tile; the suit stays as a small badge in its corner.
+          <span className="relative flex-shrink-0">
+            <Photo
+              src={service.slika_url}
+              className="h-16 w-16 rounded-[12px]"
+              style={{
+                background: mix('--cx-glow', 10),
+                boxShadow: isSelected ? `0 0 0 2px var(--cx-glow), 0 10px 22px -10px var(--cx-a)` : `inset 0 0 0 1px ${mix('--cx-glow', 22)}`,
+                transition: 'box-shadow 0.3s',
+              }}
+              imgClassName="transition-transform duration-500 group-hover:scale-[1.07]"
+              fallback={
+                <span className="text-[28px] transition-transform duration-300 group-hover:-rotate-6" style={{ fontFamily: 'Georgia, serif', color: 'var(--cx-glow)' }} aria-hidden="true">
+                  {suit}
+                </span>
+              }
+            />
+            {service.slika_url && (
+              <span
+                className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full text-[12px]"
+                style={{
+                  fontFamily: 'Georgia, serif',
+                  color: '#fff',
+                  background: 'var(--cx-grad)',
+                  boxShadow: '0 0 0 2px #09090c, 0 4px 10px -4px var(--cx-a)',
+                }}
+                aria-hidden="true"
+              >
+                {suit}
+              </span>
+            )}
+          </span>
+        ) : (
+          /* Suit corner, like on a playing card */
         <span
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[11px] text-[18px] transition-transform duration-300 group-hover:-rotate-6"
           style={{
@@ -103,6 +146,8 @@ function ServiceCard({
         >
           {suit}
         </span>
+
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
@@ -186,6 +231,7 @@ export default function CasinoServiceSelection() {
   const isAddMoreMode = currentStep === 2 && multipleServicesAllowed;
 
   const isServiceSelected = (serviceId: string) => selectedServices.some((s) => s.id === serviceId);
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
 
   const handleServiceClick = (category: Category, service: Service) => {
     if (isAddMoreMode) {
@@ -307,6 +353,7 @@ export default function CasinoServiceSelection() {
                       isSelected={isServiceSelected(service.id)}
                       showCheck={isAddMoreMode}
                       onSelect={() => handleServiceClick(category, service)}
+                      withThumb={withThumbs}
                     />
                   );
                 })}

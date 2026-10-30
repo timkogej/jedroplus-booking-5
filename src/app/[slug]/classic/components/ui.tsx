@@ -4,6 +4,7 @@
 // with hairlines, and one solid brand-colour button per screen.
 
 import type { CSSProperties, ReactNode } from 'react';
+import Photo from '@/components/shared/Photo';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { isLightBackground } from '@/lib/color';
@@ -260,17 +261,11 @@ export function ErrorNote({ children }: { children: ReactNode }) {
 }
 
 /** Initials or photo in a soft brand-coloured circle. */
-export function Avatar({ initials, photo, size = 44, color }: { initials: string; photo?: string; size?: number; color: string }) {
-  if (photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={photo} alt="" className="flex-shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />;
-  }
-  return (
+export function Avatar({ initials, photo, size = 44, color }: { initials: string; photo?: string | null; size?: number; color: string }) {
+  const letters = (
     <span
-      className="flex flex-shrink-0 items-center justify-center rounded-full font-semibold"
+      className="flex h-full w-full items-center justify-center rounded-full font-semibold"
       style={{
-        width: size,
-        height: size,
         fontSize: size * 0.36,
         color: '#FFFFFF',
         background: `linear-gradient(145deg, ${color}CC, ${color})`,
@@ -281,4 +276,15 @@ export function Avatar({ initials, photo, size = 44, color }: { initials: string
       {initials}
     </span>
   );
+  if (photo) {
+    return (
+      <Photo
+        src={photo}
+        fallback={letters}
+        className="flex-shrink-0 rounded-full"
+        style={{ width: size, height: size, boxShadow: `0 0 0 2px #FFFFFF, 0 0 0 3.5px ${color}40` }}
+      />
+    );
+  }
+  return <span className="flex flex-shrink-0" style={{ width: size, height: size }}>{letters}</span>;
 }
