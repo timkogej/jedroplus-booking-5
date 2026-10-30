@@ -1,34 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Libre_Baskerville, JetBrains_Mono, Nunito_Sans } from "next/font/google";
+import "@/styles/fonts.css";
 import "./globals.css";
 import HtmlLang from "@/components/shared/HtmlLang";
 import CalendarChooser from "@/components/shared/CalendarChooser";
-
-const nunitoSans = Nunito_Sans({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-nunito",
-  display: "swap",
-  weight: ["300", "400", "600", "700", "800"],
-});
-
-const outfit = Outfit({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-outfit",
-  display: "swap",
-});
-
-const libreBaskerville = Libre_Baskerville({
-  weight: ["400", "700"],
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-libre",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   // Absolute URLs for the link preview image.
@@ -54,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="sl">
       <body
-        className={`${nunitoSans.variable} ${outfit.variable} ${libreBaskerville.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className="font-sans antialiased"
       >
         <HtmlLang />
         <CalendarChooser />

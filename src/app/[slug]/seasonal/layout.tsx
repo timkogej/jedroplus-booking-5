@@ -1,29 +1,6 @@
 import { redirect } from 'next/navigation';
 import { proDesignsAllowed } from '@/lib/plan.server';
-import { Inter, Mountains_of_Christmas, Creepster } from 'next/font/google';
 import './styles/seasonal.css';
-
-const inter = Inter({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-// Holiday decorative fonts — kept for theming special events
-const mountainsOfChristmas = Mountains_of_Christmas({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-christmas',
-  display: 'swap',
-});
-
-const creepster = Creepster({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-creepster',
-  display: 'swap',
-});
 
 export default async function SeasonalRootLayout({
   children,
@@ -40,7 +17,7 @@ export default async function SeasonalRootLayout({
   }
 
   return (
-    <div className={`${inter.variable} ${mountainsOfChristmas.variable} ${creepster.variable}`}>
+    <div>
       {children}
     </div>
   );
