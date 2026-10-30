@@ -4,7 +4,7 @@ import { Playfair_Display, Source_Serif_4 } from 'next/font/google';
 import './styles/magazine.css';
 
 const playfair = Playfair_Display({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-playfair',
@@ -12,7 +12,7 @@ const playfair = Playfair_Display({
 });
 
 const sourceSerif = Source_Serif_4({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '600'],
   style: ['normal', 'italic'],
   variable: '--font-source-serif',

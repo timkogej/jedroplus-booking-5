@@ -16,13 +16,6 @@ import {
 import { DEFAULT_THEME } from '@/lib/api';
 import { withReadableColors } from '@/lib/color';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper — read persisted language preference (SSR-safe)
-// ─────────────────────────────────────────────────────────────────────────────
-function getPersistedLanguage(): SupportedLanguage {
-  if (typeof window === 'undefined') return 'sl';
-  return (localStorage.getItem('booking_lang') as SupportedLanguage) || 'sl';
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State + Actions interface
@@ -221,7 +214,7 @@ const initialState: Omit<BookingState,
   totalDurationMin: 0,
   slotsMap: {},
   isLoadingSlots: false,
-  language: getPersistedLanguage(),
+  language: 'sl' as SupportedLanguage /* the saved choice is applied in setInitData, after hydration */,
   stripeEnabled: false,
   stripePaymentMode: 'full',
   stripeDepositPercent: 30,

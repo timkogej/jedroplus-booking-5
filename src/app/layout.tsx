@@ -5,27 +5,27 @@ import HtmlLang from "@/components/shared/HtmlLang";
 import CalendarChooser from "@/components/shared/CalendarChooser";
 
 const nunitoSans = Nunito_Sans({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-nunito",
   display: "swap",
   weight: ["300", "400", "600", "700", "800"],
 });
 
 const outfit = Outfit({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-outfit",
   display: "swap",
 });
 
 const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-libre",
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-mono",
   display: "swap",
 });
