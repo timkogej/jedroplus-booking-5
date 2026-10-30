@@ -11,11 +11,11 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 14 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: 'easeOut' as const },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
@@ -26,9 +26,9 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
     <motion.button
       variants={itemVariants}
       onClick={onSelect}
-      whileHover={{ boxShadow: '0 4px 16px rgba(0,0,0,0.07)' }}
+      whileHover={{ y: -2, boxShadow: '0 14px 30px -18px rgba(60,40,10,0.35)' }}
       whileTap={{ scale: 0.99 }}
-      className="w-full p-4 rounded-xl transition-all duration-200"
+      className="w-full rounded-2xl p-4 transition-colors duration-300"
       style={{
         border: anyPerson ? `2px solid ${theme.primarySolid}` : '2px dashed #D1D5DB',
         backgroundColor: anyPerson ? `${theme.primaryColor}06` : 'white',
@@ -90,7 +90,7 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: theme.primarySolid }}
             >
-              <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+              <svg width="11" height="9" viewBox="0 0 12 10" fill="none" aria-hidden="true"><motion.path d="M1 5L4.5 8.5L11 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3, delay: 0.05 }} /></svg>
             </motion.div>
           )}
         </AnimatePresence>
@@ -113,9 +113,9 @@ function EmployeeCard({
     <motion.button
       variants={itemVariants}
       onClick={() => onSelect(employee.id)}
-      whileHover={{ boxShadow: '0 4px 12px rgba(0,0,0,0.07)' }}
+      whileHover={{ y: -2, boxShadow: '0 14px 30px -18px rgba(60,40,10,0.35)' }}
       whileTap={{ scale: 0.99 }}
-      className="w-full p-4 rounded-xl border transition-all duration-200"
+      className="w-full rounded-2xl border bg-white p-4 transition-colors duration-300"
       style={{
         borderColor: isSelected ? theme.primarySolid : '#E5E7EB',
         backgroundColor: isSelected ? `${theme.primaryColor}06` : 'white',
@@ -125,14 +125,15 @@ function EmployeeCard({
       <div className="flex items-center gap-4">
         {/* Avatar */}
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-medium"
-          style={{
-            backgroundColor: theme.primarySolid,
-            fontFamily: 'var(--font-inter)',
-            fontSize: '0.9rem',
-          }}
+          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full p-[2px] transition-all duration-500"
+          style={{ background: isSelected ? `conic-gradient(from 140deg, ${theme.primarySolid}, ${theme.primaryColor}, ${theme.primarySolid})` : '#EEECE8' }}
         >
-          {employee.initials}
+          <span
+            className="flex h-full w-full items-center justify-center rounded-full border-2 border-white text-white"
+            style={{ background: `linear-gradient(145deg, ${theme.primaryColor}, ${theme.primarySolid})`, fontFamily: 'var(--font-playfair)', fontSize: '1rem' }}
+          >
+            {employee.initials}
+          </span>
         </div>
 
         <div className="text-left flex-1">
@@ -170,7 +171,7 @@ function EmployeeCard({
               className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: theme.primarySolid }}
             >
-              <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+              <svg width="11" height="9" viewBox="0 0 12 10" fill="none" aria-hidden="true"><motion.path d="M1 5L4.5 8.5L11 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3, delay: 0.05 }} /></svg>
             </motion.div>
           )}
         </AnimatePresence>
@@ -198,17 +199,17 @@ export default function ElegantEmployeeSelection() {
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">
       {/* Heading */}
-      <motion.div variants={itemVariants} className="mb-6">
+      <motion.div variants={itemVariants} className="mb-7">
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '2.1rem',
+            fontSize: 'clamp(2rem, 5vw, 2.4rem)',
             fontWeight: 400,
             color: '#111111',
-            lineHeight: 1.2,
+            lineHeight: 1.15,
           }}
         >
-          {t(language, 'chooseSpecialistA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseSpecialistB')}</span>
+          {t(language, 'chooseSpecialistA')} <span className="italic" style={{ color: theme.primaryOnLight }}>{t(language, 'chooseSpecialistB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -220,11 +221,12 @@ export default function ElegantEmployeeSelection() {
         >
           {t(language, 'specialistQuestion')}
         </p>
+        <div className="elegant-rule mt-5 h-px w-16" style={{ background: theme.primarySolid, transformOrigin: 'left' }} />
       </motion.div>
 
       {/* Cards */}
-      <div className="space-y-3">
-        <AnyEmployeeCard onSelect={() => selectEmployee(null, true)} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="sm:col-span-2"><AnyEmployeeCard onSelect={() => selectEmployee(null, true)} /></div>
         {filteredEmployees.map((emp) => (
           <EmployeeCard
             key={emp.id}

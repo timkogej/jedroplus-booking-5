@@ -159,13 +159,13 @@ export default function ElegantCustomerDetails() {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '2.1rem',
+            fontSize: 'clamp(2rem, 5vw, 2.4rem)',
             fontWeight: 400,
             color: '#111111',
-            lineHeight: 1.2,
+            lineHeight: 1.15,
           }}
         >
-          {t(language, 'yourDetailsA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'yourDetailsB')}</span>
+          {t(language, 'yourDetailsA')} <span className="italic" style={{ color: theme.primaryOnLight }}>{t(language, 'yourDetailsB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -177,6 +177,7 @@ export default function ElegantCustomerDetails() {
         >
           {t(language, 'fillDetails')}
         </p>
+        <div className="elegant-rule mt-5 h-px w-16" style={{ background: theme.primarySolid, transformOrigin: 'left' }} />
       </motion.div>
 
       {/* Add-on selector */}
@@ -403,7 +404,7 @@ export default function ElegantCustomerDetails() {
               type="button"
               role="checkbox"
               aria-checked={gdprMarketing}
-              className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+              className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md transition-colors duration-300"
               style={{
                 backgroundColor: gdprMarketing ? theme.primarySolid : 'white',
                 border: `2px solid ${gdprMarketing ? theme.primarySolid : '#D1D5DB'}`,
@@ -411,7 +412,7 @@ export default function ElegantCustomerDetails() {
               onClick={() => setGdprMarketing(!gdprMarketing)}
             >
               {gdprMarketing && (
-                <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+                <motion.svg width="10" height="8" viewBox="0 0 12 10" fill="none" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} aria-hidden="true"><motion.path d="M1 5L4.5 8.5L11 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.25 }} /></motion.svg>
               )}
             </button>
             <span
@@ -433,7 +434,7 @@ export default function ElegantCustomerDetails() {
                 type="button"
                 role="checkbox"
                 aria-checked={privacyConsent}
-                className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+                className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md transition-colors duration-300"
                 style={{
                   backgroundColor: privacyConsent ? theme.primarySolid : 'white',
                   border: `2px solid ${
@@ -444,10 +445,13 @@ export default function ElegantCustomerDetails() {
                       : '#D1D5DB'
                   }`,
                 }}
-                onClick={() => setPrivacyConsent(!privacyConsent)}
+                onClick={() => {
+                  setPrivacyConsent(!privacyConsent);
+                  if (errors.privacyConsent) setErrors((p) => ({ ...p, privacyConsent: undefined }));
+                }}
               >
                 {privacyConsent && (
-                  <span style={{ color: 'white', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
+                  <motion.svg width="10" height="8" viewBox="0 0 12 10" fill="none" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} aria-hidden="true"><motion.path d="M1 5L4.5 8.5L11 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.25 }} /></motion.svg>
                 )}
               </button>
               <span
@@ -511,20 +515,22 @@ export default function ElegantCustomerDetails() {
       >
         <motion.button
           onClick={handleSubmit}
-          disabled={!isFormComplete}
-          whileHover={isFormComplete ? { opacity: 0.92 } : {}}
-          whileTap={isFormComplete ? { scale: 0.99 } : {}}
-          className="w-full py-4 rounded-xl font-medium text-white transition-all"
+          disabled={isSubmitting}
+          whileHover={isSubmitting ? {} : { y: -1 }}
+          whileTap={isSubmitting ? {} : { scale: 0.99 }}
+          className="relative w-full overflow-hidden rounded-xl py-4 font-medium tracking-wide text-white"
           style={{
-            backgroundColor: isFormComplete ? theme.primarySolid : '#E5E7EB',
-            color: isFormComplete ? 'white' : '#6B7280',
+            backgroundColor: theme.primarySolid,
+            opacity: isFormComplete || isSubmitting ? 1 : 0.88,
             fontFamily: 'var(--font-inter)',
             fontSize: '0.975rem',
-            cursor: isFormComplete ? 'pointer' : 'not-allowed',
-            boxShadow: isFormComplete ? `0 4px 14px ${theme.primaryColor}30` : 'none',
+            cursor: isSubmitting ? 'wait' : 'pointer',
+            boxShadow: `0 12px 26px -12px ${theme.primarySolid}`,
+            transition: 'opacity 0.3s',
           }}
         >
-          {isSubmitting ? t(language, 'sending') : t(language, 'continue')}
+          {isFormComplete && !isSubmitting && <span className="elegant-sheen" />}
+          <span className="relative">{isSubmitting ? t(language, 'sending') : `${t(language, 'continue')} →`}</span>
         </motion.button>
       </motion.div>
     </motion.div>

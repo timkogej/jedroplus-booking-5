@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import {
   format,
@@ -99,6 +99,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
   const [showAddOnModal, setShowAddOnModal] = useState(false);
 
   const today = useMemo(() => startOfDay(new Date()), []);
+  const stripRef = useRef<HTMLDivElement>(null);
 
   // Last bookable date
   const windowEnd = useMemo(
@@ -149,6 +150,17 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
     const pad = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
     return [...Array(pad).fill(null), ...days] as (Date | null)[];
   }, [currentMonth]);
+
+  // Phone strip: keep the chosen day in view (also after changing month).
+  useEffect(() => {
+    const strip = stripRef.current;
+    const pill = strip?.querySelector<HTMLElement>('[data-selected]');
+    if (strip && pill) {
+      strip.scrollTo({ left: pill.offsetLeft - strip.offsetWidth / 2 + pill.offsetWidth / 2, behavior: 'smooth' });
+    } else if (strip) {
+      strip.scrollTo({ left: 0 });
+    }
+  }, [selectedDate, currentMonth, isLoadingSlots]);
 
   // ── Fetch full range on mount / when service or employee changes ──────────
   useEffect(() => {
@@ -287,13 +299,13 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
         <h2
           style={{
             fontFamily: 'var(--font-playfair)',
-            fontSize: '2.1rem',
+            fontSize: 'clamp(2rem, 5vw, 2.4rem)',
             fontWeight: 400,
             color: '#111111',
-            lineHeight: 1.2,
+            lineHeight: 1.15,
           }}
         >
-          {t(language, 'chooseTimeA')} <span style={{ color: theme.primaryOnLight }}>{t(language, 'chooseTimeB')}</span>
+          {t(language, 'chooseTimeA')} <span className="italic" style={{ color: theme.primaryOnLight }}>{t(language, 'chooseTimeB')}</span>
         </h2>
         <p
           className="mt-2"
@@ -305,6 +317,7 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
         >
           {t(language, 'timeQuestion')}
         </p>
+        <div className="elegant-rule mt-5 h-px w-16" style={{ background: theme.primarySolid, transformOrigin: 'left' }} />
       </motion.div>
 
       {/* Two-column layout on desktop */}
@@ -367,9 +380,10 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                 ))}
               </div>
             ) : (
-              <div className="elegant-date-strip flex gap-1.5 overflow-x-auto pb-1">
+              <div ref={stripRef} className="elegant-date-strip flex gap-1.5 overflow-x-auto px-0.5 pb-2 pt-1">
                 {calendarDays.map((day) => {
-                  if (!day) return null;
+                  // Past days of the month are only noise on a phone.
+                  if (!day || day < today) return null;
                   const isGrayed = isDayGrayed(day);
                   const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
                   const isTodayDate = isToday(day);
@@ -377,11 +391,13 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                   const weekdayAbbr = t(language, 'weekDays')[dow === 0 ? 6 : dow - 1];
 
                   return (
-                    <button
+                    <motion.button
                       key={day.toISOString()}
+                      data-selected={isSelected || undefined}
                       onClick={() => !isGrayed && selectDate(day)}
                       disabled={isGrayed}
-                      className="elegant-date-pill flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
+                      whileTap={isGrayed ? undefined : { scale: 0.94 }}
+                      className="elegant-date-pill relative flex-shrink-0 flex flex-col items-center justify-center gap-0.5"
                       style={{
                         backgroundColor: isSelected
                           ? theme.primarySolid
@@ -424,7 +440,14 @@ export default function ElegantDateTimeSelection({ companySlug }: Props) {
                       >
                         {format(day, 'd')}
                       </span>
-                    </button>
+                      {!isGrayed && (
+                        <span
+                          aria-hidden="true"
+                          className="mt-1 h-1 w-1 rounded-full"
+                          style={{ background: isSelected ? 'rgba(255,255,255,0.8)' : theme.primarySolid }}
+                        />
+                      )}
+                    </motion.button>
                   );
                 })}
               </div>
