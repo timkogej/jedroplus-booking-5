@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
