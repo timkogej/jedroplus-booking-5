@@ -62,7 +62,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
             <div className="flex flex-col items-center flex-shrink-0" style={{ paddingTop: '2px' }}>
               {/* Circle — done / active / pending */}
               <div
-                className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
+                className="relative w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300"
                 style={{
                   background: isDone
                     ? `linear-gradient(135deg, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primarySolid})`
@@ -78,6 +78,14 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   fontFamily: 'var(--font-inter)',
                 }}
               >
+                {isActive && (
+                  <motion.span
+                    layoutId="elegant-step-halo"
+                    className="absolute -inset-[5px] rounded-full"
+                    style={{ boxShadow: `0 0 0 1px ${theme.primarySolid}33`, background: `${theme.primarySolid}0D` }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                )}
                 <AnimatePresence mode="wait">
                   {isDone ? (
                     <ElegantCheck key="check" color="white" />
@@ -98,14 +106,17 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
               {/* Connecting line */}
               {!isLast && (
                 <div
-                  className="w-px transition-all duration-300"
-                  style={{
-                    height: value ? '3rem' : '2.25rem',
-                    marginTop: '3px',
-                    backgroundColor: isDone ? theme.primarySolid : '#E5E7EB',
-                    opacity: isDone ? 0.4 : 1,
-                  }}
-                />
+                  className="relative w-px overflow-hidden transition-all duration-300"
+                  style={{ height: value ? '3rem' : '2.25rem', marginTop: '3px', backgroundColor: '#E5E7EB' }}
+                >
+                  <motion.span
+                    className="absolute inset-x-0 top-0 block"
+                    style={{ background: theme.primarySolid, opacity: 0.55 }}
+                    initial={false}
+                    animate={{ height: isDone ? '100%' : '0%' }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
               )}
             </div>
 
@@ -123,8 +134,11 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                 {t(language, step.labelKey)}
               </p>
               {value && (
-                <p
-                  className="mt-0.5 truncate"
+                <motion.p
+                  initial={{ opacity: 0, y: -3 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="mt-0.5 truncate first-cap"
                   style={{
                     fontFamily: 'var(--font-inter)',
                     fontSize: '0.75rem',
@@ -132,7 +146,7 @@ export default function ElegantSidebar({ currentStep, stepValues }: Props) {
                   }}
                 >
                   {value}
-                </p>
+                </motion.p>
               )}
             </div>
           </div>

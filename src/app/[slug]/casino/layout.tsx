@@ -4,7 +4,7 @@ import { Playfair_Display, Cormorant_Garamond, Oswald } from 'next/font/google';
 import './styles/casino.css';
 
 const playfair = Playfair_Display({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '700', '900'],
   style: ['normal', 'italic'],
   variable: '--font-playfair',
@@ -12,7 +12,7 @@ const playfair = Playfair_Display({
 });
 
 const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['300', '400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
@@ -20,7 +20,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 const oswald = Oswald({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '500', '600'],
   variable: '--font-oswald',
   display: 'swap',

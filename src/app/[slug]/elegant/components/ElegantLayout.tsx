@@ -22,19 +22,45 @@ interface Props {
   companySlug: string;
 }
 
+const EASE = [0.22, 1, 0.36, 1] as const;
+
 const pageVariants: Variants = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 16 },
   animate: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: 'easeOut' as const },
+    transition: { duration: 0.6, ease: EASE },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    transition: { duration: 0.2 },
+    y: -6,
+    transition: { duration: 0.2, ease: 'easeIn' as const },
   },
 };
+
+function BackButton({ onClick, label, color, className = '' }: { onClick: () => void; label: string; color: string; className?: string }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      initial={{ opacity: 0, x: -6 }}
+      animate={{ opacity: 1, x: 0 }}
+      whileHover={{ x: -3 }}
+      whileTap={{ scale: 0.96 }}
+      className={`group flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900 ${className}`}
+      style={{ fontFamily: 'var(--font-inter)' }}
+    >
+      <span
+        className="flex h-7 w-7 items-center justify-center rounded-full border transition-colors group-hover:border-current"
+        style={{ borderColor: '#E5E7EB', color }}
+      >
+        <svg width="7" height="12" viewBox="0 0 8 14" fill="none" aria-hidden="true">
+          <path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      {label}
+    </motion.button>
+  );
+}
 
 const STEP_LABEL_KEYS = {
   1: 'stepService',
@@ -55,7 +81,7 @@ function LanguageToggle({
   color: string;
 }) {
   return (
-    <div className="flex rounded-full border overflow-hidden" style={{ borderColor: '#E5E7EB' }}>
+    <div className="relative flex rounded-full border p-0.5" style={{ borderColor: '#E5E7EB' }}>
       {(['sl', 'en'] as const).map((lang) => {
         const active = language === lang;
         return (
@@ -64,13 +90,17 @@ function LanguageToggle({
             type="button"
             onClick={() => onChange(lang)}
             aria-pressed={active}
-            className="px-2.5 py-1 text-xs font-medium uppercase transition-colors"
-            style={{
-              fontFamily: 'var(--font-inter)',
-              background: active ? color : 'transparent',
-              color: active ? '#FFFFFF' : '#4B5563',
-            }}
+            className="relative z-10 h-6 w-9 text-[11px] font-medium uppercase tracking-[0.08em]"
+            style={{ fontFamily: 'var(--font-inter)', color: active ? '#FFFFFF' : '#4B5563', transition: 'color 0.25s' }}
           >
+            {active && (
+              <motion.span
+                layoutId="elegant-lang"
+                className="absolute inset-0 -z-10 rounded-full"
+                style={{ background: color }}
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
             {lang}
           </button>
         );
@@ -97,6 +127,7 @@ export default function ElegantLayout({ companySlug }: Props) {
     theme,
     bookingConfirmation,
     selectedService,
+    selectedServices,
     selectedDate,
     selectedTime,
     selectedEmployeeId,
@@ -141,7 +172,7 @@ export default function ElegantLayout({ companySlug }: Props) {
 
   // Sidebar step values (keys match store step numbers used in ElegantSidebar)
   const stepValues: Record<number, string | undefined> = {
-    1: selectedService?.naziv,
+    1: selectedServices.length > 0 ? selectedServices.map((sv) => sv.naziv).join(' + ') : selectedService?.naziv,
     3: anyPerson ? t(language, 'anyone') : selectedEmployee?.label,
     4: selectedDate
       ? selectedTime
@@ -156,12 +187,23 @@ export default function ElegantLayout({ companySlug }: Props) {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="relative min-h-screen flex"
       style={{
         background: `linear-gradient(180deg, ${theme.bgFrom}06 0%, #ffffff 15%, #ffffff 85%, ${theme.bgTo}04 100%)`,
         fontFamily: 'var(--font-inter)',
+        ['--el-accent' as string]: theme.primarySolid,
+        ['--el-accent-soft' as string]: `${theme.primarySolid}1F`,
       }}
     >
+      {/* Soft light in the company colour, drifting very slowly */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -right-[15%] -top-[20%] h-[60vh] w-[60vh] rounded-full"
+          style={{ background: `radial-gradient(closest-side, ${theme.primaryColor}1A, transparent)` }}
+          animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
       {/* ── Sidebar ────────────────────────────────────── */}
       <aside
         className="hidden md:flex flex-col border-r flex-shrink-0"
@@ -219,24 +261,21 @@ export default function ElegantLayout({ companySlug }: Props) {
 
             {/* Desktop: back button + step label */}
             <div className="hidden md:flex items-center gap-4">
-              {canGoBack && (
-                <motion.button
-                  onClick={prevStep}
-                  whileHover={{ x: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-600 transition-colors"
-                  style={{ fontFamily: 'var(--font-inter)' }}
-                >
-                  {t(language, 'back')}
-                </motion.button>
-              )}
+              {canGoBack && <BackButton onClick={prevStep} label={t(language, 'back')} color={theme.primarySolid} />}
               {!isSuccess && (
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: theme.primaryOnLight, fontFamily: 'var(--font-inter)' }}
-                >
-                  {t(language, STEP_LABEL_KEYS[currentStep as keyof typeof STEP_LABEL_KEYS] ?? 'stepService')}
-                </span>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={currentStep}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-sm italic"
+                    style={{ color: theme.primaryOnLight, fontFamily: 'var(--font-playfair)', fontSize: '0.95rem' }}
+                  >
+                    {t(language, STEP_LABEL_KEYS[currentStep as keyof typeof STEP_LABEL_KEYS] ?? 'stepService')}
+                  </motion.span>
+                </AnimatePresence>
               )}
             </div>
           </div>
@@ -248,11 +287,13 @@ export default function ElegantLayout({ companySlug }: Props) {
               {/* Mobile: pill dots */}
               <div className="flex items-center gap-1 md:hidden">
                 {Array.from({ length: totalSteps }, (_, i) => i + 1).map((v) => (
-                  <div
+                  <motion.div
                     key={v}
-                    className="rounded-full transition-all duration-300"
+                    className="rounded-full"
+                    initial={false}
+                    animate={{ width: v === visualStep ? 20 : 6 }}
+                    transition={{ duration: 0.45, ease: EASE }}
                     style={{
-                      width: v === visualStep ? 18 : 6,
                       height: 6,
                       background:
                         v === visualStep
@@ -284,16 +325,7 @@ export default function ElegantLayout({ companySlug }: Props) {
           <div className="flex gap-10 xl:gap-14">
           <div className="max-w-2xl flex-1 min-w-0">
             {/* Mobile: back button */}
-            {canGoBack && (
-              <motion.button
-                onClick={prevStep}
-                whileHover={{ x: -2 }}
-                className="md:hidden flex items-center gap-1.5 text-sm text-gray-500 mb-6"
-                style={{ fontFamily: 'var(--font-inter)' }}
-              >
-                {t(language, 'back')}
-              </motion.button>
-            )}
+            {canGoBack && <BackButton onClick={prevStep} label={t(language, 'back')} color={theme.primarySolid} className="mb-6 md:hidden" />}
 
             {/* Animated step content */}
             <AnimatePresence mode="wait">

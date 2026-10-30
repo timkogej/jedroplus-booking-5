@@ -4,7 +4,7 @@ import { Inter, Mountains_of_Christmas, Creepster } from 'next/font/google';
 import './styles/seasonal.css';
 
 const inter = Inter({
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   weight: ['400', '500', '600'],
   variable: '--font-inter',
   display: 'swap',
