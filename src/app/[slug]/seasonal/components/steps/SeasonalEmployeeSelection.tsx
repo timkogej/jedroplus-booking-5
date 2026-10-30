@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import SeasonalCard from '../SeasonalCard';
@@ -68,18 +69,24 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
 function EmployeeCard({ employee, onSelect }: { employee: EmployeeUI; onSelect: (id: string) => void }) {
   const { theme, selectedEmployeeId, anyPerson } = useBookingStore();
   const isSelected = !anyPerson && selectedEmployeeId === employee.id;
+  // Larger avatars only when someone has a photo; the same size for everyone.
+  const big = useBookingStore((s) => anyPhoto(s.employeesUI));
 
   return (
     <motion.div variants={itemVariants}>
       <SeasonalCard selected={isSelected} onClick={() => onSelect(employee.id)}>
         <div className="flex items-center gap-4">
           <div className="relative flex-shrink-0">
-            <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base"
-              style={{ backgroundColor: theme.primarySolid, fontFamily: 'var(--font-quicksand)' }}
-            >
-              {employee.initials}
-            </div>
+            <Photo
+              src={employee.slika_url}
+              className={big ? 'w-14 h-14 rounded-full' : 'w-12 h-12 rounded-full'}
+              style={{ backgroundColor: theme.primarySolid, boxShadow: employee.slika_url ? `0 0 0 2px #fff, 0 0 0 3.5px ${theme.primarySolid}55` : undefined }}
+              fallback={
+                <span className="text-white font-bold text-base" style={{ fontFamily: 'var(--font-quicksand)' }}>
+                  {employee.initials}
+                </span>
+              }
+            />
             <AnimatePresence>
               {isSelected && (
                 <motion.div

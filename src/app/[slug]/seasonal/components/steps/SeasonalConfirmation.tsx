@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Photo from '@/components/shared/Photo';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
@@ -349,10 +350,10 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     }
   };
 
-  const rows = [
-    { label: t.service, value: selectedService?.naziv },
+  const rows: { label: string; value?: string | null; photo?: string | null; round?: boolean }[] = [
+    { label: t.service, value: selectedService?.naziv, photo: selectedService?.slika_url },
     { label: t.duration, value: selectedService ? formatDuration(selectedService.trajanjeMin) : undefined },
-    { label: t.expert, value: showEmployee ? (anyPerson ? t.anyone : selectedEmployee?.label) : undefined },
+    { label: t.expert, value: showEmployee ? (anyPerson ? t.anyone : selectedEmployee?.label) : undefined, photo: showEmployee && !anyPerson ? selectedEmployee?.slika_url : null, round: true },
     { label: t.date, value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined },
     { label: t.time, value: selectedTime },
     { label: t.name, value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
@@ -390,7 +391,15 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
           {rows.map((row, i) => (
             <div key={i} className="seasonal-summary-row">
               <span className="seasonal-summary-label">{row.label}</span>
-              <span className={`seasonal-summary-value ${String(row.value).includes('@') ? '' : 'first-cap'}`} style={{ maxWidth: '65%' }}>
+              <span
+                className={`seasonal-summary-value ${
+                  row.photo ? 'inline-flex items-center justify-end gap-2' : String(row.value).includes('@') ? '' : 'first-cap'
+                }`}
+                style={{ maxWidth: '65%' }}
+              >
+                {row.photo && (
+                  <Photo src={row.photo} eager className={`h-8 w-8 flex-shrink-0 ${row.round ? 'rounded-full' : 'rounded-lg'}`} />
+                )}
                 {row.value}
               </span>
             </div>

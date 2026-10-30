@@ -8,6 +8,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import type { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { t } from '../../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import {
@@ -33,11 +34,14 @@ function ServiceRow({
   isMultiMode,
   isSelected,
   onSelect,
+  withThumb,
 }: {
   service: Service;
   isMultiMode: boolean;
   isSelected: boolean;
   onSelect: () => void;
+  /** Some service has a photo: every row gets the thumbnail slot. */
+  withThumb: boolean;
 }) {
   const { theme } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
@@ -52,12 +56,30 @@ function ServiceRow({
       transition={SPRING}
       className="classic-row group flex w-full items-center gap-3.5 px-4 py-4 text-left sm:px-5"
       style={{
-        ['--row-inset' as string]: isMultiMode ? '54px' : '16px',
+        ['--row-inset' as string]: `${(isMultiMode ? 54 : 16) + (withThumb ? 70 : 0)}px`,
         background: isSelected ? `${theme.primarySolid}0A` : 'transparent',
         transition: 'background 0.2s',
       }}
     >
       {isMultiMode && <CheckCircle on={isSelected} color={theme.primarySolid} />}
+
+      {withThumb && (
+        <Photo
+          src={service.slika_url}
+          className="h-14 w-14 flex-shrink-0 rounded-[12px]"
+          style={{
+            background: `${theme.primarySolid}12`,
+            boxShadow: isSelected ? `0 0 0 2px #fff, 0 0 0 4px ${theme.primarySolid}` : 'inset 0 0 0 0.5px rgba(0,0,0,0.08)',
+            transition: 'box-shadow 0.25s',
+          }}
+          imgClassName="transition-transform duration-500 group-hover:scale-[1.05]"
+          fallback={
+            <span className="text-[22px] font-semibold" style={{ fontFamily: FONT, color: theme.primaryOnLight }} aria-hidden="true">
+              {service.naziv.trim().charAt(0).toUpperCase()}
+            </span>
+          }
+        />
+      )}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -222,6 +244,7 @@ export default function ClassicServiceSelection() {
 
   const isServiceSelected = (serviceId: string) =>
     selectedServices.some((s) => s.id === serviceId);
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
 
   const canAddMore =
     multipleServicesAllowed && selectedServices.length < 3;
@@ -361,6 +384,7 @@ export default function ClassicServiceSelection() {
                     isMultiMode={isAddMoreMode}
                     isSelected={isServiceSelected(service.id)}
                     onSelect={() => handleServiceClick(category, service)}
+                    withThumb={withThumbs}
                   />
                 ))}
               </div>

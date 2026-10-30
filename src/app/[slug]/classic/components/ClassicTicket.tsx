@@ -10,6 +10,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { formatBookingPrice, getBookingPricing, resolvePrimaryPromotion } from '@/lib/pricing';
 import { t } from '../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import { Avatar, CARD, EASE, FONT, INK, INK_2, INK_3, dateLocale, formatDuration, longDatePattern } from './ui';
 
 function addMinutes(time: string, minutes: number): string {
@@ -53,6 +54,7 @@ export default function ClassicTicket({
   const time = selectedTime ?? timeText ?? '';
   const end = time && totalDuration > 0 ? addMinutes(time, totalDuration) : '';
   const employee = employeesUI.find((e) => e.id === selectedEmployeeId);
+  const thumbs = anyPhoto(services);
   const personShown = showEmployee && (anyPerson || !!employee);
 
   const stagger = (i: number) => ({
@@ -132,7 +134,7 @@ export default function ClassicTicket({
                     </svg>
                   </span>
                 ) : (
-                  <Avatar initials={employee?.initials ?? ''} color={accent} size={28} />
+                  <Avatar initials={employee?.initials ?? ''} photo={employee?.slika_url} color={accent} size={28} />
                 )}
                 <span className="text-[15px] font-medium" style={{ fontFamily: FONT, color: INK }}>
                   {anyPerson ? t(language, 'anyone') : employee?.label}
@@ -166,9 +168,18 @@ export default function ClassicTicket({
             const isPrimary = i === 0;
             const discounted = isPrimary && pricing.promotion && pricing.primaryFinalPrice < pricing.primaryOriginalPrice;
             return (
-              <motion.div key={s.id} {...stagger(3 + i)} className="flex items-baseline justify-between gap-4">
-                <span className="text-[16px]" style={{ fontFamily: FONT, color: INK }}>
-                  {s.naziv}
+              <motion.div key={s.id} {...stagger(3 + i)} className={`flex justify-between gap-4 ${thumbs ? 'items-center' : 'items-baseline'}`}>
+                <span className="flex min-w-0 items-center gap-3 text-[16px]" style={{ fontFamily: FONT, color: INK }}>
+                  {thumbs && (
+                    <Photo
+                      src={s.slika_url}
+                      eager
+                      className="h-10 w-10 flex-shrink-0 rounded-[10px]"
+                      style={{ background: `${accent}14` }}
+                      fallback={<span className="text-[16px] font-semibold" style={{ color: accent }}>{s.naziv.trim().charAt(0).toUpperCase()}</span>}
+                    />
+                  )}
+                  <span>{s.naziv}</span>
                 </span>
                 <span className="flex-shrink-0 text-[16px] tabular-nums" style={{ fontFamily: FONT, color: INK }}>
                   {discounted && (

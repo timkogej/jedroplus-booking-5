@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Photo from '@/components/shared/Photo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
@@ -153,11 +154,14 @@ function SuccessView() {
         <div className="h-[1px] bg-black/10 mb-6" />
         <div className="space-y-4">
           {showEmployee && (selectedEmployee || anyPerson) && (
-            <div className="flex justify-between items-baseline">
+            <div className="flex justify-between items-center">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'specialist')}
               </p>
-              <p className="magazine-body text-[14px] text-[#1A1A1A]">
+              <p className="magazine-body flex items-center gap-2 text-[14px] text-[#1A1A1A]">
+                {selectedEmployee?.slika_url && (
+                  <Photo src={selectedEmployee.slika_url} eager className="h-7 w-7 rounded-full" />
+                )}
                 {selectedEmployee ? selectedEmployee.label : t(language, 'anyoneLabel')}
               </p>
             </div>
@@ -375,16 +379,20 @@ export default function MagazineConfirmation({ companySlug }: Props) {
 
         {showEmployee && (selectedEmployee || anyPerson) && (
           <div className="flex items-start gap-4 py-5 border-b border-black/08">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 magazine-serif text-[11px]"
+            <Photo
+              src={selectedEmployee?.slika_url}
+              eager
+              className="w-10 h-10 rounded-full flex-shrink-0"
               style={{
                 border: `1px solid ${theme.primaryColor}30`,
-                color: theme.primarySolid,
                 backgroundColor: `${theme.primaryColor}08`,
               }}
-            >
-              {selectedEmployee?.initials || '·'}
-            </div>
+              fallback={
+                <span className="magazine-serif text-[11px]" style={{ color: theme.primarySolid }}>
+                  {selectedEmployee?.initials || '·'}
+                </span>
+              }
+            />
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'specialist')}
@@ -403,15 +411,19 @@ export default function MagazineConfirmation({ companySlug }: Props) {
 
         {selectedService && (
           <div className="flex items-start gap-4 py-5 border-b border-black/08">
-            <div
-              className="w-8 h-8 flex items-center justify-center flex-shrink-0"
-              style={{ color: `${theme.primaryColor}60` }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1" />
-                <path d="M7 4V7.5L9.5 9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
-              </svg>
-            </div>
+            {selectedService.slika_url ? (
+              <Photo src={selectedService.slika_url} eager className="w-10 h-10 flex-shrink-0" style={{ backgroundColor: `${theme.primaryColor}08` }} />
+            ) : (
+              <div
+                className="w-10 h-8 flex items-center justify-center flex-shrink-0"
+                style={{ color: `${theme.primaryColor}60` }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1" />
+                  <path d="M7 4V7.5L9.5 9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                </svg>
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'service')}
@@ -434,7 +446,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         {selectedDate && selectedTime && (
           <div className="flex items-start gap-4 py-5 border-b border-black/08">
             <div
-              className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-[11px] magazine-serif tabular-nums"
+              className="w-10 h-8 flex items-center justify-center flex-shrink-0 text-[11px] magazine-serif tabular-nums"
               style={{ color: `${theme.primaryColor}60` }}
             >
               {format(selectedDate, 'd')}
@@ -459,7 +471,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         {customerDetails && (
           <div className="flex items-start gap-4 py-5 border-b border-black/08">
             <div
-              className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+              className="w-10 h-8 flex items-center justify-center flex-shrink-0"
               style={{ color: `${theme.primaryColor}60` }}
             >
               <svg width="12" height="14" viewBox="0 0 12 14" fill="none">

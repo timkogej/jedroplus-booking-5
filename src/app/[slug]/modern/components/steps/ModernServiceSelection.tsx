@@ -9,6 +9,7 @@ import { Category, Service } from '@/types';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { PromotionBadge } from '@/components/shared/PromotionBadge';
 import { t } from '../../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 import RequestUnsureCard from '@/components/shared/request/RequestUnsureCard';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import ModernButton from '../ModernButton';
@@ -64,12 +65,15 @@ function ServiceRow({
   isMultiMode,
   isSelected,
   onSelect,
+  withThumb,
 }: {
   service: Service;
   isFirst: boolean;
   isMultiMode: boolean;
   isSelected: boolean;
   onSelect: () => void;
+  /** Some service has a photo: every row gets the thumbnail slot. */
+  withThumb: boolean;
 }) {
   const { theme } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
@@ -100,6 +104,30 @@ function ServiceRow({
       )}
 
       {isMultiMode && <CheckDot on={isSelected} />}
+
+      {withThumb && (
+        <Photo
+          src={service.slika_url}
+          className="h-14 w-14 flex-shrink-0 rounded-[14px] sm:h-[72px] sm:w-[72px] sm:rounded-[16px]"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            boxShadow: isSelected
+              ? '0 0 0 2px var(--brand-glow), 0 10px 24px -12px var(--brand-a)'
+              : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+            transition: 'box-shadow 0.3s',
+          }}
+          imgClassName="transition-transform duration-500 group-hover:scale-[1.06]"
+          fallback={
+            <span
+              className="text-[24px] font-bold"
+              style={{ fontFamily: FONT, background: 'var(--brand-grad)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}
+              aria-hidden="true"
+            >
+              {service.naziv.trim().charAt(0).toUpperCase()}
+            </span>
+          }
+        />
+      )}
 
       <div className="relative min-w-0 flex-1">
         <h3 className="text-[16px] font-bold leading-snug sm:text-[17px]" style={{ fontFamily: FONT, color: 'var(--t-primary)', letterSpacing: '-0.015em' }}>
@@ -213,6 +241,7 @@ export default function ModernServiceSelection() {
   };
 
   const isServiceSelected = (serviceId: string) => selectedServices.some((s) => s.id === serviceId);
+  const withThumbs = anyPhoto(Object.values(servicesByCategory ?? {}).flat());
   const canAddMore = multipleServicesAllowed && selectedServices.length < 3;
   const canContinue = selectedServices.length > 0 && !noEmployeeForCombination;
 
@@ -332,6 +361,7 @@ export default function ModernServiceSelection() {
                     isMultiMode={isAddMoreMode}
                     isSelected={isServiceSelected(service.id)}
                     onSelect={() => handleServiceClick(category, service)}
+                    withThumb={withThumbs}
                   />
                 ))}
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { anyPhoto } from '@/components/shared/Photo';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import type { EmployeeUI } from '@/types';
@@ -48,6 +49,8 @@ function SpecialistCard({
   const isSelected = selectedEmployeeId === employee.id;
   const suit = SUITS[index % SUITS.length];
   const on = highlighted || isSelected;
+  // Larger avatars only when someone has a photo; the same size for everyone.
+  const big = useBookingStore((s) => anyPhoto(s.employeesUI));
 
   return (
     <motion.div variants={dealVariants}>
@@ -75,7 +78,7 @@ function SpecialistCard({
 
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-3">
         <motion.div animate={{ rotate: on ? 360 : 0 }} transition={{ duration: 0.8, ease: EASE }}>
-          <Chip size={58} on={isSelected && !highlighted}>
+          <Chip size={big ? 76 : 58} on={isSelected && !highlighted} photo={employee.slika_url}>
             {employee.initials}
           </Chip>
         </motion.div>

@@ -10,6 +10,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import { formatBookingPrice, getBookingPricing, resolvePrimaryPromotion } from '@/lib/pricing';
 import { dateLocale, t } from '../i18n';
+import Photo, { anyPhoto } from '@/components/shared/Photo';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -62,6 +63,8 @@ export default function ElegantTicket({ sealed, dateText, timeText }: { sealed?:
   const end = time && duration > 0 ? addMinutes(time, duration) : '';
   const employee = employeesUI.find((e) => e.id === selectedEmployeeId);
   const person = showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : employee?.label) : undefined;
+  const personPhoto = showEmployee && !anyPerson ? employee?.slika_url : null;
+  const thumbs = anyPhoto(services);
 
   const rise = (i: number) => ({
     initial: { opacity: 0, y: 8 },
@@ -70,7 +73,7 @@ export default function ElegantTicket({ sealed, dateText, timeText }: { sealed?:
   });
 
   const line = (name: React.ReactNode, price: React.ReactNode, i: number, key: string) => (
-    <motion.div key={key} {...rise(i)} className="flex items-baseline gap-2">
+    <motion.div key={key} {...rise(i)} className={`flex gap-2 ${thumbs ? 'items-center' : 'items-baseline'}`}>
       <span className="text-[15px]" style={{ fontFamily: 'var(--font-inter)', color: '#1F2937' }}>
         {name}
       </span>
@@ -129,8 +132,16 @@ export default function ElegantTicket({ sealed, dateText, timeText }: { sealed?:
             {end && <span style={{ color: '#A39C8F' }}> – {end}</span>}
           </motion.p>
           {(person || duration > 0) && (
-            <motion.p {...rise(5)} className="mt-2 text-[14px]" style={{ fontFamily: 'var(--font-inter)', color: '#6B7280' }}>
-              {[person, duration > 0 ? formatDuration(duration) : null].filter(Boolean).join('  ·  ')}
+            <motion.p {...rise(5)} className="mt-2 flex items-center justify-center gap-2 text-[14px]" style={{ fontFamily: 'var(--font-inter)', color: '#6B7280' }}>
+              {personPhoto && (
+                <Photo
+                  src={personPhoto}
+                  eager
+                  className="h-8 w-8 flex-shrink-0 rounded-full"
+                  style={{ boxShadow: `0 0 0 1.5px #fff, 0 0 0 2.5px ${gold}88` }}
+                />
+              )}
+              <span>{[person, duration > 0 ? formatDuration(duration) : null].filter(Boolean).join('  ·  ')}</span>
             </motion.p>
           )}
         </div>
@@ -144,7 +155,24 @@ export default function ElegantTicket({ sealed, dateText, timeText }: { sealed?:
           {services.map((s, i) => {
             const discounted = i === 0 && pricing.promotion && pricing.primaryFinalPrice < pricing.primaryOriginalPrice;
             return line(
-              s.naziv,
+              thumbs ? (
+                <span className="flex items-center gap-3">
+                  <Photo
+                    src={s.slika_url}
+                    eager
+                    className="h-10 w-10 flex-shrink-0 rounded-lg"
+                    style={{ background: '#F7F3EC', boxShadow: 'inset 0 0 0 1px #EDE6D8' }}
+                    fallback={
+                      <span style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: gold, fontSize: '1.1rem' }}>
+                        {s.naziv.trim().charAt(0).toUpperCase()}
+                      </span>
+                    }
+                  />
+                  <span>{s.naziv}</span>
+                </span>
+              ) : (
+                s.naziv
+              ),
               <>
                 {discounted && (
                   <span className="mr-2 text-[13px] line-through" style={{ color: '#A39C8F' }}>
