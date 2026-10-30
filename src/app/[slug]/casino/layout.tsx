@@ -1,15 +1,8 @@
 import { redirect } from 'next/navigation';
 import { proDesignsAllowed } from '@/lib/plan.server';
-import { Inter, Oswald, Playfair_Display } from 'next/font/google';
+import { Inter, Oswald } from 'next/font/google';
+import '@/styles/playfair.css';
 import './styles/casino.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '600', '700', '800', '900'],
-  style: ['normal', 'italic'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
 
 const oswald = Oswald({
   subsets: ['latin', 'latin-ext'],
@@ -41,7 +34,7 @@ export default async function CasinoRootLayout({
   }
 
   return (
-    <div className={`${playfair.variable} ${oswald.variable} ${inter.variable} casino-root`}>
+    <div className={`${oswald.variable} ${inter.variable} casino-root`}>
       {children}
     </div>
   );

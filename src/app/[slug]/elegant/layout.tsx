@@ -1,13 +1,6 @@
-import { Playfair_Display, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
+import '@/styles/playfair.css';
 import './styles/elegant.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
 
 const inter = Inter({
   subsets: ['latin', 'latin-ext'],
@@ -22,7 +15,7 @@ export default function ElegantRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${playfair.variable} ${inter.variable} elegant-root`}>
+    <div className={`${inter.variable} elegant-root`}>
       {children}
     </div>
   );

@@ -1,15 +1,8 @@
 import { redirect } from 'next/navigation';
 import { proDesignsAllowed } from '@/lib/plan.server';
-import { Playfair_Display, Source_Serif_4 } from 'next/font/google';
+import { Source_Serif_4 } from 'next/font/google';
+import '@/styles/playfair.css';
 import './styles/magazine.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
 
 const sourceSerif = Source_Serif_4({
   subsets: ['latin', 'latin-ext'],
@@ -34,7 +27,7 @@ export default async function MagazineRootLayout({
   }
 
   return (
-    <div className={`${playfair.variable} ${sourceSerif.variable}`}>
+    <div className={`${sourceSerif.variable}`}>
       {children}
     </div>
   );
