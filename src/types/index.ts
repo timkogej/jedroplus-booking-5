@@ -165,6 +165,24 @@ export interface Company {
    * and the salon picks the time in Jedro+ ("Zahteve za termin").
    */
   booking_mode?: 'instant' | 'request';
+  /** The salon's questions before the appointment ("Podatki podjetij".vprasalnik). */
+  vprasalnik?: BookingQuestion[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BookingQuestion — one question of the salon's questionnaire
+// ─────────────────────────────────────────────────────────────────────────────
+export interface BookingQuestion {
+  id: string;
+  vprasanje: string;
+  vprasanje_en?: string | null;
+  /** 'besedilo' = free text, 'da_ne' = yes/no (+ optional detail), 'izbira' = one option */
+  tip: 'besedilo' | 'da_ne' | 'izbira';
+  moznosti?: string[];
+  moznosti_en?: (string | null)[];
+  obvezno: boolean;
+  /** Service ids it applies to; empty = every service. */
+  storitve: string[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

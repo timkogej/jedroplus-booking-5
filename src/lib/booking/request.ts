@@ -14,6 +14,7 @@ import { create } from 'zustand';
 import { API_BASE_URL } from '@/lib/api';
 import { BookingSubmitError, getSelectedServices } from '@/lib/booking/submit';
 import { useBookingStore } from '@/store/bookingStore';
+import { questionnaireAnswersPayload } from '@/lib/booking/questionnaire';
 
 export type RequestPreset = 'asap' | 'thisWeek' | 'nextWeek' | 'custom';
 /** Values stored by n8n in zeljeni_del_dneva (Jedro+ reads them). */
@@ -160,6 +161,7 @@ export function buildRequestBody(companySlug: string): Record<string, unknown> {
     telefon: details.phone,
     spol: details.gender || null,
     opisZelje: req.description.trim(),
+    vprasalnikOdgovori: questionnaireAnswersPayload(),
     zeljeniDatumOd: format(req.dateFrom, 'yyyy-MM-dd'),
     zeljeniDatumDo: format(req.dateTo, 'yyyy-MM-dd'),
     zeljeniDelDneva: req.partOfDay,

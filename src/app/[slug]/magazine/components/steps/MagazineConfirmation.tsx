@@ -19,6 +19,8 @@ import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { magazineLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug?: string;
@@ -529,6 +531,8 @@ export default function MagazineConfirmation({ companySlug }: Props) {
           </div>
         )}
       </div>
+
+      <QuestionnaireSummary look={magazineLook(theme)} className="mb-8" />
 
       {/* CTA */}
       <motion.button

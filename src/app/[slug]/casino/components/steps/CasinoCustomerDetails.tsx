@@ -32,6 +32,9 @@ import {
   listVariants,
   shortDate,
 } from '../ui';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { casinoLook } from '@/components/shared/request/looks';
 
 interface FormErrors {
   firstName?: string;
@@ -203,7 +206,7 @@ export default function CasinoCustomerDetails() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const formData = {
       ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
@@ -306,6 +309,8 @@ export default function CasinoCustomerDetails() {
           style={{ display: 'none' }}
           autoComplete="off"
         />
+
+        <QuestionnaireFields look={casinoLook(theme)} className="mt-7" />
 
         <div className="my-6 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
 

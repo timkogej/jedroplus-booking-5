@@ -13,6 +13,8 @@ import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import ElegantTicket from '../ElegantTicket';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { elegantLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug?: string;
@@ -373,6 +375,8 @@ export default function ElegantConfirmation({ companySlug }: Props) {
           </div>
         </motion.div>
       )}
+
+      <QuestionnaireSummary look={elegantLook(theme)} className="mb-6" />
 
       <AnimatePresence>
         {error && (
