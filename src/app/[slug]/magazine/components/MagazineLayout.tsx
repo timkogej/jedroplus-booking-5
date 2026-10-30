@@ -20,17 +20,15 @@ interface MagazineLayoutProps {
 }
 
 const pageVariants: Variants = {
-  initial: { opacity: 0, y: 36, filter: 'blur(4px)' },
+  initial: { opacity: 0, y: 24 },
   animate: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
     transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
   },
   exit: {
     opacity: 0,
     y: -18,
-    filter: 'blur(2px)',
     transition: { duration: 0.28 },
   },
 };
@@ -113,7 +111,7 @@ function EditorialPanel() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="magazine-caps text-[9px] tracking-[0.28em]"
+            className="magazine-caps text-[11px] tracking-[0.28em]"
             style={{ color: theme.primarySolid }}
           >
             {panel.eyebrow}
@@ -171,7 +169,7 @@ function EditorialPanel() {
               {panel.accent}
             </motion.span>
           </AnimatePresence>
-          <span className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
+          <span className="magazine-caps text-[11px] tracking-[0.22em] text-[#757575]">
             {steps[currentIdx]?.num} / {total}
           </span>
         </div>
@@ -239,12 +237,12 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="flex items-center gap-1.5 mb-8 group"
-                style={{ color: 'rgba(0,0,0,0.28)' }}
+                className="flex items-center gap-1.5 mb-6 py-2 -ml-1 pr-3 group"
+                style={{ color: '#6B6B6B' }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = '#1A1A1A')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(0,0,0,0.28)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#6B6B6B')}
               >
-                <span className="magazine-caps text-[9px] tracking-[0.22em] transition-colors duration-200">
+                <span className="magazine-caps text-[11px] tracking-[0.22em] transition-colors duration-200">
                   {t(language, 'back')}
                 </span>
               </motion.button>
@@ -268,10 +266,10 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
       {/* Footer */}
       <footer className="border-t border-black/10 px-8 py-4 md:px-12">
         <div className="flex items-center justify-between">
-          <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
+          <p className="magazine-caps text-[11px] tracking-[0.22em] text-[#757575]">
             © {new Date().getFullYear()} · Jedro+
           </p>
-          <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#757575]">
+          <p className="magazine-caps text-[11px] tracking-[0.22em] text-[#757575]">
             {t(language, 'onlineBooking')}
           </p>
         </div>

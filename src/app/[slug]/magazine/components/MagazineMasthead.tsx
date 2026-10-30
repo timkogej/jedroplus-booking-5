@@ -17,7 +17,7 @@ export default function MagazineMasthead() {
           >
             <CompanyLogo name={company?.naziv || 'Rezervacije'} logoUrl={company?.logo_url} maxHeight={44} />
           </h1>
-          <p className="magazine-caps text-[9px] tracking-[0.28em] text-[#6B6B6B] mt-2">
+          <p className="magazine-caps text-[11px] tracking-[0.28em] text-[#6B6B6B] mt-2">
             {company?.panoga ? `${company.panoga} · ` : ''}
             {new Date().getFullYear()}
           </p>
@@ -26,7 +26,7 @@ export default function MagazineMasthead() {
         {/* Right side: booking label + language toggle */}
         <div className="flex flex-col items-end gap-2">
           <div className="hidden md:flex items-center gap-2">
-            <span className="magazine-caps text-[9px] tracking-[0.22em] text-[#6B6B6B]">
+            <span className="magazine-caps text-[11px] tracking-[0.22em] text-[#6B6B6B]">
               {t(language, 'onlineBooking')}
             </span>
             <div
@@ -39,7 +39,7 @@ export default function MagazineMasthead() {
           <div className="flex items-center gap-0">
             <button
               onClick={() => setLanguage('sl')}
-              className="magazine-caps text-[9px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
+              className="magazine-caps text-[11px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
               style={{
                 color: language === 'sl' ? theme.primarySolid : '#757575',
                 borderBottom: language === 'sl' ? `1px solid ${theme.primarySolid}` : '1px solid transparent',
@@ -48,10 +48,10 @@ export default function MagazineMasthead() {
             >
               SL
             </button>
-            <span className="magazine-caps text-[8px] text-black/15 px-0.5">/</span>
+            <span className="magazine-caps text-[10px] text-black/15 px-0.5">/</span>
             <button
               onClick={() => setLanguage('en')}
-              className="magazine-caps text-[9px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
+              className="magazine-caps text-[11px] tracking-[0.18em] px-2 py-1 transition-colors duration-200"
               style={{
                 color: language === 'en' ? theme.primarySolid : '#757575',
                 borderBottom: language === 'en' ? `1px solid ${theme.primarySolid}` : '1px solid transparent',

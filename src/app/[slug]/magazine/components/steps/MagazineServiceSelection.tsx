@@ -37,7 +37,7 @@ function ServiceCard({
   /** Some service has a photo: every card gets the photo column. */
   withThumb: boolean;
 }) {
-  const { selectedService, selectCategoryAndService, theme } = useBookingStore();
+  const { selectedService, selectCategoryAndService, theme, language } = useBookingStore();
   const { serviceDiscounts } = usePromotionsStore();
   const isSelected = selectedService?.id === service.id;
   const promo = serviceDiscounts[String(service.id)];
@@ -49,7 +49,15 @@ function ServiceCard({
         selectCategoryAndService(category, service, true);
         usePromotionsStore.getState().computeActivePromotion(String(service.id));
       }}
-      className="group cursor-pointer relative"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      className="group cursor-pointer relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.25 }}
     >
@@ -90,7 +98,7 @@ function ServiceCard({
             {service.opis && (
               <p className="text-[#6B6B6B] text-[13px] leading-relaxed mb-2">{service.opis}</p>
             )}
-            <p className="magazine-caps text-[9px] tracking-[0.18em] text-[#6B6B6B]">
+            <p className="magazine-caps text-[11px] tracking-[0.18em] text-[#6B6B6B]">
               {formatDuration(service.trajanjeMin)}
             </p>
           </div>
@@ -112,10 +120,10 @@ function ServiceCard({
               </AnimatePresence>
             ) : (
               <span
-                className="magazine-serif text-[1.4rem] leading-none font-light tabular-nums transition-colors duration-300"
+                className="magazine-serif text-[1.4rem] leading-none font-light mag-lining transition-colors duration-300"
                 style={{ color: isSelected ? theme.primarySolid : '#1A1A1A' }}
               >
-                {servicePriceLabel(service.cena, formatBookingPrice) ?? 'Po dogovoru'}
+                {servicePriceLabel(service.cena, formatBookingPrice) ?? t(language, 'priceOnRequest')}
               </span>
             )}
           </div>
@@ -170,7 +178,7 @@ export default function MagazineServiceSelection() {
               {/* Category heading */}
               <div className="flex items-baseline gap-3 mb-4 pb-3 border-b" style={{ borderColor: 'rgba(0,0,0,0.08)' }}>
                 <span
-                  className="magazine-caps text-[9px] tracking-[0.2em] tabular-nums"
+                  className="magazine-caps text-[11px] tracking-[0.2em] tabular-nums"
                   style={{ color: theme.primarySolid }}
                 >
                   {paddedIndex}

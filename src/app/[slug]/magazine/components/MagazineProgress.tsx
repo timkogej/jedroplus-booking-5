@@ -50,7 +50,7 @@ export default function MagazineProgress() {
             <div key={i} className="flex items-center">
               <div className="flex flex-col items-center gap-1 px-3 first:pl-0 last:pr-0">
                 <span
-                  className="magazine-caps text-[9px] tracking-[0.18em] transition-all duration-500"
+                  className="magazine-caps text-[11px] tracking-[0.18em] transition-all duration-500"
                   style={{
                     color: isActive
                       ? theme.primarySolid
@@ -85,7 +85,7 @@ export default function MagazineProgress() {
         {/* Vertical label on far right */}
         <div className="ml-auto pl-6 border-l border-black/10">
           <p
-            className="magazine-caps text-[9px] tracking-[0.22em]"
+            className="magazine-caps text-[11px] tracking-[0.22em]"
             style={{ color: theme.primarySolid }}
           >
             {t(language, 'chapter')} {STEPS[safeIdx]?.num} / {String(STEPS.length).padStart(2, '0')}
@@ -97,7 +97,7 @@ export default function MagazineProgress() {
       <div className="flex md:hidden items-center justify-between">
         <div>
           <p
-            className="magazine-caps text-[9px] tracking-[0.22em] mb-1"
+            className="magazine-caps text-[11px] tracking-[0.22em] mb-1"
             style={{ color: theme.primarySolid }}
           >
             {t(language, 'chapter')} {STEPS[safeIdx]?.num} / {String(STEPS.length).padStart(2, '0')}

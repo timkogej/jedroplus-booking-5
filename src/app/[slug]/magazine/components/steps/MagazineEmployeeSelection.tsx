@@ -34,7 +34,15 @@ export default function MagazineEmployeeSelection() {
           key="any"
           variants={itemVariants}
           onClick={() => selectEmployee(null, true)}
-          className="group cursor-pointer mb-3"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              (e.currentTarget as HTMLElement).click();
+            }
+          }}
+          className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 group cursor-pointer mb-3"
         >
           <div
             className="relative overflow-hidden p-6 border transition-all duration-400"
@@ -58,7 +66,7 @@ export default function MagazineEmployeeSelection() {
             <div className="flex items-center justify-between">
               <div className="relative z-10">
                 <p
-                  className="magazine-caps text-[9px] tracking-[0.22em] mb-2"
+                  className="magazine-caps text-[11px] tracking-[0.22em] mb-2"
                   style={{ color: isSelected ? theme.primarySolid : '#6B6B6B' }}
                 >
                   {t(language, 'anyoneRecommend')}
@@ -113,7 +121,15 @@ export default function MagazineEmployeeSelection() {
         key={employee!.id}
         variants={itemVariants}
         onClick={() => selectEmployee(employee!.id, false)}
-        className="group cursor-pointer relative"
+        role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              (e.currentTarget as HTMLElement).click();
+            }
+          }}
+          className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 group cursor-pointer relative"
         whileHover={{ y: -2 }}
         transition={{ duration: 0.25 }}
       >
@@ -163,7 +179,7 @@ export default function MagazineEmployeeSelection() {
             >
               {employee!.label}
             </h3>
-            <p className="magazine-caps text-[9px] tracking-[0.18em] mt-1 text-[#6B6B6B]">
+            <p className="magazine-caps text-[11px] tracking-[0.18em] mt-1 text-[#6B6B6B]">
               {employee!.subtitle}
             </p>
           </div>
@@ -221,7 +237,7 @@ export default function MagazineEmployeeSelection() {
           {/* Divider */}
           <motion.div variants={itemVariants} className="my-6 flex items-center gap-4">
             <div className="flex-1 h-[1px] bg-black/08" />
-            <span className="magazine-caps text-[9px] tracking-[0.2em] text-[#757575]">
+            <span className="magazine-caps text-[11px] tracking-[0.2em] text-[#757575]">
               {t(language, 'or')}
             </span>
             <div className="flex-1 h-[1px] bg-black/08" />
