@@ -10,36 +10,19 @@ import type { ServicePromotion } from '@/lib/promotionsApi';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import CasinoLayout from './components/CasinoLayout';
 
-// ── Minimal white loading screen (same pattern as other variants) ─────────────
+// ── Loading: a chip spinning on the dark table ────────────────────────────────
+// Same dark colour as the page, so there is no white flash before it.
 function CasinoLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.35 }}
-        className="flex flex-col items-center gap-5"
-      >
-        <div className="flex items-center gap-2">
-          {[0, 1, 2].map((i) => (
-            <motion.span
-              key={i}
-              className="block w-2 h-2 rounded-full"
-              style={{ backgroundColor: '#D1D5DB' }}
-              animate={{ opacity: [0.3, 1, 0.3] }}
-              transition={{
-                duration: 1.1,
-                repeat: Infinity,
-                delay: i * 0.18,
-                ease: 'easeInOut' as const,
-              }}
-            />
-          ))}
-        </div>
-        <p
-          className="text-xs tracking-widest uppercase"
-          style={{ color: '#9CA3AF', letterSpacing: '0.12em' }}
-        >
+    <div className="flex min-h-screen flex-col items-center justify-center" style={{ background: '#09090c' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }} className="flex flex-col items-center gap-5">
+        <motion.span
+          className="block h-10 w-10 rounded-full"
+          style={{ border: '3px dashed rgba(246,243,238,0.35)', boxShadow: 'inset 0 0 0 6px rgba(255,255,255,0.04)' }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+        />
+        <p className="text-[11px] uppercase" style={{ color: 'rgba(246,243,238,0.4)', letterSpacing: '0.3em', fontFamily: 'var(--font-oswald)' }}>
           Nalaganje
         </p>
       </motion.div>
@@ -47,50 +30,25 @@ function CasinoLoadingScreen() {
   );
 }
 
-function MonteCarloErrorScreen({ error }: { error: string }) {
+function CasinoErrorScreen({ error }: { error: string }) {
   return (
-    <div className="min-h-screen mc-bg flex items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center max-w-sm"
-      >
-        <div
-          className="w-16 h-16 mx-auto mb-8 rounded-full flex items-center justify-center"
-          style={{
-            background: 'rgba(13, 59, 30, 0.8)',
-            border: '1px solid rgba(201, 168, 76, 0.3)',
-          }}
-        >
-          <span style={{ color: '#c9a84c', fontSize: '1.5rem', fontFamily: 'Georgia, serif' }}>◆</span>
+    <div className="flex min-h-screen items-center justify-center px-6" style={{ background: '#09090c' }}>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-sm text-center">
+        <div className="mx-auto mb-7 flex h-16 w-16 items-center justify-center rounded-full" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.15)' }}>
+          <span style={{ color: 'rgba(246,243,238,0.6)', fontSize: '1.4rem', fontFamily: 'Georgia, serif' }}>◆</span>
         </div>
-
-        <h1
-          className="text-2xl font-bold tracking-[0.1em] italic mb-3"
-          style={{ fontFamily: 'var(--font-playfair)', color: '#f5edd6' }}
-        >
-          Table Unavailable
+        <h1 className="mb-3 text-[26px] font-bold" style={{ fontFamily: 'var(--font-playfair)', color: '#F6F3EE' }}>
+          Rezervacije niso na voljo
         </h1>
-
-        <div className="flex items-center gap-3 mb-4 justify-center">
-          <div className="flex-1 h-px max-w-16" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.4))' }} />
-          <span style={{ color: '#c9a84c', fontSize: '0.7rem' }}>◆</span>
-          <div className="flex-1 h-px max-w-16" style={{ background: 'linear-gradient(to left, transparent, rgba(201,168,76,0.4))' }} />
-        </div>
-
-        <p
-          className="text-sm italic mb-8"
-          style={{ fontFamily: 'var(--font-cormorant)', color: 'rgba(232, 217, 184, 0.7)', lineHeight: 1.6 }}
-        >
+        <p className="mb-8 text-[15px] leading-6" style={{ fontFamily: 'var(--font-inter)', color: 'rgba(246,243,238,0.62)' }}>
           {error}
         </p>
-
         <button
           onClick={() => window.location.reload()}
-          className="mc-btn-secondary"
+          className="h-12 rounded-xl px-6 text-[13px] font-medium uppercase"
+          style={{ fontFamily: 'var(--font-oswald)', letterSpacing: '0.16em', color: '#F6F3EE', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.2)' }}
         >
-          Try Again
+          Poskusite znova
         </button>
       </motion.div>
     </div>
@@ -155,7 +113,7 @@ export default function CasinoPage() {
   }, [slug, setInitData, setLoading]);
 
   if (!hasLoaded) return <CasinoLoadingScreen />;
-  if (error) return <MonteCarloErrorScreen error={error} />;
+  if (error) return <CasinoErrorScreen error={error} />;
 
   return <CasinoLayout companySlug={slug} />;
 }

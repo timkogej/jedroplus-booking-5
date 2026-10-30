@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import { CustomerDetails } from '@/types';
+import type { CustomerDetails } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import {
@@ -17,6 +15,23 @@ import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
 import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import {
+  CREAM,
+  CX_BG,
+  FAINT,
+  FONT_BODY,
+  FONT_HEAD,
+  FONT_LABEL,
+  MUTED,
+  SPRING,
+  Spinner,
+  Tick,
+  atWord,
+  formatDuration,
+  itemVariants,
+  listVariants,
+  shortDate,
+} from '../ui';
 
 interface FormErrors {
   firstName?: string;
@@ -26,76 +41,67 @@ interface FormErrors {
   privacyConsent?: string;
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, ease: 'easeOut' as const },
-  },
-};
-
-function MCLabel({ children }: { children: React.ReactNode }) {
+function FieldError({ text }: { text?: string }) {
   return (
-    <label
-      className="block mb-1.5"
-      style={{
-        fontFamily: 'var(--font-oswald)',
-        fontSize: '0.6rem',
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: '#a89060',
-      }}
-    >
-      {children}
-    </label>
+    <AnimatePresence>
+      {text && (
+        <motion.p
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mt-1.5 text-[13px]"
+          style={{ fontFamily: FONT_BODY, color: '#FF8A80' }}
+        >
+          {text}
+        </motion.p>
+      )}
+    </AnimatePresence>
   );
 }
 
-function MCInput({
+function Field({
+  id,
+  label,
   field,
   value,
   onChange,
   placeholder,
   type = 'text',
-  hasError,
+  error,
 }: {
+  id: string;
+  label: string;
   field?: ContactField;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
-  hasError?: boolean;
+  error?: string;
 }) {
-  const [focused, setFocused] = useState(false);
-
   return (
-    <input
-      {...contactFieldAttrs(field)}
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      className={`mc-input ${hasError ? 'error' : ''}`}
-      style={{
-        borderBottomColor: hasError
-          ? '#c0392b'
-          : focused
-          ? '#c9a84c'
-          : 'rgba(201, 168, 76, 0.3)',
-      }}
-    />
+    <div>
+      <label htmlFor={id} className="cx-label block" style={{ color: error ? '#FF8A80' : undefined }}>
+        {label}
+      </label>
+      <div className="cx-field">
+        <input
+          id={id}
+          {...contactFieldAttrs(field)}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-invalid={!!error}
+          className={`cx-input ${error ? 'has-error' : ''}`}
+        />
+        <span className="cx-field-line" aria-hidden="true" />
+      </div>
+      <FieldError text={error} />
+    </div>
   );
 }
 
-// ── Booking summary (kept — this is the summary shown on the page itself) ─────
+// ── The booking so far, above the form ─────────────────────────
 function BookingSummary() {
   const {
     selectedService,
@@ -117,113 +123,59 @@ function BookingSummary() {
   const services = selectedServices.length > 0 ? selectedServices : [primaryService];
   const promotion = resolvePrimaryPromotion(services, serviceDiscounts, activePromotion);
   const pricing = getBookingPricing(services, promotion, selectedAddOn);
-
-  const displayServices = selectedServices.length > 1
-    ? selectedServices.map((s) => s.naziv).join(' + ')
-    : primaryService.naziv;
-
-  const rows = [
-    { label: t(language, 'fieldService'),    value: displayServices },
-    { label: t(language, 'fieldSpecialist'), value: showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : (selectedEmployee?.label ?? '—')) : undefined },
-    { label: t(language, 'fieldDate'),       value: selectedDate ? format(selectedDate, 'd. MMM yyyy', { locale: sl }) : '—' },
-    { label: t(language, 'fieldTime'),       value: selectedTime ?? '—' },
-    {
-      label: t(language, 'fieldDuration'),
-      value: `${(totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) + (selectedAddOn?.trajanjeMin ?? 0)} min`,
-    },
-    ...(selectedAddOn
-      ? [
-          {
-            label: t(language, 'fieldAddon'),
-            value: `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena)})`,
-          },
-        ]
-      : []),
-  ];
+  const minutes = (totalDurationMin > 0 ? totalDurationMin : primaryService.trajanjeMin) + (selectedAddOn?.trajanjeMin ?? 0);
+  const who = showEmployee ? (anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label) : undefined;
 
   return (
-    <div
-      className="rounded-lg overflow-hidden mb-6"
-      style={{
-        background: 'rgba(8, 30, 15, 0.75)',
-        border: '1px solid rgba(201, 168, 76, 0.2)',
-      }}
-    >
-      <div
-        className="px-4 py-2.5"
-        style={{
-          background: 'rgba(13, 59, 30, 0.5)',
-          borderBottom: '1px solid rgba(201,168,76,0.12)',
-        }}
-      >
-        <p
-          style={{
-            fontFamily: 'var(--font-oswald)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: '#a89060',
-          }}
-        >
-          {t(language, 'yourReservation')}
-        </p>
-      </div>
-
-      <div className="px-4 py-3 space-y-0">
-        {rows.filter((r) => r.value).map((row, i) => (
-          <div key={i} className="mc-summary-row">
-            <span className="mc-summary-label">{row.label}</span>
-            <span className="mc-summary-value text-sm">{row.value}</span>
-          </div>
-        ))}
-      </div>
-
-      <div
-        className="px-4 py-3 flex items-center justify-between"
-        style={{ borderTop: '1px solid rgba(201,168,76,0.15)' }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-oswald)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: '#a89060',
-          }}
-        >
-          {t(language, 'fieldTotal')}
-        </span>
-        <span
-          style={{
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '1.3rem',
-            fontWeight: 700,
-            color: '#e8c96d',
-          }}
-        >
-          {pricing.hasDiscount && (
-            <span style={{ display: 'block', fontSize: '0.85rem', color: '#a89060', textDecoration: 'line-through' }}>
-              {formatBookingPrice(pricing.originalTotal)}
-            </span>
+    <div className="cx-card mb-6 overflow-hidden">
+      <div className="flex items-start justify-between gap-4 p-4 sm:p-5">
+        <div className="min-w-0">
+          <p className="cx-label" style={{ color: 'var(--cx-glow)' }}>{t(language, 'yourReservation')}</p>
+          <p className="mt-1.5 text-[17px] font-bold leading-snug" style={{ fontFamily: FONT_HEAD, color: CREAM }}>
+            {services.map((s) => s.naziv).join(' + ')}
+          </p>
+          <p className="mt-1 text-[14px] leading-5" style={{ fontFamily: FONT_BODY, color: MUTED }}>
+            {[
+              selectedDate && selectedTime ? `${shortDate(selectedDate, language)} ${atWord(language)} ${selectedTime}` : null,
+              formatDuration(minutes),
+              who,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+          {selectedAddOn && (
+            <p className="mt-1 text-[13px]" style={{ fontFamily: FONT_BODY, color: 'var(--cx-glow)' }}>
+              + {selectedAddOn.naziv} ({formatBookingPrice(selectedAddOn.finalCena)})
+            </p>
           )}
-          {formatBookingPrice(pricing.finalTotal)}
-        </span>
+        </div>
+        <div className="flex-shrink-0 text-right">
+          {pricing.hasDiscount && (
+            <p className="text-[13px] line-through" style={{ fontFamily: FONT_BODY, color: FAINT }}>
+              {formatBookingPrice(pricing.originalTotal)}
+            </p>
+          )}
+          <p className="text-[22px] font-bold" style={{ fontFamily: FONT_HEAD, color: 'var(--cx-glow)' }}>
+            {formatBookingPrice(pricing.finalTotal)}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
 export default function CasinoCustomerDetails() {
-  const { setCustomerDetails, nextStep, theme, language } = useBookingStore();
+  const { setCustomerDetails, nextStep, theme, language, customerDetails } = useBookingStore();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName,  setLastName]  = useState('');
-  const [email,     setEmail]     = useState('');
-  const [phone,     setPhone]     = useState('');
-  const [gender,    setGender]    = useState('');
-  const [notes,     setNotes]     = useState('');
-  const [gdprMarketing, setGdprMarketing] = useState(false);
-  const [privacyConsent, setPrivacyConsent] = useState(false);
+  // Coming back from the review keeps what was typed.
+  const [firstName, setFirstName] = useState(customerDetails?.firstName ?? '');
+  const [lastName, setLastName] = useState(customerDetails?.lastName ?? '');
+  const [email, setEmail] = useState(customerDetails?.email ?? '');
+  const [phone, setPhone] = useState(customerDetails?.phone ?? '');
+  const [gender, setGender] = useState(customerDetails?.gender ?? '');
+  const [notes, setNotes] = useState(customerDetails?.notes ?? '');
+  const [gdprMarketing, setGdprMarketing] = useState(customerDetails?.gdprSendMarketing ?? false);
+  const [privacyConsent, setPrivacyConsent] = useState(customerDetails?.privacyConsent ?? false);
   const [website, setWebsite] = useState(''); // honeypot
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -233,19 +185,19 @@ export default function CasinoCustomerDetails() {
   const { availableAddOns, isLoadingAddOns } = usePromotionsStore();
 
   const GENDERS = [
-    { value: 'male',   label: t(language, 'salutMr'),    suit: '♠' },
-    { value: 'female', label: t(language, 'salutMs'),    suit: '♥' },
-    { value: 'other',  label: t(language, 'salutOther'), suit: '♦' },
+    { value: 'male', label: t(language, 'salutMr'), suit: '♠' },
+    { value: 'female', label: t(language, 'salutMs'), suit: '♥' },
+    { value: 'other', label: t(language, 'salutOther'), suit: '♦' },
   ];
 
   const validate = (): boolean => {
     const e: FormErrors = {};
     if (!firstName.trim()) e.firstName = t(language, 'firstNameRequired');
-    if (!lastName.trim())  e.lastName  = t(language, 'lastNameRequired');
-    if (!email.trim())     e.email     = t(language, 'emailRequired');
+    if (!lastName.trim()) e.lastName = t(language, 'lastNameRequired');
+    if (!email.trim()) e.email = t(language, 'emailRequired');
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = t(language, 'emailInvalid');
-    if (!phone.trim())     e.phone     = t(language, 'phoneRequired');
-    if (!privacyConsent)   e.privacyConsent = t(language, 'privacyRequired');
+    if (!phone.trim()) e.phone = t(language, 'phoneRequired');
+    if (!privacyConsent) e.privacyConsent = t(language, 'privacyRequired');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -253,22 +205,22 @@ export default function CasinoCustomerDetails() {
   const handleSubmit = async () => {
     if (!validate()) return;
     const formData = {
-      ime:     sanitize(firstName.trim()),
+      ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
-      email:   email.trim(),
+      email: email.trim(),
       telefon: phone.trim(),
-      opombe:  notes.trim() || undefined,
+      opombe: notes.trim() || undefined,
       website,
     };
     const success = await submitBooking(formData);
     if (success) {
       const details: CustomerDetails = {
         firstName: formData.ime,
-        lastName:  formData.priimek,
-        email:     formData.email,
-        phone:     formData.telefon,
-        gender:    gender || undefined,
-        notes:     notes.trim() || undefined,
+        lastName: formData.priimek,
+        email: formData.email,
+        phone: formData.telefon,
+        gender: gender || undefined,
+        notes: notes.trim() || undefined,
         gdprSendMarketing: gdprMarketing,
         privacyConsent,
       };
@@ -277,140 +229,70 @@ export default function CasinoCustomerDetails() {
     }
   };
 
+  const clear = (key: keyof FormErrors) => errors[key] && setErrors((e) => ({ ...e, [key]: undefined }));
+
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
-      {/* Booking summary */}
+    <motion.div variants={listVariants} initial="hidden" animate="visible">
       <motion.div variants={itemVariants}>
         <BookingSummary />
       </motion.div>
 
-      {/* Add-on selector */}
       <motion.div variants={itemVariants}>
-        <AddOnSelector
-          addOns={availableAddOns}
-          isLoading={isLoadingAddOns}
-          primaryColor={theme.primaryColor}
-          variantStyle="casino"
-        />
+        <AddOnSelector addOns={availableAddOns} isLoading={isLoadingAddOns} primaryColor={theme.primaryOnDark} variantStyle="modern" />
       </motion.div>
 
-      {/* Form card */}
-      <motion.div
-        variants={itemVariants}
-        className="rounded-lg p-5"
-        style={{
-          background: 'rgba(10, 40, 20, 0.82)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid rgba(201, 168, 76, 0.2)',
-        }}
-      >
-        <p
-          className="mb-5"
-          style={{
-            fontFamily: 'var(--font-oswald)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: '#a89060',
-          }}
-        >
+      <motion.div variants={itemVariants} className="cx-card p-5 sm:p-6">
+        <p className="cx-label mb-5" style={{ color: 'var(--cx-glow)' }}>
           {t(language, 'registrationLabel')}
         </p>
 
-        {/* Name row */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-5">
+            <Field id="cx-first" label={t(language, 'firstNameLabel')} field="firstName" value={firstName} onChange={(v) => { setFirstName(v); clear('firstName'); }} placeholder="Janez" error={errors.firstName} />
+            <Field id="cx-last" label={t(language, 'lastNameLabel')} field="lastName" value={lastName} onChange={(v) => { setLastName(v); clear('lastName'); }} placeholder="Novak" error={errors.lastName} />
+          </div>
+          <Field id="cx-email" label={t(language, 'emailLabel')} field="email" type="email" value={email} onChange={(v) => { setEmail(v); clear('email'); }} placeholder="janez@email.com" error={errors.email || fieldErrors.email} />
+          <Field id="cx-phone" label={t(language, 'phoneLabel')} field="phone" type="tel" value={phone} onChange={(v) => { setPhone(v); clear('phone'); }} placeholder="041 123 456" error={errors.phone} />
+
+          {/* Salutation */}
           <div>
-            <MCLabel>{t(language, 'firstNameLabel')}</MCLabel>
-            <MCInput field="firstName" value={firstName} onChange={setFirstName} placeholder="Janez" hasError={!!errors.firstName} />
-            <AnimatePresence>
-              {errors.firstName && (
-                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
-                  {errors.firstName}
-                </motion.p>
-              )}
-            </AnimatePresence>
+            <p className="cx-label mb-2.5">{t(language, 'salutationLabel')}</p>
+            <div className="relative flex gap-2">
+              {GENDERS.map((g) => {
+                const isSelected = gender === g.value;
+                return (
+                  <motion.button
+                    key={g.value}
+                    type="button"
+                    onClick={() => setGender(isSelected ? '' : g.value)}
+                    whileTap={{ scale: 0.96 }}
+                    aria-pressed={isSelected}
+                    className="relative flex h-11 flex-1 items-center justify-center gap-1.5 rounded-[12px] text-[12px] font-medium uppercase"
+                    style={{
+                      fontFamily: FONT_LABEL,
+                      letterSpacing: '0.1em',
+                      color: isSelected ? '#fff' : 'rgba(246,243,238,0.7)',
+                      background: 'rgba(255,255,255,0.04)',
+                      boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)',
+                      transition: 'color 0.2s',
+                    }}
+                  >
+                    {isSelected && (
+                      <motion.span layoutId="cx-salut" className="absolute inset-0 rounded-[12px]" style={{ background: 'var(--cx-grad)' }} transition={SPRING} />
+                    )}
+                    <span className="relative" style={{ fontFamily: 'Georgia, serif' }}>{g.suit}</span>
+                    <span className="relative">{g.label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Notes */}
           <div>
-            <MCLabel>{t(language, 'lastNameLabel')}</MCLabel>
-            <MCInput field="lastName" value={lastName} onChange={setLastName} placeholder="Novak" hasError={!!errors.lastName} />
-            <AnimatePresence>
-              {errors.lastName && (
-                <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
-                  {errors.lastName}
-                </motion.p>
-              )}
-            </AnimatePresence>
+            <label htmlFor="cx-notes" className="cx-label mb-2.5 block">{t(language, 'notesLabel')}</label>
+            <textarea id="cx-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t(language, 'notesPlaceholder')} rows={3} className="cx-textarea" />
           </div>
-        </div>
-
-        {/* Email */}
-        <div className="mb-5">
-          <MCLabel>{t(language, 'emailLabel')}</MCLabel>
-          <MCInput field="email" value={email} onChange={setEmail} placeholder="janez@email.com" type="email" hasError={!!errors.email} />
-          <AnimatePresence>
-            {(errors.email || fieldErrors.email) && (
-              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
-                {errors.email || fieldErrors.email}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Phone */}
-        <div className="mb-5">
-          <MCLabel>{t(language, 'phoneLabel')}</MCLabel>
-          <MCInput field="phone" value={phone} onChange={setPhone} placeholder="041 123 456" type="tel" hasError={!!errors.phone} />
-          <AnimatePresence>
-            {errors.phone && (
-              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1">
-                {errors.phone}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Salutation / Gender */}
-        <div className="mb-5">
-          <MCLabel>{t(language, 'salutationLabel')}</MCLabel>
-          <div className="flex gap-2 mt-1">
-            {GENDERS.map((g) => {
-              const isSelected = gender === g.value;
-              return (
-                <motion.button
-                  key={g.value}
-                  type="button"
-                  onClick={() => setGender(isSelected ? '' : g.value)}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex-1 py-2 rounded-lg transition-all"
-                  style={{
-                    fontFamily: 'var(--font-oswald)',
-                    fontSize: '0.65rem',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    background: isSelected ? 'rgba(201,168,76,0.15)' : 'rgba(13,59,30,0.5)',
-                    border: isSelected ? '1px solid rgba(201,168,76,0.6)' : '1px solid rgba(201,168,76,0.15)',
-                    color: isSelected ? '#c9a84c' : '#a89060',
-                    transition: 'all 0.25s ease',
-                  }}
-                >
-                  {g.suit} {g.label}
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div className="mb-5">
-          <MCLabel>{t(language, 'notesLabel')}</MCLabel>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder={t(language, 'notesPlaceholder')}
-            rows={3}
-            className="mc-textarea mt-1"
-          />
         </div>
 
         {/* Honeypot */}
@@ -425,100 +307,75 @@ export default function CasinoCustomerDetails() {
           autoComplete="off"
         />
 
-        {/* Privacy consent */}
-        <div className="mb-4">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={privacyConsent}
-              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-              style={{
-                background: privacyConsent ? '#c9a84c' : 'transparent',
-                border: `1.5px solid ${errors.privacyConsent ? '#c0392b' : privacyConsent ? '#c9a84c' : 'rgba(201,168,76,0.3)'}`,
-                transition: 'all 0.25s ease',
-              }}
-              onClick={() => setPrivacyConsent(!privacyConsent)}
-            >
-              {privacyConsent && (
-                <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
-              )}
-            </button>
-            <span
-              style={{
-                fontFamily: 'var(--font-cormorant)',
-                fontSize: '0.88rem',
-                color: errors.privacyConsent ? '#c0392b' : 'rgba(232,217,184,0.75)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t(language, 'privacyConsentPre')}{' '}
-              <a
-                href="https://jedroplus.com/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: '#c9a84c', textDecoration: 'underline' }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {t(language, 'privacyPolicy')}
-              </a>
-              {' '}*
-            </span>
-          </label>
-          <AnimatePresence>
-            {errors.privacyConsent && (
-              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mc-error mt-1 ml-7">
-                {errors.privacyConsent}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
+        <div className="my-6 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
 
-        {/* Marketing consent */}
-        <label className="flex items-start gap-3 cursor-pointer">
+        {/* Consents: marketing first, the required one last */}
+        <div className="space-y-4">
           <button
             type="button"
             role="checkbox"
             aria-checked={gdprMarketing}
-            className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
-            style={{
-              background: gdprMarketing ? '#c9a84c' : 'transparent',
-              border: `1.5px solid ${gdprMarketing ? '#c9a84c' : 'rgba(201,168,76,0.3)'}`,
-              transition: 'all 0.25s ease',
-            }}
             onClick={() => setGdprMarketing(!gdprMarketing)}
+            className="flex w-full items-start gap-3 text-left"
           >
-            {gdprMarketing && (
-              <span style={{ color: '#060f08', fontSize: '0.55rem', fontWeight: 700 }}>✓</span>
-            )}
+            <Tick on={gdprMarketing} />
+            <span className="text-[14px] leading-5" style={{ fontFamily: FONT_BODY, color: MUTED }}>
+              {t(language, 'marketingConsent')}
+            </span>
           </button>
-          <span
-            className="italic"
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '0.88rem',
-              color: 'rgba(232,217,184,0.55)',
-              lineHeight: 1.5,
-            }}
-          >
-            {t(language, 'marketingConsent')}
-          </span>
-        </label>
+
+          <div>
+            {/* Tapping the text ticks the box too (the label forwards the click). */}
+            <label className="flex cursor-pointer items-start gap-3">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={privacyConsent}
+                onClick={() => { setPrivacyConsent(!privacyConsent); clear('privacyConsent'); }}
+                className="flex-shrink-0"
+              >
+                <Tick on={privacyConsent} error={!!errors.privacyConsent} />
+              </button>
+              <span
+                className="text-[14px] leading-5"
+                style={{ fontFamily: FONT_BODY, color: errors.privacyConsent ? '#FF8A80' : 'rgba(246,243,238,0.8)' }}
+              >
+                {t(language, 'privacyConsentPre')}{' '}
+                <a
+                  href="https://jedroplus.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                  style={{ color: 'var(--cx-glow)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {t(language, 'privacyPolicy')}
+                </a>{' '}
+                *
+              </span>
+            </label>
+            <div className="ml-[34px]">
+              <FieldError text={errors.privacyConsent} />
+            </div>
+          </div>
+        </div>
       </motion.div>
 
-      {/* CTA */}
-      <motion.div
-        variants={itemVariants}
-        className="booking-sticky-cta mt-6 flex justify-center"
-        style={stickyCtaStyle('#060f08', 16)}
-      >
-        <button
-          onClick={handleSubmit}
-          disabled={!privacyConsent || isSubmitting}
-          className="mc-btn-gold w-full max-w-sm py-4"
-          style={{ opacity: (!privacyConsent || isSubmitting) ? 0.5 : 1, cursor: (!privacyConsent || isSubmitting) ? 'not-allowed' : 'pointer' }}
-        >
-          {isSubmitting ? t(language, 'sending') : t(language, 'nextToConfirm')}
+      <motion.div variants={itemVariants} className="booking-sticky-cta mt-6 flex justify-center" style={stickyCtaStyle(CX_BG, 16)}>
+        <button onClick={handleSubmit} disabled={isSubmitting} className="cx-btn w-full max-w-sm">
+          {isSubmitting ? (
+            <>
+              <Spinner />
+              {t(language, 'sending')}
+            </>
+          ) : (
+            <>
+              {t(language, 'nextToConfirm')}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </>
+          )}
         </button>
       </motion.div>
     </motion.div>

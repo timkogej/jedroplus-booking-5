@@ -2,9 +2,10 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
+import { t } from '../i18n';
+import { FONT_BODY, FAINT, mix } from './ui';
 
-// Monte Carlo Booking Summary Panel
-// Replaces the Vegas slot machine with an elegant status display
+// "Your choice" as slot machine windows: every new choice rolls in like a reel.
 export default function BookingSummaryCard() {
   const {
     selectedService,
@@ -19,26 +20,24 @@ export default function BookingSummaryCard() {
   } = useBookingStore();
 
   const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
-
-  const en = language === 'en';
   const services = selectedServices.length > 0 ? selectedServices : selectedService ? [selectedService] : [];
 
   const items = [
     {
-      label: en ? 'Service' : 'Storitev',
+      label: t(language, 'fieldService'),
       value: services.length > 0 ? services.map((s) => s.naziv).join(' + ') : null,
       suit: '♠',
     },
     // With the employee step hidden there is nothing to show here.
     ...(prikazZaposlenih
       ? [{
-          label: 'Specialist',
-          value: anyPerson ? (en ? 'Anyone available' : 'Kdorkoli prost') : selectedEmployee?.label ?? null,
+          label: t(language, 'fieldSpecialist'),
+          value: anyPerson ? t(language, 'anyoneAvailable') : selectedEmployee?.label ?? null,
           suit: '♥',
         }]
       : []),
     {
-      label: en ? 'Time' : 'Termin',
+      label: t(language, 'fieldTime'),
       value: selectedTime ?? null,
       suit: '♦',
     },
@@ -47,125 +46,58 @@ export default function BookingSummaryCard() {
   const filledCount = items.filter((i) => i.value !== null).length;
   const allFilled = filledCount === items.length;
 
-  // Only show when at least one item is selected (step 2+)
+  // Only show once something is chosen.
   if (currentStep < 2 && filledCount === 0) return null;
 
   return (
     <div
-      className="relative rounded-lg overflow-hidden"
+      className="relative overflow-hidden rounded-[16px] p-1.5"
       style={{
-        background: 'rgba(8, 30, 15, 0.7)',
-        backdropFilter: 'blur(10px)',
-        border: allFilled
-          ? '1px solid rgba(201, 168, 76, 0.6)'
-          : '1px solid rgba(201, 168, 76, 0.18)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))',
         boxShadow: allFilled
-          ? '0 0 24px rgba(201, 168, 76, 0.12), inset 0 0 16px rgba(201, 168, 76, 0.04)'
-          : '0 4px 20px rgba(0,0,0,0.25)',
-        transition: 'border-color 0.6s ease, box-shadow 0.6s ease',
+          ? `inset 0 0 0 1px ${mix('--cx-glow', 55)}, 0 0 30px -10px var(--cx-glow)`
+          : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+        transition: 'box-shadow 0.6s',
       }}
     >
-      {/* Top accent */}
-      <div
-        className="h-px"
-        style={{
-          background: allFilled
-            ? 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)'
-            : 'linear-gradient(to right, transparent, rgba(201,168,76,0.2), transparent)',
-          transition: 'background 0.6s ease',
-        }}
-      />
-
-      <div className="px-4 py-3">
-        {/* Label row */}
-        <div className="flex items-center justify-between mb-2">
-          <span
+      <div className="flex gap-1.5">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="relative min-w-0 flex-1 overflow-hidden rounded-[11px] px-3 pb-2.5 pt-2"
             style={{
-              fontFamily: 'var(--font-oswald)',
-              fontSize: '0.55rem',
-              letterSpacing: '0.3em',
-              textTransform: 'uppercase',
-              color: 'rgba(201,168,76,0.35)',
+              background: 'linear-gradient(180deg, #0c0c10 0%, #16161c 50%, #0c0c10 100%)',
+              boxShadow: item.value ? `inset 0 0 0 1px ${mix('--cx-glow', 30)}` : 'inset 0 0 0 1px rgba(255,255,255,0.05)',
+              transition: 'box-shadow 0.4s',
             }}
           >
-            {en ? 'Your choice' : 'Vaša izbira'}
-          </span>
-        </div>
-
-        {/* Items */}
-        <div className="flex gap-3">
-          {items.map((item, i) => (
-            <div key={i} className="flex-1 min-w-0">
-              <p
-                style={{
-                  fontFamily: 'var(--font-oswald)',
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(201,168,76,0.35)',
-                  marginBottom: '0.2rem',
-                }}
-              >
-                {item.suit} {item.label}
-              </p>
-
-              <AnimatePresence mode="wait">
-                {item.value ? (
-                  <motion.p
-                    key={item.value}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' as const }}
-                    className="truncate"
-                    style={{
-                      fontFamily: 'var(--font-cormorant)',
-                      fontSize: '0.92rem',
-                      fontWeight: 500,
-                      color: '#f5edd6',
-                      fontStyle: 'normal',
-                    }}
-                  >
-                    {item.value}
-                  </motion.p>
-                ) : (
-                  <motion.p
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    style={{
-                      fontFamily: 'var(--font-oswald)',
-                      fontSize: '0.75rem',
-                      color: 'rgba(201,168,76,0.15)',
-                      letterSpacing: '0.1em',
-                    }}
-                  >
-                    · · ·
-                  </motion.p>
-                )}
+            <p className="cx-label truncate" style={{ fontSize: '0.6rem', letterSpacing: '0.16em', color: item.value ? 'var(--cx-glow)' : FAINT }}>
+              {item.suit} {item.label}
+            </p>
+            <div className="relative mt-1 h-[22px] overflow-hidden">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.p
+                  key={item.value ?? 'empty'}
+                  initial={{ y: -26, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 26, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                  className="truncate text-[14px] font-semibold leading-[22px]"
+                  style={{ fontFamily: FONT_BODY, color: item.value ? '#F6F3EE' : 'rgba(246,243,238,0.18)' }}
+                >
+                  {item.value ?? '· · ·'}
+                </motion.p>
               </AnimatePresence>
             </div>
-          ))}
-        </div>
+            {/* Glass shine over the reel window. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-1/2"
+              style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.05), transparent)' }}
+            />
+          </div>
+        ))}
       </div>
-
-      {/* Bottom accent when all filled */}
-      <AnimatePresence>
-        {allFilled && (
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            exit={{ scaleX: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' as const }}
-            className="h-px"
-            style={{
-              background: 'linear-gradient(to right, transparent, #c9a84c, #e8c96d, #c9a84c, transparent)',
-              transformOrigin: 'center',
-            }}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -1,316 +1,146 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import { EmployeeUI } from '@/types';
+import type { EmployeeUI } from '@/types';
 import { t } from '../../i18n';
+import { CREAM, Chip, EASE, FONT_BODY, FONT_HEAD, FONT_LABEL, MUTED, PointerGlow, SUITS, mix, pointerLight } from '../ui';
 
-const SUITS = ['♠', '♥', '♦', '♣'];
-
-const containerVariants: Variants = {
+const deckVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.09 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.09, delayChildren: 0.1 } },
 };
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.93, y: 12 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut' as const },
-  },
+// Each card is dealt onto the table and turns face up.
+const dealVariants: Variants = {
+  hidden: { opacity: 0, y: 40, rotateY: -80, rotateZ: -4 },
+  visible: { opacity: 1, y: 0, rotateY: 0, rotateZ: 0, transition: { duration: 0.7, ease: EASE } },
 };
 
-const checkmarkVariants: Variants = {
-  initial: { scale: 0, opacity: 0 },
-  animate: {
-    scale: 1,
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 400, damping: 15 },
-  },
-};
+function CardCorner({ text, suit, flip }: { text: string; suit: string; flip?: boolean }) {
+  return (
+    <div
+      className={`pointer-events-none absolute flex flex-col items-center leading-none ${flip ? 'bottom-2.5 right-3 rotate-180' : 'left-3 top-2.5'}`}
+      style={{ color: mix('--cx-glow', 55) }}
+      aria-hidden="true"
+    >
+      <span className="text-[12px] font-bold" style={{ fontFamily: FONT_HEAD }}>{text}</span>
+      <span className="mt-0.5 text-[11px]" style={{ fontFamily: 'Georgia, serif' }}>{suit}</span>
+    </div>
+  );
+}
 
 function SpecialistCard({
   employee,
   index,
   onSelect,
-  isRouletteHighlighted,
+  highlighted,
+  dimmed,
 }: {
   employee: EmployeeUI;
   index: number;
   onSelect: (id: string) => void;
-  isRouletteHighlighted: boolean;
+  highlighted: boolean;
+  dimmed: boolean;
 }) {
-  const { selectedEmployeeId } = useBookingStore();
+  const selectedEmployeeId = useBookingStore((s) => s.selectedEmployeeId);
   const isSelected = selectedEmployeeId === employee.id;
   const suit = SUITS[index % SUITS.length];
-  const suitIsRed = suit === '♥' || suit === '♦';
+  const on = highlighted || isSelected;
 
   return (
+    <motion.div variants={dealVariants}>
     <motion.button
-      variants={itemVariants}
       onClick={() => onSelect(employee.id)}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.97 }}
-      className="relative rounded-lg text-left overflow-hidden group"
-      style={{
-        background: isSelected
-          ? 'rgba(12, 50, 24, 0.95)'
-          : 'rgba(10, 40, 20, 0.82)',
-        backdropFilter: 'blur(8px)',
-        border: isRouletteHighlighted
-          ? '2px solid rgba(201, 168, 76, 0.95)'
-          : isSelected
-          ? '1px solid rgba(201, 168, 76, 0.75)'
-          : '1px solid rgba(201, 168, 76, 0.2)',
-        boxShadow: isRouletteHighlighted
-          ? '0 0 28px rgba(201, 168, 76, 0.55), inset 0 0 20px rgba(201, 168, 76, 0.1)'
-          : isSelected
-          ? '0 0 24px rgba(201, 168, 76, 0.15), inset 0 0 16px rgba(201, 168, 76, 0.04)'
-          : '0 4px 16px rgba(0,0,0,0.2)',
-        transition: 'all 0.15s ease',
-        aspectRatio: '2/3',
-        minHeight: '160px',
-      }}
+      onPointerMove={pointerLight}
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.96 }}
+      animate={{ opacity: dimmed ? 0.45 : 1, scale: highlighted ? 1.04 : 1 }}
+      transition={{ duration: 0.12 }}
+      aria-pressed={isSelected}
+      className={`cx-card is-hover group relative w-full overflow-hidden text-left ${on ? 'is-on' : ''}`}
+      style={{ aspectRatio: '3 / 4', minHeight: 176 }}
     >
-      {/* Card suit top-left */}
-      <div
-        className="absolute top-2.5 left-3 transition-opacity duration-300 group-hover:opacity-50"
-        style={{
-          fontFamily: 'Georgia, serif',
-          fontSize: '0.9rem',
-          color: suitIsRed ? 'rgba(180,60,60,0.2)' : 'rgba(201,168,76,0.15)',
-          lineHeight: 1,
-        }}
-      >
-        {suit}
-      </div>
+      <PointerGlow />
+      <CardCorner text={employee.initials} suit={suit} />
+      <CardCorner text={employee.initials} suit={suit} flip />
 
-      {/* Card suit bottom-right rotated */}
-      <div
-        className="absolute bottom-2.5 right-3 rotate-180 transition-opacity duration-300 group-hover:opacity-50"
-        style={{
-          fontFamily: 'Georgia, serif',
-          fontSize: '0.9rem',
-          color: suitIsRed ? 'rgba(180,60,60,0.2)' : 'rgba(201,168,76,0.15)',
-          lineHeight: 1,
-        }}
-      >
-        {suit}
-      </div>
+      {/* Inner frame, like the border printed on a card */}
+      <span
+        className="pointer-events-none absolute inset-x-[30px] inset-y-[12px] rounded-[9px]"
+        style={{ boxShadow: `inset 0 0 0 1px ${on ? mix('--cx-glow', 35) : 'rgba(255,255,255,0.05)'}`, transition: 'box-shadow 0.3s' }}
+        aria-hidden="true"
+      />
 
-      {/* Selected checkmark */}
-      <AnimatePresence>
-        {isSelected && !isRouletteHighlighted && (
-          <motion.div
-            variants={checkmarkVariants}
-            initial="initial"
-            animate="animate"
-            exit="initial"
-            className="absolute top-2.5 right-3 w-5 h-5 rounded-full flex items-center justify-center z-10"
-            style={{ background: '#c9a84c' }}
-          >
-            <span style={{ color: '#060f08', fontSize: '0.6rem', fontWeight: 700 }}>✓</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Roulette glow overlay */}
-      <AnimatePresence>
-        {isRouletteHighlighted && (
-          <motion.div
-            key="roulette-glow"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.08 }}
-            className="absolute inset-0 pointer-events-none rounded-lg"
-            style={{
-              background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.18) 0%, transparent 70%)',
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-2">
-        {/* Avatar */}
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-200"
-          style={{
-            background: '#1a6b35',
-            border: `2px solid ${isRouletteHighlighted ? '#e8c96d' : isSelected ? '#c9a84c' : 'rgba(201, 168, 76, 0.3)'}`,
-            fontFamily: 'var(--font-playfair)',
-            fontSize: '0.85rem',
-            color: isRouletteHighlighted || isSelected ? '#c9a84c' : '#e8c96d',
-            boxShadow: isRouletteHighlighted
-              ? '0 0 20px rgba(201,168,76,0.5)'
-              : isSelected
-              ? '0 0 12px rgba(201,168,76,0.3)'
-              : 'none',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          {employee.initials}
-        </div>
-
-        {/* Name & title */}
-        <div className="text-center px-1">
-          <p
-            className="font-bold leading-tight"
-            style={{
-              fontFamily: 'var(--font-playfair)',
-              fontSize: '0.78rem',
-              color: '#f5edd6',
-            }}
-          >
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-3">
+        <motion.div animate={{ rotate: on ? 360 : 0 }} transition={{ duration: 0.8, ease: EASE }}>
+          <Chip size={58} on={isSelected && !highlighted}>
+            {employee.initials}
+          </Chip>
+        </motion.div>
+        <div className="text-center">
+          <p className="text-[16px] font-bold leading-tight" style={{ fontFamily: FONT_HEAD, color: CREAM }}>
             {employee.label}
           </p>
           {employee.subtitle && (
-            <p
-              className="mt-0.5"
-              style={{
-                fontFamily: 'var(--font-oswald)',
-                fontSize: '0.52rem',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                color: '#a89060',
-              }}
-            >
+            <p className="mt-1 text-[11px] uppercase" style={{ fontFamily: FONT_LABEL, letterSpacing: '0.14em', color: MUTED }}>
               {employee.subtitle}
             </p>
           )}
         </div>
       </div>
-
-      {/* Bottom gold line on hover */}
-      <motion.div
-        className="absolute bottom-0 inset-x-0 h-px"
-        style={{ background: 'linear-gradient(to right, transparent, #c9a84c, transparent)' }}
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-      />
     </motion.button>
+    </motion.div>
   );
 }
 
-// ── Presenečenje / Surprise card ───────────────────────────────
-function SurpriseCard({
-  isSpinning,
-  onClick,
-  language,
-}: {
-  isSpinning: boolean;
-  onClick: () => void;
-  language: string;
-}) {
+// ── "Anyone available": spins like a roulette across the cards ──
+function SurpriseCard({ isSpinning, onClick, language }: { isSpinning: boolean; onClick: () => void; language: 'sl' | 'en' }) {
+  const anyPerson = useBookingStore((s) => s.anyPerson);
+
   return (
     <motion.button
-      variants={itemVariants}
+      variants={dealVariants}
       onClick={onClick}
-      whileHover={!isSpinning ? { y: -4 } : {}}
-      whileTap={!isSpinning ? { scale: 0.97 } : {}}
+      onPointerMove={pointerLight}
+      whileHover={!isSpinning ? { y: -5 } : {}}
+      whileTap={!isSpinning ? { scale: 0.96 } : {}}
       disabled={isSpinning}
-      className="relative rounded-lg text-left overflow-hidden group"
-      style={{
-        background: 'rgba(8, 30, 15, 0.7)',
-        backdropFilter: 'blur(8px)',
-        border: '1.5px dashed rgba(201, 168, 76, 0.35)',
-        transition: 'all 0.3s ease',
-        aspectRatio: '2/3',
-        minHeight: '160px',
-        cursor: isSpinning ? 'default' : 'pointer',
-      }}
+      aria-pressed={anyPerson}
+      className={`cx-card is-hover group relative w-full overflow-hidden text-left ${anyPerson ? 'is-on' : ''}`}
+      style={{ aspectRatio: '3 / 4', minHeight: 176, borderStyle: 'dashed', borderColor: mix('--cx-glow', 40) }}
     >
-      {/* Subtle bg */}
-      <div
-        className="absolute inset-0 rounded-lg"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.04), transparent 70%)',
-        }}
-      />
-
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-2">
-        <AnimatePresence mode="wait">
-          {isSpinning ? (
-            <motion.div
-              key="spinning"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3"
-            >
-              {/* Cycling diamonds */}
-              <div className="flex gap-1.5 items-center">
-                {[0, 1, 2].map((i) => (
-                  <motion.span
-                    key={i}
-                    style={{ color: '#c9a84c', fontFamily: 'Georgia, serif', fontSize: i === 1 ? '1.1rem' : '0.65rem' }}
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' as const }}
-                  >
-                    ◆
-                  </motion.span>
-                ))}
-              </div>
-              <motion.div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{
-                  background: 'rgba(13, 59, 30, 0.7)',
-                  border: '2px solid rgba(201,168,76,0.5)',
-                }}
-                animate={{ boxShadow: ['0 0 8px rgba(201,168,76,0.2)', '0 0 20px rgba(201,168,76,0.55)', '0 0 8px rgba(201,168,76,0.2)'] }}
-                transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut' as const }}
-              >
-                <span style={{ color: '#c9a84c', fontSize: '1rem', fontFamily: 'Georgia, serif' }}>🎲</span>
-              </motion.div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="idle"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-2.5"
-            >
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{
-                  background: 'rgba(13, 59, 30, 0.7)',
-                  border: '2px solid rgba(201,168,76,0.25)',
-                }}
-              >
-                <span style={{ fontFamily: 'Georgia, serif', fontSize: '1.2rem', color: 'rgba(201,168,76,0.5)' }}>
-                  🎲
-                </span>
-              </div>
-              <div className="text-center">
-                <p
-                  className="font-bold"
-                  style={{
-                    fontFamily: 'var(--font-playfair)',
-                    fontSize: '0.72rem',
-                    color: '#f5edd6',
-                  }}
-                >
-                  {t(language as 'sl' | 'en', 'surpriseMe')}
-                </p>
-                <p
-                  className="mt-0.5 italic"
-                  style={{
-                    fontFamily: 'var(--font-cormorant)',
-                    fontSize: '0.7rem',
-                    color: 'rgba(201,168,76,0.45)',
-                  }}
-                >
-                  {t(language as 'sl' | 'en', 'surpriseMeDesc')}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <PointerGlow />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-3">
+        <motion.svg
+          width="58"
+          height="58"
+          viewBox="0 0 58 58"
+          animate={{ rotate: isSpinning ? 720 : 0 }}
+          transition={isSpinning ? { duration: 2.4, ease: [0.3, 0.1, 0.2, 1] } : { duration: 0.3 }}
+          aria-hidden="true"
+        >
+          <circle cx="29" cy="29" r="27" fill="none" stroke="var(--cx-glow)" strokeWidth="1.5" />
+          {Array.from({ length: 12 }).map((_, i) => (
+            <path
+              key={i}
+              d="M29 29 L29 4 A25 25 0 0 1 41.5 7.35 Z"
+              fill={i % 2 ? 'var(--cx-a)' : 'rgba(255,255,255,0.08)'}
+              transform={`rotate(${i * 30} 29 29)`}
+            />
+          ))}
+          <circle cx="29" cy="29" r="9" fill="#111" stroke="var(--cx-glow)" strokeWidth="1.5" />
+          <circle cx="29" cy="29" r="3" fill="var(--cx-glow)" />
+        </motion.svg>
+        <div className="text-center">
+          <p className="text-[16px] font-bold leading-tight" style={{ fontFamily: FONT_HEAD, color: CREAM }}>
+            {t(language, 'surpriseMe')}
+          </p>
+          <p className="mt-1 text-[12px] leading-4" style={{ fontFamily: FONT_BODY, color: MUTED }}>
+            {t(language, 'surpriseMeDesc')}
+          </p>
+        </div>
       </div>
     </motion.button>
   );
@@ -320,6 +150,9 @@ export default function CasinoEmployeeSelection() {
   const { employeesUI, eligibleEmployeeIds, selectEmployee, language } = useBookingStore();
   const [rouletteHighlight, setRouletteHighlight] = useState<string | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), []);
 
   const eligibleSet = new Set(eligibleEmployeeIds);
   const filteredEmployees = employeesUI.filter((e) => eligibleSet.has(String(e.id)));
@@ -330,56 +163,48 @@ export default function CasinoEmployeeSelection() {
 
     // The button says "anyone available": the spin is only a flourish, the
     // booking goes out as any_person so every specialist's free times show.
-    // It used to pick one employee at random, which hid everyone else's times.
     setIsSpinning(true);
-
-    const totalSteps = filteredEmployees.length === 1
-      ? 5
-      : 14 + filteredEmployees.length * 3;
-
+    const totalSteps = filteredEmployees.length === 1 ? 5 : 12 + filteredEmployees.length * 2;
     let step = 0;
     let prevId: string | null = null;
 
     const getDelay = (s: number): number => {
       const p = s / totalSteps;
-      if (p < 0.5) return 75;
-      if (p < 0.7) return 140;
-      if (p < 0.85) return 240;
-      if (p < 0.95) return 400;
-      return 580;
+      if (p < 0.5) return 80;
+      if (p < 0.75) return 140;
+      if (p < 0.9) return 230;
+      return 360;
+    };
+
+    const later = (fn: () => void, ms: number) => {
+      timers.current.push(window.setTimeout(fn, ms));
     };
 
     const cycle = () => {
       if (step >= totalSteps) {
         setRouletteHighlight(null);
-        setTimeout(() => {
+        later(() => {
           setIsSpinning(false);
           selectEmployee(null, true);
-        }, 350);
+        }, 300);
         return;
       }
-
-      const pool = filteredEmployees.length > 1
-        ? filteredEmployees.filter((e) => e.id !== prevId)
-        : filteredEmployees;
+      const pool = filteredEmployees.length > 1 ? filteredEmployees.filter((e) => e.id !== prevId) : filteredEmployees;
       const next = pool[Math.floor(Math.random() * pool.length)];
       prevId = next.id;
       setRouletteHighlight(next.id);
       step++;
-      setTimeout(cycle, getDelay(step));
+      later(cycle, getDelay(step));
     };
 
-    setTimeout(cycle, 80);
+    later(cycle, 80);
   }, [isSpinning, filteredEmployees, selectEmployee]);
 
   if (noEmployees) {
     return (
-      <div className="text-center py-16">
-        <span style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: 'rgba(201,168,76,0.2)' }}>◆</span>
-        <p
-          className="mt-4 italic"
-          style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1rem', color: 'rgba(201,168,76,0.4)' }}
-        >
+      <div className="py-16 text-center">
+        <span style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: mix('--cx-glow', 30) }}>◆</span>
+        <p className="mt-4 text-[15px]" style={{ fontFamily: FONT_BODY, color: MUTED }}>
           {t(language, 'noStaff')}
         </p>
       </div>
@@ -387,46 +212,38 @@ export default function CasinoEmployeeSelection() {
   }
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible">
+    <div>
       <motion.p
-        variants={itemVariants}
-        className="italic mb-7"
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '1.05rem',
-          color: 'rgba(232,217,184,0.65)',
-          lineHeight: 1.7,
-        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="mb-6 text-[16px] leading-6"
+        style={{ fontFamily: FONT_BODY, color: MUTED }}
       >
         {t(language, 'employeeIntro')}
       </motion.p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-        <SurpriseCard
-          isSpinning={isSpinning}
-          onClick={handleSurprise}
-          language={language}
-        />
-        {filteredEmployees.map((emp, i) => (
-          <SpecialistCard
-            key={emp.id}
-            employee={emp}
-            index={i}
-            onSelect={(id) => selectEmployee(id, false)}
-            isRouletteHighlighted={rouletteHighlight === emp.id}
-          />
-        ))}
-      </div>
-
-      {/* Chip divider */}
       <motion.div
-        variants={itemVariants}
-        className="flex items-center justify-center gap-2 mt-6"
+        variants={deckVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+        style={{ perspective: 1000 }}
       >
-        {['#922b21', '#1e6b30', '#1a1a1a', '#1a4480', '#e0d4b8'].map((color, i) => (
-          <div key={i} className="mc-chip" style={{ background: color }} />
-        ))}
+        <SurpriseCard isSpinning={isSpinning} onClick={handleSurprise} language={language} />
+        <AnimatePresence>
+          {filteredEmployees.map((emp, i) => (
+            <SpecialistCard
+              key={emp.id}
+              employee={emp}
+              index={i}
+              onSelect={(id) => !isSpinning && selectEmployee(id, false)}
+              highlighted={rouletteHighlight === emp.id}
+              dimmed={isSpinning && rouletteHighlight !== emp.id}
+            />
+          ))}
+        </AnimatePresence>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

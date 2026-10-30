@@ -1,489 +1,342 @@
 /* ================================================================
-   MONTE CARLO CASINO BOOKING — Private Gaming Room Aesthetic
+   CASINO — a private card room in the company's colours.
+   The brand colours arrive as CSS variables set in CasinoLayout:
+   --cx-a / --cx-b (gradient, carry white text), --cx-glow / --cx-glow2
+   (bright brand colour for text and light on the dark page).
    ================================================================ */
 
-:root {
-  --mc-bg-primary: #060f08;
-  --mc-felt-dark: #0d3b1e;
-  --mc-felt-mid: #145228;
-  --mc-felt-light: #1a6b35;
-  --mc-gold: #c9a84c;
-  --mc-gold-light: #e8c96d;
-  --mc-gold-dark: #a07830;
-  --mc-cream: #f5edd6;
-  --mc-cream-muted: #e8d9b8;
-  --mc-muted-gold: #a89060;
-  --mc-primary: #8B5CF6;
+.casino-root {
+  /* Older shared pieces still ask for these fonts. */
+  --font-cormorant: var(--font-inter);
+  --font-clash: var(--font-playfair);
 }
 
-/* ── Background — layered felt texture ─────────────────────── */
+/* ── Page: dark table with a soft brand light ───────────────── */
 
-.mc-bg {
-  background-color: var(--mc-bg-primary);
+.cx-bg {
+  background-color: #09090c;
   background-image:
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 2px,
-      rgba(201, 168, 76, 0.008) 2px,
-      rgba(201, 168, 76, 0.008) 4px
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 2px,
-      rgba(201, 168, 76, 0.005) 2px,
-      rgba(201, 168, 76, 0.005) 4px
-    ),
-    radial-gradient(
-      ellipse at 20% 20%,
-      rgba(13, 59, 30, 0.6) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 80% 80%,
-      rgba(13, 59, 30, 0.4) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at center,
-      #0d3b1e 0%,
-      #060f08 100%
-    );
+    radial-gradient(ellipse 90% 55% at 50% -8%, color-mix(in srgb, var(--cx-a) 34%, transparent), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 100%, color-mix(in srgb, var(--cx-b) 16%, transparent), transparent 70%),
+    radial-gradient(ellipse at center, #111116 0%, #09090c 100%);
 }
 
-/* ── Gold Divider ───────────────────────────────────────────── */
+/* Fine felt weave over the page. */
+.cx-felt {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 2px, rgba(255, 255, 255, 0.012) 2px 4px),
+    repeating-linear-gradient(-45deg, transparent 0 2px, rgba(255, 255, 255, 0.008) 2px 4px);
+}
 
-.mc-divider {
+/* Slow light that drifts across the table. */
+.cx-drift {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  width: 70vmax;
+  height: 70vmax;
+  left: -20vmax;
+  top: 30vh;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--cx-glow) 9%, transparent), transparent 60%);
+  animation: cx-drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes cx-drift {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(45vw, -20vh); }
+  100% { transform: translate(15vw, 25vh); }
+}
+
+/* Roulette wheel in the corner. */
+.cx-wheel {
+  animation: cx-spin 80s linear infinite;
+}
+
+@keyframes cx-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Card suits that float slowly. */
+.cx-suit {
+  animation: cx-float var(--dur, 14s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes cx-float {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-26px) rotate(calc(var(--rot, 0deg) + 6deg)); }
+}
+
+/* ── Divider ────────────────────────────────────────────────── */
+
+.cx-rule {
   height: 1px;
   background: linear-gradient(
     to right,
     transparent,
-    rgba(201, 168, 76, 0.5) 30%,
-    rgba(201, 168, 76, 0.7) 50%,
-    rgba(201, 168, 76, 0.5) 70%,
+    color-mix(in srgb, var(--cx-glow) 45%, transparent) 30%,
+    color-mix(in srgb, var(--cx-glow) 70%, transparent) 50%,
+    color-mix(in srgb, var(--cx-glow) 45%, transparent) 70%,
     transparent
   );
 }
 
-/* ── Card — Glassmorphism ───────────────────────────────────── */
+/* ── Main button: hexagon in the brand gradient with a light sweep ── */
 
-.mc-card {
-  background: rgba(10, 40, 20, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(201, 168, 76, 0.25);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.mc-card:hover {
-  border-color: rgba(201, 168, 76, 0.5);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(201, 168, 76, 0.08);
-  transform: translateY(-3px);
-}
-
-.mc-card.selected {
-  border-color: rgba(201, 168, 76, 0.8);
-  box-shadow: 0 0 30px rgba(201, 168, 76, 0.2), inset 0 0 20px rgba(201, 168, 76, 0.05);
-}
-
-/* ── Button — Hexagonal shimmer ─────────────────────────────── */
-
-.mc-btn-gold {
+.cx-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 2.5rem;
+  gap: 0.6rem;
+  min-height: 56px;
+  padding: 0 2.25rem;
   font-family: var(--font-oswald);
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #060f08;
-  background: linear-gradient(135deg, #a07830, #c9a84c, #e8c96d, #c9a84c, #a07830);
-  background-size: 200% 100%;
-  clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%);
-  transition: all 0.3s ease;
-  animation: mc-shimmer 3s ease-in-out infinite;
+  color: #fff;
+  background: var(--cx-grad);
+  clip-path: polygon(16px 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0% 50%);
+  overflow: hidden;
   cursor: pointer;
   border: none;
   outline: none;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s;
 }
 
-.mc-btn-gold:hover:not(:disabled) {
-  transform: scale(1.04);
-  filter: brightness(1.1);
-}
-
-.mc-btn-gold:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  animation: none;
-  background: linear-gradient(135deg, #6b5020, #8a6e30);
-}
-
-.mc-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.5rem;
-  font-family: var(--font-oswald);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--mc-gold);
-  background: transparent;
-  border: 1px solid rgba(201, 168, 76, 0.4);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  outline: none;
-}
-
-.mc-btn-secondary:hover {
-  background: rgba(201, 168, 76, 0.08);
-  border-color: rgba(201, 168, 76, 0.7);
-}
-
-/* ── Input — Gold underline style ───────────────────────────── */
-
-.mc-input {
-  width: 100%;
-  background: transparent;
-  border: 0;
-  border-bottom: 1.5px solid rgba(201, 168, 76, 0.3);
-  padding: 0.6rem 0;
-  font-family: var(--font-cormorant);
-  font-size: 1.05rem;
-  color: var(--mc-cream);
-  outline: none;
-  transition: border-color 0.3s ease;
-  appearance: none;
-}
-
-.mc-input::placeholder {
-  color: rgba(201, 168, 76, 0.2);
-  font-style: italic;
-}
-
-.mc-input:focus {
-  border-bottom-color: var(--mc-gold);
-}
-
-.mc-input.error {
-  border-bottom-color: #c0392b;
-  animation: mc-shake 0.4s ease;
-}
-
-.mc-textarea {
-  width: 100%;
-  background: rgba(10, 40, 20, 0.4);
-  border: 1px solid rgba(201, 168, 76, 0.25);
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-family: var(--font-cormorant);
-  font-size: 1rem;
-  color: var(--mc-cream);
-  outline: none;
-  transition: border-color 0.3s ease;
-  resize: none;
-}
-
-.mc-textarea::placeholder {
-  color: rgba(201, 168, 76, 0.2);
-  font-style: italic;
-}
-
-.mc-textarea:focus {
-  border-color: var(--mc-gold);
-}
-
-/* ── Scrollbar ──────────────────────────────────────────────── */
-
-.mc-scroll::-webkit-scrollbar {
-  width: 3px;
-}
-
-.mc-scroll::-webkit-scrollbar-track {
-  background: rgba(13, 59, 30, 0.5);
-}
-
-.mc-scroll::-webkit-scrollbar-thumb {
-  background: rgba(201, 168, 76, 0.4);
-  border-radius: 2px;
-}
-
-/* ── Animations ─────────────────────────────────────────────── */
-
-@keyframes mc-shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
-}
-
-@keyframes mc-slow-rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes mc-pulse-ring {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.3);
-    opacity: 0;
-  }
-}
-
-@keyframes mc-shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-5px); }
-  40%       { transform: translateX(5px); }
-  60%       { transform: translateX(-3px); }
-  80%       { transform: translateX(3px); }
-}
-
-@keyframes mc-float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-8px); }
-}
-
-@keyframes mc-gold-particles {
-  0%   { transform: translateY(0) scale(0); opacity: 0; }
-  20%  { opacity: 1; transform: scale(1); }
-  100% { transform: translateY(-80px) scale(0.3); opacity: 0; }
-}
-
-/* ── Roulette decoration ────────────────────────────────────── */
-
-.mc-roulette {
-  animation: mc-slow-rotate 60s linear infinite;
-}
-
-/* ── Pulse ring for active step ─────────────────────────────── */
-
-.mc-pulse-ring {
-  animation: mc-pulse-ring 2s ease-in-out infinite;
-}
-
-/* ── Typography helpers ─────────────────────────────────────── */
-
-.mc-heading {
-  font-family: var(--font-playfair);
-  color: var(--mc-cream);
-}
-
-.mc-heading-gold {
-  font-family: var(--font-playfair);
-  color: var(--mc-gold);
-}
-
-.mc-label {
-  font-family: var(--font-oswald);
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--mc-muted-gold);
-}
-
-.mc-body {
-  font-family: var(--font-cormorant);
-  font-style: italic;
-  color: var(--mc-cream-muted);
-}
-
-/* ── Summary table ──────────────────────────────────────────── */
-
-.mc-summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.08);
-}
-
-.mc-summary-label {
-  font-family: var(--font-oswald);
-  font-size: 0.62rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--mc-muted-gold);
-}
-
-.mc-summary-value {
-  font-family: var(--font-cormorant);
-  font-size: 1rem;
-  color: var(--mc-cream);
-}
-
-/* ── Chip divider ───────────────────────────────────────────── */
-
-.mc-chip {
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 50%;
-  border: 2px solid rgba(201, 168, 76, 0.35);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
-  opacity: 0.4;
-}
-
-/* ── Calendar ───────────────────────────────────────────────── */
-
-.mc-calendar-day {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  font-family: var(--font-oswald);
-  font-size: 0.8rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  border: 1px solid transparent;
-  position: relative;
-}
-
-.mc-calendar-day.available:hover {
-  background: rgba(201, 168, 76, 0.12);
-  border-color: rgba(201, 168, 76, 0.3);
-  color: var(--mc-gold-light);
-}
-
-.mc-calendar-day.selected {
-  background: var(--mc-gold);
-  color: #060f08;
-  font-weight: 600;
-  box-shadow: 0 2px 12px rgba(201, 168, 76, 0.4);
-}
-
-.mc-calendar-day.today {
-  border-color: rgba(201, 168, 76, 0.4);
-  color: var(--mc-gold);
-}
-
-.mc-calendar-day.disabled {
-  color: rgba(201, 168, 76, 0.15);
-  cursor: not-allowed;
+.cx-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.32) 50%, transparent 65%);
+  transform: translateX(-120%);
+  animation: cx-sweep 3.6s ease-in-out infinite;
   pointer-events: none;
 }
 
-/* ── Time slot ──────────────────────────────────────────────── */
+.cx-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
 
-.mc-time-slot {
-  padding: 0.5rem;
-  border-radius: 6px;
+.cx-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.cx-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cx-btn:disabled::after {
+  animation: none;
+}
+
+.cx-btn:focus-visible {
+  filter: brightness(1.15);
+}
+
+@keyframes cx-sweep {
+  0% { transform: translateX(-120%); }
+  55%, 100% { transform: translateX(120%); }
+}
+
+.cx-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 1.25rem;
   font-family: var(--font-oswald);
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  background: rgba(10, 40, 20, 0.6);
-  border: 1px solid rgba(201, 168, 76, 0.25);
-  color: var(--mc-gold);
-  transition: all 0.25s ease;
-  cursor: pointer;
-  text-align: center;
-}
-
-.mc-time-slot:hover {
-  border-color: rgba(201, 168, 76, 0.6);
-  background: rgba(201, 168, 76, 0.08);
-  transform: translateY(-1px);
-}
-
-.mc-time-slot.selected {
-  background: var(--mc-gold);
-  color: #060f08;
-  border-color: var(--mc-gold);
-  box-shadow: 0 2px 12px rgba(201, 168, 76, 0.35);
-}
-
-/* ── Error state ────────────────────────────────────────────── */
-
-.mc-error {
-  color: #c0392b;
-  font-family: var(--font-oswald);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--cx-glow);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid color-mix(in srgb, var(--cx-glow) 35%, transparent);
+  border-radius: 12px;
+  transition: background 0.25s, border-color 0.25s, transform 0.2s;
+  cursor: pointer;
 }
 
-/* ── Scrollbar hide (horizontal date strip, pill row) ───────── */
+.cx-btn-ghost:hover {
+  background: color-mix(in srgb, var(--cx-glow) 9%, transparent);
+  border-color: color-mix(in srgb, var(--cx-glow) 65%, transparent);
+}
 
-.mc-scrollbar-hide::-webkit-scrollbar {
+.cx-btn-ghost:active {
+  transform: scale(0.97);
+}
+
+/* ── Cards on the table ─────────────────────────────────────── */
+
+.cx-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+}
+
+.cx-card.is-on {
+  border-color: color-mix(in srgb, var(--cx-glow) 75%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cx-a) 22%, transparent), color-mix(in srgb, var(--cx-a) 8%, transparent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cx-glow) 25%, transparent), 0 18px 40px -18px var(--cx-a);
+}
+
+@media (hover: hover) {
+  .cx-card.is-hover:hover {
+    border-color: color-mix(in srgb, var(--cx-glow) 40%, transparent);
+    box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.7), 0 0 24px -8px color-mix(in srgb, var(--cx-glow) 30%, transparent);
+  }
+}
+
+/* ── Inputs: underline that lights up from the middle ────────── */
+
+.cx-field {
+  position: relative;
+}
+
+.cx-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0.7rem 0 0.6rem;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  color: #f6f3ee;
+  outline: none;
+  border-radius: 0;
+  appearance: none;
+  transition: border-color 0.3s;
+}
+
+.cx-input::placeholder {
+  color: rgba(246, 243, 238, 0.28);
+}
+
+.cx-field-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--cx-grad);
+  transform: scaleX(0);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.cx-input:focus + .cx-field-line {
+  transform: scaleX(1);
+}
+
+.cx-input.has-error {
+  border-bottom-color: #ff6b5e;
+  animation: cx-shake 0.4s ease;
+}
+
+.cx-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  font-family: var(--font-inter);
+  font-size: 16px;
+  color: #f6f3ee;
+  outline: none;
+  resize: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.cx-textarea::placeholder {
+  color: rgba(246, 243, 238, 0.28);
+}
+
+.cx-textarea:focus {
+  border-color: color-mix(in srgb, var(--cx-glow) 70%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cx-glow) 15%, transparent);
+}
+
+@keyframes cx-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+/* ── Small helpers ──────────────────────────────────────────── */
+
+.cx-label {
+  font-family: var(--font-oswald);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(246, 243, 238, 0.5);
+}
+
+.cx-scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-.mc-scrollbar-hide {
+.cx-scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* ── Scarcity pulse animations ──────────────────────────────── */
+/* Rotating dashed edge of the active poker chip. */
+.cx-chip-edge {
+  animation: cx-spin 9s linear infinite;
+}
 
-@keyframes mc-pulse-orange {
+@keyframes cx-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(1.4); }
+  50% { opacity: 0.35; transform: scale(1.45); }
 }
 
-@keyframes mc-pulse-red {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.3; transform: scale(1.5); }
+.cx-pulse {
+  animation: cx-pulse 1.2s ease-in-out infinite;
 }
 
-.mc-pulse-orange {
-  animation: mc-pulse-orange 1.3s ease-in-out infinite;
+/* Chips that fly out on the success page. */
+.cx-confetti {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  opacity: 0;
+  animation: cx-burst var(--dur, 1.6s) cubic-bezier(0.15, 0.7, 0.3, 1) var(--delay, 0s) forwards;
 }
 
-.mc-pulse-red {
-  animation: mc-pulse-red 0.9s ease-in-out infinite;
+@keyframes cx-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  12% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1); }
 }
 
-/* ── Date card (horizontal strip) ───────────────────────────── */
-
-.mc-date-card {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.6rem 0.3rem;
-  border-radius: 8px;
-  border: 1px solid rgba(201, 168, 76, 0.18);
-  background: rgba(10, 40, 20, 0.75);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  scroll-snap-align: center;
-  width: 68px;
-  min-height: 82px;
-  position: relative;
-}
-
-.mc-date-card:hover:not(:disabled) {
-  border-color: rgba(201, 168, 76, 0.45);
-  background: rgba(10, 40, 20, 0.9);
-  transform: translateY(-2px);
-}
-
-.mc-date-card.selected {
-  background: var(--mc-gold);
-  border-color: var(--mc-gold);
-  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.35);
-  transform: scale(1.06);
-}
-
-.mc-date-card.today-ring {
-  border-color: rgba(201, 168, 76, 0.5);
-}
-
-.mc-date-card:disabled,
-.mc-date-card.grayed {
-  opacity: 0.28;
-  cursor: not-allowed;
-  pointer-events: none;
+@media (prefers-reduced-motion: reduce) {
+  .cx-drift,
+  .cx-wheel,
+  .cx-suit,
+  .cx-btn::after,
+  .cx-chip-edge,
+  .cx-pulse {
+    animation: none !important;
+  }
 }
