@@ -19,6 +19,8 @@ import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { seasonalLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug?: string;
@@ -435,6 +437,8 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
       </motion.div>
 
       {/* Error */}
+      <QuestionnaireSummary look={seasonalLook(theme)} className="mb-5" />
+
       <AnimatePresence>
         {error && (
           <motion.div

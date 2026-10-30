@@ -10,6 +10,9 @@ import { usePromotionsStore } from '@/store/promotionsStore';
 import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { seasonalLook } from '@/components/shared/request/looks';
 
 interface FormErrors {
   firstName?: string;
@@ -118,7 +121,7 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const fd = {
       ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
@@ -317,6 +320,8 @@ export default function SeasonalCustomerDetails({ seasonalTheme }: Props) {
           autoComplete="off"
           style={{ position: 'absolute', left: '-9999px' }}
         />
+
+        <QuestionnaireFields look={seasonalLook(theme, seasonalTheme.config.headingFont)} className="pt-2" />
 
         {/* Checkboxes */}
         <div className="space-y-3">

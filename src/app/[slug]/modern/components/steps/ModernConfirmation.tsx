@@ -17,6 +17,8 @@ import ModernButton from '../ModernButton';
 import ModernTicket from '../ModernTicket';
 import { EASE, MODERN_BG, SPRING } from '../brand';
 import { ErrorNote, FONT, GLASS, SectionLabel, Title, dateLocale, itemVariants, listVariants } from '../ui';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { modernLook } from '@/components/shared/request/looks';
 
 interface Props {
   companySlug?: string;
@@ -243,6 +245,7 @@ export default function ModernConfirmation({ companySlug }: Props) {
     setBookingConfirmation,
     language,
   } = useBookingStore();
+  const theme = useBookingStore((s) => s.theme);
 
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
@@ -347,6 +350,8 @@ export default function ModernConfirmation({ companySlug }: Props) {
           </div>
         </motion.div>
       )}
+
+      <QuestionnaireSummary look={modernLook(theme)} className="mb-5" />
 
       <AnimatePresence>
         {error && (

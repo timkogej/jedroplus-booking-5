@@ -17,6 +17,9 @@ import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { t } from '../../i18n';
 import { contactFieldAttrs } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { magazineLook } from '@/components/shared/request/looks';
 
 const containerVariants: Variants = {
   animate: { transition: { staggerChildren: 0.07 } },
@@ -172,7 +175,7 @@ export default function MagazineCustomerDetails() {
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const fd = {
       ime: sanitize(formData.firstName.trim()),
       priimek: sanitize(formData.lastName.trim()),
@@ -365,6 +368,8 @@ export default function MagazineCustomerDetails() {
               />
             </div>
           </motion.div>
+
+          <QuestionnaireFields look={magazineLook(theme)} className="mt-10" />
 
           {/* Privacy consent */}
           <motion.div variants={itemVariants} className="mt-8 flex items-start gap-3">

@@ -10,6 +10,9 @@ import { AddOnSelector } from '@/components/shared/AddOnSelector';
 import { contactFieldAttrs, type ContactField } from '@/lib/booking/fieldAttrs';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import { t } from '../../i18n';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { elegantLook } from '@/components/shared/request/looks';
 
 interface FormErrors {
   firstName?: string;
@@ -124,7 +127,7 @@ export default function ElegantCustomerDetails() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const fd = {
       ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
@@ -395,6 +398,8 @@ export default function ElegantCustomerDetails() {
           autoComplete="off"
           style={{ position: 'absolute', left: '-9999px' }}
         />
+
+        <QuestionnaireFields look={elegantLook(theme)} className="pt-2" />
 
         {/* Checkboxes */}
         <div className="space-y-3">

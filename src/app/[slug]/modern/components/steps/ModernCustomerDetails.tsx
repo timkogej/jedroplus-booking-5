@@ -13,6 +13,9 @@ import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import ModernButton from '../ModernButton';
 import { MODERN_BG, SPRING } from '../brand';
 import { FONT, GLASS, SectionLabel, Title, itemVariants, listVariants } from '../ui';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { modernLook } from '@/components/shared/request/looks';
 
 interface FormErrors {
   firstName?: string;
@@ -96,7 +99,7 @@ export default function ModernCustomerDetails() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const fd = {
       ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
@@ -266,6 +269,8 @@ export default function ModernCustomerDetails() {
         autoComplete="off"
         style={{ position: 'absolute', left: '-9999px' }}
       />
+
+      <QuestionnaireFields look={modernLook(theme)} className="pt-2" />
 
       {/* Consents */}
       <motion.div variants={itemVariants} className="overflow-hidden" style={{ ...GLASS, borderRadius: 22 }}>
