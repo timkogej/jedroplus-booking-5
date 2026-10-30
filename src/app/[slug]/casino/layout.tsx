@@ -1,15 +1,8 @@
 import { redirect } from 'next/navigation';
 import { proDesignsAllowed } from '@/lib/plan.server';
-import { Playfair_Display, Cormorant_Garamond, Oswald } from 'next/font/google';
+import { Cormorant_Garamond, Oswald } from 'next/font/google';
+import '@/styles/playfair.css';
 import './styles/casino.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '700', '900'],
-  style: ['normal', 'italic'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin', 'latin-ext'],
@@ -41,7 +34,7 @@ export default async function CasinoRootLayout({
   }
 
   return (
-    <div className={`${playfair.variable} ${cormorant.variable} ${oswald.variable}`}>
+    <div className={`${cormorant.variable} ${oswald.variable}`}>
       {children}
     </div>
   );
