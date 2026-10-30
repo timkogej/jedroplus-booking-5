@@ -1,7 +1,8 @@
 'use client';
 
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useBookingStore } from '@/store/bookingStore';
+import { SPRING } from './brand';
 
 interface ModernCardProps {
   children: React.ReactNode;
@@ -10,61 +11,69 @@ interface ModernCardProps {
   className?: string;
 }
 
+/**
+ * Dark glass card. A soft brand-coloured light follows the pointer, and a
+ * selected card gets a slowly rotating gradient rim.
+ */
 export default function ModernCard({ children, selected, onClick, className = '' }: ModernCardProps) {
-  const { theme } = useBookingStore();
+  const ref = useRef<HTMLButtonElement>(null);
+
+  const onMove = (e: React.PointerEvent) => {
+    const el = ref.current;
+    if (!el || e.pointerType !== 'mouse') return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  };
 
   return (
     <motion.button
+      ref={ref}
       onClick={onClick}
-      className={`relative w-full p-5 rounded-2xl text-left modern-glass overflow-hidden ${className}`}
+      onPointerMove={onMove}
+      aria-pressed={selected}
+      className={`group relative w-full overflow-hidden rounded-[22px] p-5 text-left ${className}`}
       style={{
-        backgroundColor: selected ? `${theme.primaryColor}18` : 'var(--s2)',
-        border: selected
-          ? `2px solid ${theme.primarySolid}`
-          : '1px solid var(--b2)',
+        background: selected
+          ? 'linear-gradient(160deg, color-mix(in srgb, var(--brand-a) 22%, transparent), rgba(255,255,255,0.05))'
+          : 'rgba(255,255,255,0.045)',
         boxShadow: selected
-          ? `0 8px 32px ${theme.primaryColor}20`
-          : '0 2px 12px rgba(0,0,0,0.06)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+          ? '0 18px 40px -18px var(--brand-a), inset 0 1px 0 rgba(255,255,255,0.08)'
+          : 'inset 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        transition: 'background 0.3s, box-shadow 0.3s',
       }}
-      whileHover={{
-        scale: 1.015,
-        backgroundColor: selected ? `${theme.primaryColor}22` : 'var(--s2h)',
-        boxShadow: selected
-          ? `0 12px 40px ${theme.primaryColor}28`
-          : '0 8px 28px rgba(0,0,0,0.1)',
-      }}
+      whileHover={{ y: -2 }}
       whileTap={{ scale: 0.985 }}
-      transition={{ duration: 0.15 }}
+      transition={SPRING}
     >
-      {/* Shimmer on hover */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
+      {/* pointer light */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background: `linear-gradient(105deg, transparent 35%, ${theme.primaryColor}0a 50%, transparent 65%)`,
-          backgroundSize: '200% 100%',
+          background:
+            'radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--brand-glow) 18%, transparent), transparent 70%)',
         }}
-        initial={{ backgroundPosition: '-100% 0' }}
-        whileHover={{ backgroundPosition: '200% 0' }}
-        transition={{ duration: 0.7, ease: 'easeInOut' as const }}
       />
+      {selected && <span aria-hidden="true" className="modern-ring" style={{ ['--ring-a' as string]: 'var(--brand-glow)', ['--ring-b' as string]: 'var(--brand-glow2)' }} />}
 
-      {children}
+      <span className="relative block">{children}</span>
 
       {/* Selection checkmark */}
       {selected && (
-        <motion.div
-          className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: theme.primarySolid }}
+        <motion.span
+          className="absolute right-3.5 top-3.5 flex h-6 w-6 items-center justify-center rounded-full"
+          style={{ background: 'var(--brand-grad)', boxShadow: '0 4px 12px -2px var(--brand-a)' }}
           initial={{ scale: 0, rotate: -45 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 500, damping: 22 }}
         >
-          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M5 13l4 4L19 7" />
           </svg>
-        </motion.div>
+        </motion.span>
       )}
     </motion.button>
   );

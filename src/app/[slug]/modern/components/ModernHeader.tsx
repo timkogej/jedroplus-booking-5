@@ -1,24 +1,20 @@
 'use client';
-import { REQUEST_TEXT, isRequestMode } from '@/lib/booking/request';
 
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import CompanyLogo from '@/components/shared/CompanyLogo';
 import { useBookingStore } from '@/store/bookingStore';
 import type { SupportedLanguage } from '@/types';
+import { t, type TranslationKey } from '../i18n';
+import { EASE, SPRING } from './brand';
 
-// Visual step definitions — maps to store step ranges
-const ALL_STEPS = [
-  { label: 'Storitev', storeStep: 1 }, // store steps 1, 2
-  { label: 'Specialist', storeStep: 3 },
-  { label: 'Datum', storeStep: 4 },
-  { label: 'Podatki', storeStep: 5 },
-  { label: 'Potrditev', storeStep: 6 }, // store steps 6, 7
+// Visual steps and the store step each one starts at.
+const ALL_STEPS: Array<{ key: TranslationKey; storeStep: number }> = [
+  { key: 'stepService', storeStep: 1 }, // store steps 1, 2
+  { key: 'stepPerson', storeStep: 3 },
+  { key: 'stepAppointment', storeStep: 4 }, // "Želja" in request mode
+  { key: 'stepDetails', storeStep: 5 },
+  { key: 'stepConfirm', storeStep: 6 }, // store steps 6, 7
 ];
-
-/** In request mode the date step is the client's wish, not a booked time. */
-function labelOf(step: { label: string; storeStep: number }): string {
-  return step.storeStep === 4 && isRequestMode() ? REQUEST_TEXT.sl.stepLabel : step.label;
-}
 
 /** Index of the last shown step that the store step has reached. */
 function storeToVisualIdx(steps: typeof ALL_STEPS, storeStep: number): number {
@@ -36,11 +32,10 @@ function LanguageToggle({
   language: SupportedLanguage;
   onToggle: (l: SupportedLanguage) => void;
 }) {
-  const { theme } = useBookingStore();
   return (
     <div
-      className="flex rounded-lg overflow-hidden flex-shrink-0"
-      style={{ border: '1px solid var(--b2)' }}
+      className="relative flex flex-shrink-0 rounded-full p-[3px]"
+      style={{ background: 'rgba(255,255,255,0.07)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
     >
       {(['sl', 'en'] as SupportedLanguage[]).map((lang) => {
         const isActive = language === lang;
@@ -48,14 +43,23 @@ function LanguageToggle({
           <button
             key={lang}
             onClick={() => onToggle(lang)}
-            className="px-2.5 py-1 text-xs font-semibold uppercase transition-all"
+            aria-pressed={isActive}
+            className="relative z-10 h-7 w-10 text-[12px] font-bold uppercase"
             style={{
               fontFamily: 'var(--font-inter)',
-              background: isActive ? theme.primarySolid : 'transparent',
-              color: isActive ? '#ffffff' : 'var(--t-faint)',
+              color: isActive ? '#FFFFFF' : 'var(--t-faint)',
               letterSpacing: '0.06em',
+              transition: 'color 0.2s',
             }}
           >
+            {isActive && (
+              <motion.span
+                layoutId="modern-lang"
+                className="absolute inset-0 -z-10 rounded-full"
+                style={{ background: 'var(--brand-grad)', boxShadow: '0 4px 14px -4px var(--brand-a)' }}
+                transition={SPRING}
+              />
+            )}
             {lang}
           </button>
         );
@@ -72,179 +76,118 @@ interface Props {
 }
 
 export default function ModernHeader({ currentStep, isSuccess, canGoBack, onBack }: Props) {
-  const { company, theme, language, setLanguage, prikazZaposlenih } = useBookingStore();
+  const { company, language, setLanguage, prikazZaposlenih } = useBookingStore();
   // The specialist step is skipped when the company hides employees online.
   const STEPS = ALL_STEPS.filter((s) => prikazZaposlenih || s.storeStep !== 3);
-
   const visualIdx = isSuccess ? STEPS.length - 1 : storeToVisualIdx(STEPS, currentStep);
-
-  // Center each dot: dot at index i is centered at (2i+1) / (2*N) of total width.
-  // For N=5 dots: 10%, 30%, 50%, 70%, 90%.
-  // Progress line should reach exactly that dot's center.
-  const progressPercent = isSuccess
-    ? 100
-    : ((2 * visualIdx + 1) * 100) / (2 * STEPS.length);
+  const activeLabel = STEPS[visualIdx] ? t(language, STEPS[visualIdx].key) : '';
 
   return (
-    <header className="relative z-20 flex-shrink-0 pt-8 pb-0 px-4">
-      <div className="max-w-2xl mx-auto">
-
-        {/* ── Company name + language toggle ── */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' as const }}
-          className="flex items-start gap-4 mb-6"
-        >
-          {/* Spacer to balance language toggle on right */}
-          <div className="flex-shrink-0" style={{ width: 56 }} />
-
-          <div className="flex-1 min-w-0 text-center">
-            <h1
-              className="leading-none"
-              style={{
-                fontFamily: 'var(--font-clash)',
-                fontWeight: 400,
-                fontSize: 'clamp(1.875rem, 4.5vw, 3rem)',
-                letterSpacing: '-0.02em',
-                color: 'var(--t-primary)',
-              }}
-            >
-              <CompanyLogo name={company?.naziv ?? 'Rezervacije'} logoUrl={company?.logo_url} variant="dark" />
-            </h1>
-            <p
-              className="mt-1.5 text-sm"
-              style={{ fontFamily: 'var(--font-inter)', color: 'var(--t-faint)' }}
-            >
-              {company?.panoga ?? 'Spletna rezervacija'}
-              {' · '}
-              {new Date().getFullYear()}
-            </p>
+    <header
+      className="sticky top-0 z-30 flex-shrink-0"
+      style={{
+        background: 'linear-gradient(180deg, rgba(7,7,11,0.82), rgba(7,7,11,0.55))',
+        backdropFilter: 'saturate(160%) blur(22px)',
+        WebkitBackdropFilter: 'saturate(160%) blur(22px)',
+        boxShadow: '0 1px 0 rgba(255,255,255,0.06)',
+      }}
+    >
+      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+        {/* ── Back · company · language ── */}
+        <div className="flex h-16 items-center gap-3">
+          <div className="flex w-[92px] flex-shrink-0 items-center">
+            <AnimatePresence initial={false}>
+              {canGoBack && (
+                <motion.button
+                  key="back"
+                  onClick={onBack}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.25, ease: EASE }}
+                  whileTap={{ scale: 0.92 }}
+                  aria-label={t(language, 'back')}
+                  className="flex h-9 items-center gap-1.5 rounded-full pl-2.5 pr-3.5 text-[14px] font-semibold"
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    color: 'var(--t-soft)',
+                    background: 'rgba(255,255,255,0.07)',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+                  }}
+                >
+                  <svg width="8" height="13" viewBox="0 0 8 14" fill="none" aria-hidden="true">
+                    <path d="M7 1L1 7l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {t(language, 'back')}
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Language toggle */}
-          <div className="flex-shrink-0 mt-1">
+          <motion.h1
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="min-w-0 flex-1 truncate text-center text-[17px] font-bold"
+            style={{ fontFamily: 'var(--font-clash)', color: 'var(--t-primary)', letterSpacing: '-0.02em' }}
+          >
+            <CompanyLogo name={company?.naziv ?? 'Rezervacije'} logoUrl={company?.logo_url} variant="dark" />
+          </motion.h1>
+
+          <div className="flex w-[92px] flex-shrink-0 justify-end">
             <LanguageToggle language={language} onToggle={setLanguage} />
           </div>
-        </motion.div>
-
-        {/* ── Progress steps ── */}
-        {!isSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.4 }}
-          >
-            {/* Desktop: step labels + dots */}
-            <div className="hidden sm:flex items-end justify-between mb-2 px-1">
-              {STEPS.map((step, i) => {
-                const isDone = i < visualIdx;
-                const isActive = i === visualIdx;
-
-                return (
-                  <div
-                    key={i}
-                    className="flex flex-col items-center gap-1.5"
-                    style={{ minWidth: 0, flex: 1 }}
-                  >
-                    <span
-                      className="text-center leading-tight"
-                      style={{
-                        fontFamily: 'var(--font-inter)',
-                        fontSize: '0.6rem',
-                        letterSpacing: '0.06em',
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive
-                          ? 'var(--t-primary)'
-                          : isDone
-                          ? 'var(--t-muted)'
-                          : 'var(--t-faint)',
-                        transition: 'color 0.3s',
-                      }}
-                    >
-                      {labelOf(step)}
-                    </span>
-
-                    {/* Dot */}
-                    <motion.div
-                      className="w-2 h-2 rounded-full"
-                      animate={{
-                        backgroundColor:
-                          isDone || isActive ? theme.primarySolid : 'var(--b2)',
-                        scale: isActive ? 1.4 : 1,
-                        boxShadow: isActive
-                          ? `0 0 8px ${theme.primaryColor}80`
-                          : 'none',
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Mobile: current step label + back */}
-            <div className="flex sm:hidden items-center justify-between mb-2 px-1">
-              {canGoBack ? (
-                <motion.button
-                  onClick={onBack}
-                  whileTap={{ scale: 0.92 }}
-                  className="flex items-center gap-1 text-xs"
-                  style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Nazaj
-                </motion.button>
-              ) : (
-                <div />
-              )}
-              <p
-                className="text-xs font-medium"
-                style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
-              >
-                {STEPS[visualIdx] ? labelOf(STEPS[visualIdx]) : ''} · {visualIdx + 1}/{STEPS.length}
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ── Progress line — line reaches center of active dot ── */}
-        <div
-          className="h-px overflow-hidden"
-          style={{ backgroundColor: 'var(--b1)' }}
-        >
-          <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: theme.primarySolid }}
-            initial={{ width: '0%' }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{
-              duration: 0.6,
-              ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
-            }}
-          />
         </div>
 
-        {/* Desktop back button */}
-        {canGoBack && (
-          <motion.button
-            onClick={onBack}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            whileHover={{ x: -3 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden sm:flex items-center gap-1.5 text-xs mt-3"
-            style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Nazaj
-          </motion.button>
-        )}
-
+        {/* ── Progress: glowing gradient segments ── */}
+        <AnimatePresence initial={false}>
+          {!isSuccess && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <div className="pb-3.5">
+                <div className="flex gap-1.5">
+                  {STEPS.map((step, i) => {
+                    const fill = i < visualIdx ? 1 : i === visualIdx ? 0.55 : 0;
+                    return (
+                      <div key={step.key} className="relative h-[3px] flex-1 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.09)' }}>
+                        <motion.div
+                          className="absolute inset-y-0 left-0 rounded-full"
+                          style={{ background: 'var(--brand-grad)', boxShadow: '0 0 10px var(--brand-glow)' }}
+                          initial={false}
+                          animate={{ width: `${fill * 100}%` }}
+                          transition={{ duration: 0.6, ease: EASE }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.p
+                      key={activeLabel}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-[12px] font-semibold"
+                      style={{ fontFamily: 'var(--font-inter)', color: 'var(--t-soft)' }}
+                    >
+                      {activeLabel}
+                    </motion.p>
+                  </AnimatePresence>
+                  <p className="text-[12px] font-medium tabular-nums" style={{ fontFamily: 'var(--font-inter)', color: 'var(--t-faint)' }}>
+                    {t(language, 'stepOf').replace('{n}', String(visualIdx + 1)).replace('{m}', String(STEPS.length))}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );

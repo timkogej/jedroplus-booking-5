@@ -5,6 +5,7 @@ import { useBookingStore } from '@/store/bookingStore';
 import { EmployeeUI } from '@/types';
 import ModernCard from '../ModernCard';
 import { t } from '../../i18n';
+import { Avatar, FONT, Title, listVariants } from '../ui';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -21,24 +22,24 @@ const itemVariants: Variants = {
 };
 
 function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
-  const { theme, anyPerson, language } = useBookingStore();
+  const { anyPerson, language } = useBookingStore();
 
   return (
-    <motion.div variants={itemVariants}>
+    <motion.div variants={itemVariants} className="sm:col-span-2">
       <ModernCard selected={anyPerson} onClick={onSelect}>
         <div className="flex items-center gap-4">
           <motion.div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              backgroundColor: anyPerson ? `${theme.primaryColor}22` : 'var(--s1)',
-              border: `1px solid ${anyPerson ? theme.primarySolid : 'var(--b1)'}`,
+              background: anyPerson ? 'var(--brand-grad)' : 'rgba(255,255,255,0.07)',
+              boxShadow: anyPerson ? '0 8px 20px -8px var(--brand-a)' : 'inset 0 0 0 1px rgba(255,255,255,0.1)',
             }}
             animate={anyPerson ? { rotate: [0, 8, -8, 0] } : {}}
             transition={{ duration: 0.5 }}
           >
             <svg
               className="w-6 h-6"
-              style={{ color: anyPerson ? 'var(--t-accent)' : 'var(--t-muted)' }}
+              style={{ color: anyPerson ? '#FFFFFF' : 'var(--t-soft)' }}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -50,8 +51,8 @@ function AnyEmployeeCard({ onSelect }: { onSelect: () => void }) {
 
           <div className="flex-1 min-w-0 text-left">
             <p
-              className="font-semibold"
-              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)', fontSize: '0.975rem' }}
+              className="font-bold"
+              style={{ color: 'var(--t-primary)', fontFamily: FONT, fontSize: '1.0625rem', letterSpacing: '-0.015em' }}
             >
               {t(language, 'anyone')}
             </p>
@@ -72,7 +73,7 @@ function EmployeeCard({
   employee: EmployeeUI;
   onSelect: (id: string) => void;
 }) {
-  const { theme, selectedEmployeeId, anyPerson } = useBookingStore();
+  const { selectedEmployeeId, anyPerson } = useBookingStore();
   const isSelected = !anyPerson && selectedEmployeeId === employee.id;
 
   return (
@@ -81,18 +82,13 @@ function EmployeeCard({
         <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
-            <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base"
-              style={{ backgroundColor: theme.primarySolid, fontFamily: 'var(--font-inter)' }}
-            >
-              {employee.initials}
-            </div>
+            <Avatar initials={employee.initials} size={48} />
             {/* Pulse ring when selected — slowed to 3 s cycle for a calm feel */}
             <AnimatePresence>
               {isSelected && (
                 <motion.div
                   className="absolute inset-0 rounded-full"
-                  style={{ border: `2px solid ${theme.primarySolid}` }}
+                  style={{ border: '2px solid var(--brand-glow)' }}
                   initial={{ scale: 1, opacity: 0.7 }}
                   animate={{ scale: 1.55, opacity: 0 }}
                   exit={{ opacity: 0 }}
@@ -108,8 +104,8 @@ function EmployeeCard({
 
           <div className="flex-1 min-w-0 text-left">
             <p
-              className="font-semibold"
-              style={{ color: 'var(--t-primary)', fontFamily: 'var(--font-inter)', fontSize: '0.975rem' }}
+              className="font-bold"
+              style={{ color: 'var(--t-primary)', fontFamily: FONT, fontSize: '1.0625rem', letterSpacing: '-0.015em' }}
             >
               {employee.label}
             </p>
@@ -143,45 +139,24 @@ export default function ModernEmployeeSelection() {
 
   return (
     <div>
-      {/* Heading */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-8"
-      >
-        <h2
-          className="mb-2"
-          style={{
-            color: 'var(--t-primary)',
-            fontFamily: 'var(--font-clash)',
-            fontWeight: 400,
-            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
-            letterSpacing: '-0.015em',
-            lineHeight: 1.1,
-          }}
-        >
-          {t(language, 'choosePerson')}
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          {t(language, 'whoPerson')}
-        </p>
+      <motion.div variants={listVariants} initial="hidden" animate="visible">
+        <Title title={t(language, 'choosePerson')} subtitle={t(language, 'whoPerson')} />
       </motion.div>
 
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-3"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
       >
         <AnyEmployeeCard onSelect={() => selectEmployee(null, true)} />
 
         {filteredEmployees.length > 0 && (
           <>
-            <motion.div variants={itemVariants} className="flex items-center gap-3 my-2">
+            <motion.div variants={itemVariants} className="my-2 flex items-center gap-3 sm:col-span-2">
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
-              <span className="text-xs" style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}>
-                {t(language, 'orChoosePerson')}
+              <span className="text-[12px] font-bold uppercase" style={{ color: 'var(--t-faint)', fontFamily: FONT, letterSpacing: '0.12em' }}>
+                {t(language, 'orChoosePerson').replace(/:$/, '')}
               </span>
               <div className="flex-1 h-px" style={{ backgroundColor: 'var(--b1)' }} />
             </motion.div>

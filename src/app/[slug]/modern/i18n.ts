@@ -4,7 +4,9 @@ import type { SupportedLanguage } from '@/types';
 export const translations = {
   sl: {
     // Nav
-    back: '← Nazaj',
+    back: 'Nazaj',
+    stepConfirm: 'Potrditev',
+    stepOf: '{n} od {m}',
     next: 'Naprej',
     // Step labels (stepper)
     stepService: 'Storitev',
@@ -68,6 +70,14 @@ export const translations = {
     privacyRequired: 'Strinjanje s pogoji je obvezno',
     // Confirmation (review)
     reviewBooking: 'Pregled rezervacije',
+    almostDone: 'Skoraj končano',
+    discount: 'Popust',
+    willSendTo: 'Potrditev bomo poslali na {email}.',
+    statusConfirmed: 'Potrjeno',
+    thanksName: 'Hvala, {name}',
+    seeYou: 'Se vidimo {date} ob {time}.',
+    contactLabel: 'Kontakt',
+    booked: 'Rezervirano.',
     checkDetails: 'Preverite podatke pred potrditvijo',
     confirmBooking: 'Potrdite rezervacijo',
     confirmingSending: 'Pošiljam rezervacijo…',
@@ -108,7 +118,9 @@ export const translations = {
     language: 'Jezik',
   },
   en: {
-    back: '← Back',
+    back: 'Back',
+    stepConfirm: 'Confirm',
+    stepOf: '{n} of {m}',
     next: 'Continue',
     stepService: 'Service',
     stepPerson: 'Person',
@@ -164,6 +176,14 @@ export const translations = {
     genderRequired: 'Please select a salutation',
     privacyRequired: 'You must agree to the privacy policy',
     reviewBooking: 'Review booking',
+    almostDone: 'Almost done',
+    discount: 'Discount',
+    willSendTo: 'We will send the confirmation to {email}.',
+    statusConfirmed: 'Confirmed',
+    thanksName: 'Thank you, {name}',
+    seeYou: 'See you on {date} at {time}.',
+    contactLabel: 'Contact',
+    booked: 'You’re booked.',
     checkDetails: 'Please review your details before confirming',
     confirmBooking: 'Confirm booking',
     confirmingSending: 'Submitting booking…',

@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
-import { Theme } from '@/types';
-import { isLightBackground } from '@/lib/color';
+import { MODERN_BG, MODERN_VARS, brandOf, EASE } from './brand';
 import ModernHeader from './ModernHeader';
 import ModernServiceSelection from './steps/ModernServiceSelection';
 import ModernEmployeeSelection from './steps/ModernEmployeeSelection';
@@ -17,81 +16,19 @@ import RequestReview from '@/components/shared/request/RequestReview';
 import { useRequestStore } from '@/lib/booking/request';
 import { modernLook } from '@/components/shared/request/looks';
 
-interface CssVars {
-  '--t-primary': string;
-  '--t-soft': string;
-  '--t-muted': string;
-  '--t-faint': string;
-  '--t-disabled': string;
-  '--s1': string;
-  '--s2': string;
-  '--s2h': string;
-  '--s3': string;
-  '--b1': string;
-  '--b2': string;
-  '--b3': string;
-  '--header-bg': string;
-  '--nav-bg': string;
-  /** Company colour for text, readable on this background. */
-  '--t-accent': string;
-}
-
-function computeCssVars(theme: Theme): CssVars {
-  const isBgLight = isLightBackground(theme.bgFrom, theme.bgTo);
-
-  if (isBgLight) {
-    return {
-      '--t-primary': '#0f172a',
-      '--t-soft': 'rgba(15, 23, 42, 0.75)',
-      '--t-muted': 'rgba(15, 23, 42, 0.55)',
-      '--t-faint': 'rgba(15, 23, 42, 0.4)',
-      '--t-disabled': 'rgba(15, 23, 42, 0.22)',
-      '--s1': 'rgba(0, 0, 0, 0.04)',
-      '--s2': 'rgba(0, 0, 0, 0.07)',
-      '--s2h': 'rgba(0, 0, 0, 0.1)',
-      '--s3': 'rgba(0, 0, 0, 0.13)',
-      '--b1': 'rgba(0, 0, 0, 0.08)',
-      '--b2': 'rgba(0, 0, 0, 0.12)',
-      '--b3': 'rgba(0, 0, 0, 0.18)',
-      '--header-bg': 'rgba(255, 255, 255, 0.75)',
-      '--nav-bg': 'rgba(255, 255, 255, 0.85)',
-      '--t-accent': theme.primarySolid,
-    };
-  } else {
-    return {
-      '--t-primary': '#ffffff',
-      '--t-soft': 'rgba(255, 255, 255, 0.8)',
-      '--t-muted': 'rgba(255, 255, 255, 0.6)',
-      '--t-faint': 'rgba(255, 255, 255, 0.45)',
-      '--t-disabled': 'rgba(255, 255, 255, 0.22)',
-      '--s1': 'rgba(255, 255, 255, 0.05)',
-      '--s2': 'rgba(255, 255, 255, 0.1)',
-      '--s2h': 'rgba(255, 255, 255, 0.15)',
-      '--s3': 'rgba(255, 255, 255, 0.2)',
-      '--b1': 'rgba(255, 255, 255, 0.08)',
-      '--b2': 'rgba(255, 255, 255, 0.12)',
-      '--b3': 'rgba(255, 255, 255, 0.18)',
-      '--header-bg': 'rgba(0, 0, 0, 0.05)',
-      '--nav-bg': 'rgba(0, 0, 0, 0.1)',
-      '--t-accent': theme.primaryOnDark,
-    };
-  }
-}
-
 const pageVariants: Variants = {
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 18, scale: 0.985 },
   animate: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.22,
-      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
-    },
+    scale: 1,
+    transition: { duration: 0.5, ease: EASE },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    transition: { duration: 0.15 },
+    y: -10,
+    scale: 0.99,
+    transition: { duration: 0.18, ease: 'easeIn' as const },
   },
 };
 
@@ -107,7 +44,19 @@ export default function ModernLayout({ companySlug }: Props) {
     bookingConfirmation,
   } = useBookingStore();
 
-  const cssVars = useMemo(() => computeCssVars(theme), [theme]);
+  const brand = useMemo(() => brandOf(theme), [theme]);
+  const cssVars = useMemo(
+    () => ({
+      ...MODERN_VARS,
+      '--t-accent': brand.glow,
+      '--brand-a': brand.a,
+      '--brand-b': brand.b,
+      '--brand-glow': brand.glow,
+      '--brand-glow2': brand.glow2,
+      '--brand-grad': brand.gradient,
+    }),
+    [brand],
+  );
 
   // A sent request counts as finished too: no stepper or back link.
   const requestSent = useRequestStore((st) => st.sent);
@@ -147,38 +96,35 @@ export default function ModernLayout({ companySlug }: Props) {
 
   return (
     <div
-      className="min-h-screen relative overflow-clip"
+      className="relative min-h-screen overflow-clip"
       style={{
-        background: `linear-gradient(135deg, ${theme.bgFrom}, ${theme.bgTo})`,
+        background: MODERN_BG,
         ...(cssVars as React.CSSProperties),
         fontFamily: 'var(--font-inter)',
+        color: 'var(--t-primary)',
       }}
     >
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Moving light in the company colours */}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
         <div
-          className="modern-orb-1 absolute w-[600px] h-[600px] blur-3xl"
-          style={{
-            backgroundColor: theme.primaryColor,
-            opacity: 0.25,
-            top: '-20%',
-            left: '-10%',
-          }}
+          className="modern-aurora-a absolute -left-[20%] -top-[25%] h-[75vh] w-[75vh] rounded-full"
+          style={{ background: `radial-gradient(closest-side, ${theme.primaryColor}, transparent)`, opacity: 0.42, filter: 'blur(40px)' }}
         />
         <div
-          className="modern-orb-2 absolute w-[450px] h-[450px] blur-3xl"
-          style={{
-            backgroundColor: theme.secondaryColor,
-            opacity: 0.18,
-            bottom: '-15%',
-            right: '-5%',
-          }}
+          className="modern-aurora-b absolute -right-[25%] top-[10%] h-[70vh] w-[70vh] rounded-full"
+          style={{ background: `radial-gradient(closest-side, ${brand.glow2}, transparent)`, opacity: 0.32, filter: 'blur(50px)' }}
         />
+        <div
+          className="modern-aurora-c absolute -bottom-[30%] left-[15%] h-[60vh] w-[90vh] rounded-full"
+          style={{ background: `radial-gradient(closest-side, ${brand.glow}, transparent)`, opacity: 0.22, filter: 'blur(60px)' }}
+        />
+        {/* darken the lower page so content stays readable */}
+        <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, transparent 0%, ${MODERN_BG}80 60%, ${MODERN_BG}E6 100%)` }} />
+        <div className="modern-grain absolute inset-0" />
       </div>
 
       {/* Content layer */}
-      <div className="relative z-10 flex flex-col min-h-screen">
-
+      <div className="relative z-10 flex min-h-screen flex-col">
         <ModernHeader
           currentStep={isSuccess ? 6 : currentStep}
           isSuccess={isSuccess}
@@ -186,8 +132,8 @@ export default function ModernLayout({ companySlug }: Props) {
           onBack={prevStep}
         />
 
-        <main className="flex-1 overflow-x-clip py-8 px-4">
-          <div className="max-w-2xl mx-auto">
+        <main className="flex-1 overflow-x-clip px-4 pb-16 pt-8 sm:px-6">
+          <div className="mx-auto max-w-2xl">
             <AnimatePresence mode="wait">
               <motion.div
                 key={stepKey}
@@ -202,15 +148,17 @@ export default function ModernLayout({ companySlug }: Props) {
           </div>
         </main>
 
-        <footer className="py-4 text-center flex-shrink-0">
-          <p
-            className="text-xs"
+        <footer className="flex-shrink-0 py-6 text-center">
+          <a
+            href="https://jedroplus.si"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[12px] font-medium transition-opacity hover:opacity-80"
             style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
           >
-            © {new Date().getFullYear()} · Jedro+ · Rezervacijski Sistem
-          </p>
+            Powered by <span style={{ color: 'var(--t-muted)' }}>Jedro+</span>
+          </a>
         </footer>
-
       </div>
     </div>
   );

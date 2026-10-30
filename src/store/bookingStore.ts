@@ -546,3 +546,16 @@ export const useBookingStore = create<BookingState>((set, get) => {
     },
   };
 });
+
+// Every new step (and the final screen) starts at the top of the page, in all
+// designs. Without this the browser keeps the old scroll position, so a long
+// list leaves the client at the bottom of the next step.
+if (typeof window !== 'undefined') {
+  useBookingStore.subscribe((state, prev) => {
+    const stepChanged = state.currentStep !== prev.currentStep;
+    const finished = !!state.bookingConfirmation?.success && !prev.bookingConfirmation?.success;
+    if (stepChanged || finished) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    }
+  });
+}

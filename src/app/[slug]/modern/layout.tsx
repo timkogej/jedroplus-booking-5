@@ -1,10 +1,11 @@
-import { Inter } from 'next/font/google';
+import { Manrope } from 'next/font/google';
 import './styles/modern.css';
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
+// Manrope: geometric and calm, reads well light-on-dark.
+const manrope = Manrope({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
   display: 'swap',
 });
 
@@ -13,17 +14,7 @@ export default function ModernRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {/* Clash Display — premium heading font from Fontshare (not on Google Fonts) */}
-      <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
-      <link
-        rel="stylesheet"
-        href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap"
-      />
-      <div className={inter.variable}>
-        {children}
-      </div>
-    </>
-  );
+  // Older and shared parts read --font-inter / --font-clash; modern.css points
+  // both at Manrope.
+  return <div className={`${manrope.variable} modern-root`}>{children}</div>;
 }

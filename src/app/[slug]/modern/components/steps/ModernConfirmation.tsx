@@ -1,75 +1,126 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { sl } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
-import { usePromotionsStore } from '@/store/promotionsStore';
-import {
-  formatBookingPrice,
-  getBookingPricing,
-  resolvePrimaryPromotion,
-} from '@/lib/pricing';
 import { t } from '../../i18n';
 import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
-
+import { stickyCtaStyle } from '@/lib/booking/stickyCta';
+import ModernButton from '../ModernButton';
+import ModernTicket from '../ModernTicket';
+import { EASE, MODERN_BG, SPRING } from '../brand';
+import { ErrorNote, FONT, GLASS, SectionLabel, Title, dateLocale, itemVariants, listVariants } from '../ui';
 
 interface Props {
   companySlug?: string;
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}min` : `${h}h`;
+// "v četrtek, 29. oktobra" / "Thursday, October 29": as said in a sentence.
+const SL_DAYS = ['v nedeljo', 'v ponedeljek', 'v torek', 'v sredo', 'v četrtek', 'v petek', 'v soboto'];
+const SL_MONTHS = ['januarja', 'februarja', 'marca', 'aprila', 'maja', 'junija', 'julija', 'avgusta', 'septembra', 'oktobra', 'novembra', 'decembra'];
+function spokenDate(d: Date, language: string): string {
+  if (language === 'en') return format(d, 'EEEE, MMMM d', { locale: dateLocale('en') });
+  return `${SL_DAYS[d.getDay()]}, ${d.getDate()}. ${SL_MONTHS[d.getMonth()]}`;
 }
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, ease: 'easeOut' as const },
-  },
-};
+// ── Light burst: brand-coloured sparks flying out of the mark ───────────────
+function Burst() {
+  const [sparks] = useState(() =>
+    Array.from({ length: 22 }, (_, i) => {
+      const angle = (i / 22) * Math.PI * 2 + Math.random() * 0.3;
+      const dist = 90 + Math.random() * 90;
+      return { id: i, x: Math.cos(angle) * dist, y: Math.sin(angle) * dist, size: 3 + Math.random() * 4, alt: i % 3 === 0, delay: Math.random() * 0.12 };
+    }),
+  );
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-1/2" aria-hidden="true">
+      {sparks.map((p) => (
+        <motion.span
+          key={p.id}
+          className="absolute rounded-full"
+          style={{
+            width: p.size,
+            height: p.size,
+            marginLeft: -p.size / 2,
+            marginTop: -p.size / 2,
+            background: p.alt ? 'var(--brand-glow2)' : 'var(--brand-glow)',
+            boxShadow: `0 0 ${p.size * 3}px ${p.alt ? 'var(--brand-glow2)' : 'var(--brand-glow)'}`,
+          }}
+          initial={{ x: 0, y: 0, opacity: 0, scale: 0 }}
+          animate={{ x: p.x, y: p.y, opacity: [0, 1, 0], scale: [0, 1.2, 0.6] }}
+          transition={{ duration: 1.3, delay: 0.55 + p.delay, ease: [0.16, 1, 0.3, 1] }}
+        />
+      ))}
+    </div>
+  );
+}
 
-// ── Redesigned success screen ─────────────────────────────────────────────────
+// ── Glowing orb with a rotating gradient rim and a check that draws itself ──
+function SuccessOrb() {
+  return (
+    <div className="relative mx-auto mb-8 h-28 w-28">
+      <motion.span
+        className="absolute -inset-10 rounded-full"
+        style={{ background: 'radial-gradient(closest-side, color-mix(in srgb, var(--brand-glow) 45%, transparent), transparent)' }}
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={{ opacity: [0, 1, 0.7], scale: [0.5, 1.15, 1] }}
+        transition={{ duration: 1.4, delay: 0.2 }}
+      />
+      <motion.div
+        className="absolute inset-0 rounded-full"
+        style={{ background: 'var(--brand-grad)', boxShadow: '0 20px 50px -14px var(--brand-a), inset 0 2px 0 rgba(255,255,255,0.35)' }}
+        initial={{ scale: 0, rotate: -40 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 16, delay: 0.1 }}
+      >
+        <span className="modern-ring" style={{ ['--ring-a' as string]: '#FFFFFF', ['--ring-b' as string]: 'var(--brand-glow2)', inset: -6, padding: 2 }} />
+      </motion.div>
+      <svg viewBox="0 0 112 112" className="absolute inset-0" aria-hidden="true">
+        <motion.path
+          d="M34 58l15 15 30-33"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
+        />
+      </svg>
+      <Burst />
+    </div>
+  );
+}
+
+const ICON_CAL = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="5" width="18" height="16" rx="3" />
+    <path d="M3 10h18M8 3v4M16 3v4M12 13.5v4M10 15.5h4" />
+  </svg>
+);
+const ICON_SHARE = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 3v12M7.5 7.5L12 3l4.5 4.5" />
+    <path d="M5 12v6a3 3 0 003 3h8a3 3 0 003-3v-6" />
+  </svg>
+);
+
+// ── Success screen ────────────────────────────────────────────────────────────
 function SuccessView() {
-  const {
-    bookingConfirmation,
-    selectedServices,
-    selectedService,
-    selectedDate,
-    selectedTime,
-    selectedEmployeeId,
-    anyPerson,
-    employeesUI,
-    customerDetails,
-    theme,
-    language,
-  } = useBookingStore();
-  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
-
+  const { bookingConfirmation, customerDetails, selectedDate, selectedTime, language } = useBookingStore();
   const [copied, setCopied] = useState(false);
-  const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
-  const services =
-    selectedServices.length > 0
-      ? selectedServices
-      : selectedService
-      ? [selectedService]
-      : [];
-
-  const totalDuration = services.reduce((sum, s) => sum + s.trajanjeMin, 0);
-
-  const handleAddToCalendar = () => addBookingToCalendar();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleShare = async () => {
     if ((await shareBooking()) === 'copied') {
@@ -78,282 +129,109 @@ function SuccessView() {
     }
   };
 
-  return (
-    <div className="max-w-md mx-auto">
-      {/* ── Hero — success icon + title ── */}
-      <div className="text-center mb-8">
-        <div className="relative w-24 h-24 mx-auto mb-6">
-          {/* Outer pulse ring */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${theme.primaryColor}40` }}
-            initial={{ scale: 1, opacity: 0.6 }}
-            animate={{ scale: 1.6, opacity: 0 }}
-            transition={{ delay: 0.5, duration: 1.4, repeat: 2 }}
-          />
-          {/* Main ring */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid ${theme.primarySolid}` }}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, type: 'spring', stiffness: 220, damping: 18 }}
-          />
-          {/* Filled circle with checkmark */}
-          <motion.div
-            className="absolute inset-0 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: `${theme.primaryColor}1A` }}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 280, damping: 20 }}
-          >
-            <svg
-              className="w-10 h-10"
-              style={{ color: 'var(--t-accent)' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <motion.path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M5 13l4 4L19 7"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ delay: 0.4, duration: 0.5, ease: 'easeOut' as const }}
-              />
-            </svg>
-          </motion.div>
-        </div>
+  const firstName = customerDetails?.firstName?.trim();
+  const when = selectedDate ? spokenDate(selectedDate, language) : bookingConfirmation?.datum ?? '';
+  const seeYou = t(language, 'seeYou').replace('{date}', when).replace('{time}', selectedTime ?? bookingConfirmation?.cas ?? '');
 
-        <motion.h2
-          initial={{ opacity: 0, y: 12 }}
+  const action = (label: string, icon: React.ReactNode, onClick: () => void) => (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.96 }}
+      transition={SPRING}
+      className="flex h-14 flex-1 items-center justify-center gap-2 rounded-[18px] text-[15px] font-bold"
+      style={{ fontFamily: FONT, color: 'var(--t-primary)', background: 'rgba(255,255,255,0.07)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.1)' }}
+    >
+      <span style={{ color: 'var(--brand-glow)' }}>{icon}</span>
+      {label}
+    </motion.button>
+  );
+
+  return (
+    <div className="relative mx-auto max-w-xl pt-4">
+      <div className="text-center">
+        <SuccessOrb />
+
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.4 }}
-          className="mb-3"
+          transition={{ delay: 0.7, duration: 0.5, ease: EASE }}
+          className="text-[15px] font-bold"
+          style={{ fontFamily: FONT, color: 'var(--brand-glow)' }}
+        >
+          {firstName ? t(language, 'thanksName').replace('{name}', firstName) : t(language, 'bookingConfirmed')}
+        </motion.p>
+        <motion.h2
+          initial={{ opacity: 0, y: 10, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ delay: 0.78, duration: 0.6, ease: EASE }}
+          className="modern-shift-text mt-1 pb-2 text-[44px] font-extrabold leading-[1.05] sm:text-[56px]"
           style={{
-            color: 'var(--t-primary)',
-            fontFamily: 'var(--font-clash)',
-            fontWeight: 400,
-            fontSize: 'clamp(2.25rem, 6vw, 4rem)',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.05,
+            fontFamily: FONT,
+            letterSpacing: '-0.05em',
+            backgroundImage: 'linear-gradient(100deg, #FFFFFF 0%, #FFFFFF 35%, var(--brand-glow) 65%, var(--brand-glow2) 80%, #FFFFFF 100%)',
           }}
         >
-          {t(language, 'bookingConfirmed')}
+          {t(language, 'booked')}
         </motion.h2>
-
-        {selectedDate && selectedTime && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-sm font-semibold first-cap"
-            style={{ color: 'var(--t-accent)', fontFamily: 'var(--font-inter)' }}
-          >
-            {format(selectedDate, 'd. MMMM yyyy', { locale: sl })} ob {selectedTime}
-          </motion.p>
-        )}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.95 }}
+          className="mx-auto mt-3 max-w-sm text-[16px] leading-6"
+          style={{ fontFamily: FONT, color: 'var(--t-muted)' }}
+        >
+          {seeYou}
+        </motion.p>
       </div>
 
-      {/* ── Booking summary card ── */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        className="rounded-2xl overflow-hidden mb-5 modern-glass"
-        style={{
-          backgroundColor: 'var(--s2)',
-          border: '1px solid var(--b2)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
+        initial={{ opacity: 0, y: 30, rotateX: 12 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ delay: 0.85, duration: 0.8, ease: EASE }}
+        className="mt-9"
+        style={{ transformPerspective: 900 }}
       >
-        {/* Gradient accent bar */}
-        <div
-          className="h-1"
-          style={{
-            background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor})`,
-          }}
-        />
-
-        <div className="px-5 py-2">
-          {/* Services */}
-          {services.length > 0 && (
-            <div className="modern-summary-row">
-              <span className="modern-summary-label">{t(language, 'fieldService')}</span>
-              <span className="modern-summary-value" style={{ maxWidth: '65%' }}>
-                {services.map((s) => s.naziv).join(' + ')}
-              </span>
-            </div>
-          )}
-
-          {/* Duration */}
-          {services.length > 0 && (
-            <div className="modern-summary-row">
-              <span className="modern-summary-label">{t(language, 'fieldDuration')}</span>
-              <span className="modern-summary-value">{formatDuration(totalDuration)}</span>
-            </div>
-          )}
-
-          {/* Specialist */}
-          {showEmployee && (anyPerson || selectedEmployee) && (
-            <div className="modern-summary-row">
-              <span className="modern-summary-label">{t(language, 'fieldSpecialist')}</span>
-              <span className="modern-summary-value">
-                {anyPerson ? t(language, 'anyone') : selectedEmployee?.label}
-              </span>
-            </div>
-          )}
-
-          {/* Date */}
-          {bookingConfirmation?.datum && (
-            <div className="modern-summary-row">
-              <span className="modern-summary-label">{t(language, 'fieldDate')}</span>
-              <span className="modern-summary-value first-cap">{bookingConfirmation.datum}</span>
-            </div>
-          )}
-
-          {/* Time */}
-          {bookingConfirmation?.cas && (
-            <div className="modern-summary-row">
-              <span className="modern-summary-label">{t(language, 'fieldTime')}</span>
-              <span
-                className="modern-summary-value font-semibold"
-                style={{ color: 'var(--t-accent)' }}
-              >
-                {bookingConfirmation.cas}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Email confirmation footer */}
-        {customerDetails?.email && (
-          <div
-            className="px-5 py-4 flex items-center gap-3 border-t"
-            style={{
-              borderColor: 'var(--b1)',
-              backgroundColor: `${theme.primaryColor}08`,
-            }}
-          >
-            <svg
-              className="w-4 h-4 flex-shrink-0"
-              style={{ color: 'var(--t-accent)' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M3 8l7.89 4.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            <p
-              className="text-sm"
-              style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}
-            >
-              {t(language, 'emailSent')}{' '}
-              <span className="font-semibold" style={{ color: 'var(--t-soft)' }}>
-                {customerDetails.email}
-              </span>
-            </p>
-          </div>
-        )}
+        <ModernTicket status={t(language, 'statusConfirmed')} dateText={bookingConfirmation?.datum} timeText={bookingConfirmation?.cas} />
       </motion.div>
 
-      {/* ── Actions ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.65 }}
-        className="space-y-3"
-      >
-        <div className="grid grid-cols-2 gap-3">
-          <motion.button
-            onClick={handleAddToCalendar}
-            className="py-3.5 rounded-xl text-sm font-medium modern-glass flex items-center justify-center gap-2"
-            style={{
-              fontFamily: 'var(--font-inter)',
-              backgroundColor: 'var(--s2)',
-              border: '1px solid var(--b2)',
-              color: 'var(--t-soft)',
-            }}
-            whileHover={{ scale: 1.02, backgroundColor: 'var(--s2h)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            {t(language, 'addToCalendar')}
-          </motion.button>
-
-          <motion.button
-            onClick={handleShare}
-            className="py-3.5 rounded-xl text-sm font-medium modern-glass flex items-center justify-center gap-2"
-            style={{
-              fontFamily: 'var(--font-inter)',
-              backgroundColor: 'var(--s2)',
-              border: '1px solid var(--b2)',
-              color: 'var(--t-soft)',
-            }}
-            whileHover={{ scale: 1.02, backgroundColor: 'var(--s2h)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
-            </svg>
-            {copied ? t(language, 'copied') : t(language, 'share')}
-          </motion.button>
-        </div>
-
-        <motion.button
-          onClick={startNewBooking}
-          className="w-full py-4 rounded-2xl text-white font-semibold text-sm relative overflow-hidden"
-          style={{
-            backgroundColor: theme.primarySolid,
-            fontFamily: 'var(--font-inter)',
-            boxShadow: `0 8px 28px ${theme.primaryColor}40`,
-          }}
-          whileHover={{ scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}50` }}
-          whileTap={{ scale: 0.98 }}
+      {customerDetails?.email && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.15 }}
+          className="mx-auto mt-4 max-w-sm text-center text-[14px] leading-5"
+          style={{ fontFamily: FONT, color: 'var(--t-faint)' }}
         >
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-              backgroundSize: '200% 100%',
-            }}
-            animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 2.5 }}
-          />
-          {t(language, 'newBooking')}
-        </motion.button>
+          <svg className="mr-1.5 inline-block align-[-2px]" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="3" />
+            <path d="M4 7l8 6 8-6" />
+          </svg>
+          {t(language, 'willSendTo').replace('{email}', customerDetails.email)}
+        </motion.p>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.5, ease: EASE }}
+        className="mt-8 space-y-3"
+      >
+        <div className="flex gap-3">
+          {action(t(language, 'addToCalendar'), ICON_CAL, () => addBookingToCalendar())}
+          {action(copied ? `✓ ${t(language, 'copied')}` : t(language, 'share'), ICON_SHARE, handleShare)}
+        </div>
+        <ModernButton onClick={startNewBooking}>{t(language, 'newBooking')}</ModernButton>
       </motion.div>
     </div>
   );
 }
 
-// ── Pre-submit confirmation review ────────────────────────────────────────────
+// ── Pre-submit review ─────────────────────────────────────────────────────────
 export default function ModernConfirmation({ companySlug }: Props) {
   useSlotRecheck(companySlug);
   const {
-    employeesUI,
-    selectedEmployeeId,
-    anyPerson,
     selectedServices,
     selectedService,
     selectedDate,
@@ -363,36 +241,22 @@ export default function ModernConfirmation({ companySlug }: Props) {
     isSubmitting,
     setSubmitting,
     setBookingConfirmation,
-    theme,
     language,
   } = useBookingStore();
-  const showEmployee = useBookingStore((s) => s.prikazZaposlenih);
 
-  const { activePromotion, serviceDiscounts, selectedAddOn } = usePromotionsStore();
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
-  const selectedEmployee = employeesUI.find((e) => e.id === selectedEmployeeId);
 
   if (bookingConfirmation?.success) {
     return <SuccessView />;
   }
 
-  // Resolve services — multi-service or legacy single
   const services =
     selectedServices.length > 0
       ? selectedServices
       : selectedService
       ? [selectedService]
       : [];
-  const totalDuration = services.reduce((sum, s) => sum + s.trajanjeMin, 0);
-  const promotion = resolvePrimaryPromotion(
-    services,
-    serviceDiscounts,
-    activePromotion
-  );
-  const pricing = getBookingPricing(services, promotion, selectedAddOn);
-  const totalPrice = pricing.originalTotal;
-  const finalPrice = pricing.finalTotal;
 
   const handleConfirm = async () => {
     if (!companySlug || services.length === 0 || !selectedDate || !selectedTime || !customerDetails) {
@@ -440,206 +304,80 @@ export default function ModernConfirmation({ companySlug }: Props) {
     }
   };
 
-  const rows = [
+  const busy = isSubmitting || redirecting;
+
+  const contactRows = [
+    { key: 'name', icon: <path d="M20 21a8 8 0 00-16 0M12 13a5 5 0 100-10 5 5 0 000 10z" />, value: customerDetails ? `${customerDetails.firstName} ${customerDetails.lastName}` : undefined },
+    { key: 'email', icon: <><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M4 7l8 6 8-6" /></>, value: customerDetails?.email },
     {
-      label: t(language, 'fieldService'),
-      value: services.length > 0 ? services.map((s) => s.naziv).join(' + ') : undefined,
+      key: 'phone',
+      icon: <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.4 1.8.7 2.7a2 2 0 01-.5 2.1L8 9.8a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.7.7a2 2 0 011.7 2z" />,
+      value: customerDetails?.phone,
     },
-    {
-      label: t(language, 'fieldDuration'),
-      value: services.length > 0 ? formatDuration(totalDuration) : undefined,
-    },
-    {
-      label: t(language, 'fieldSpecialist'),
-      value: showEmployee ? (anyPerson ? t(language, 'anyone') : selectedEmployee?.label) : undefined,
-    },
-    {
-      label: t(language, 'fieldDate'),
-      value: selectedDate ? format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl }) : undefined,
-    },
-    { label: t(language, 'fieldTime'), value: selectedTime ?? undefined },
-    {
-      label: t(language, 'fieldName'),
-      value: customerDetails
-        ? `${customerDetails.firstName} ${customerDetails.lastName}`
-        : undefined,
-    },
-    { label: 'Email', value: customerDetails?.email },
-    { label: t(language, 'phoneLabel'), value: customerDetails?.phone },
-    {
-      label: t(language, 'fieldAddon'),
-      value: selectedAddOn
-        ? `${selectedAddOn.naziv} (+${formatBookingPrice(selectedAddOn.finalCena ?? selectedAddOn.originalCena)})`
-        : undefined,
-    },
+    { key: 'notes', icon: <path d="M4 5h16M4 10h16M4 15h10" />, value: customerDetails?.notes },
   ].filter((r) => r.value);
 
   return (
-    <div>
-      {/* Heading */}
-      <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mb-8">
-        <h2
-          className="mb-2"
-          style={{
-            color: 'var(--t-primary)',
-            fontFamily: 'var(--font-clash)',
-            fontWeight: 400,
-            fontSize: 'clamp(2rem, 5vw, 3.25rem)',
-            letterSpacing: '-0.015em',
-            lineHeight: 1.1,
-          }}
-        >
-          {t(language, 'reviewBooking')}
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--t-muted)', fontFamily: 'var(--font-inter)' }}>
-          {t(language, 'checkDetails')}
-        </p>
+    <motion.div variants={listVariants} initial="hidden" animate="visible" className="mx-auto max-w-xl">
+      <Title eyebrow={t(language, 'almostDone')} title={t(language, 'reviewBooking')} subtitle={t(language, 'checkDetails')} />
+
+      <motion.div variants={itemVariants} className="mb-7">
+        <ModernTicket />
       </motion.div>
 
-      {/* Summary card */}
-      <motion.div
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        className="rounded-2xl overflow-hidden mb-5 modern-glass"
-        style={{
-          backgroundColor: 'var(--s2)',
-          border: '1px solid var(--b2)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-      >
-        <div
-          className="h-1"
-          style={{
-            background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor})`,
-          }}
-        />
-
-        <div className="px-5 py-2">
-          {rows.map((row, i) => (
-            <div key={i} className="modern-summary-row">
-              <span className="modern-summary-label">{row.label}</span>
-              <span
-                className={`modern-summary-value ${String(row.value).includes('@') ? '' : 'first-cap'}`}
-                style={{ maxWidth: '65%' }}
-              >
-                {row.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Price total */}
-        {services.length > 0 && (
-          <>
-            <div className="mx-5 h-px" style={{ backgroundColor: 'var(--b1)' }} />
-            <div className="px-5 py-4 flex items-center justify-between">
-              <span
-                className="text-xs font-semibold tracking-widest uppercase"
-                style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
-              >
-                {t(language, 'total')}
-              </span>
-              <div className="text-right">
-                {pricing.hasDiscount && (
-                  <div
-                    className="text-sm line-through"
-                    style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
-                  >
-                    {formatBookingPrice(totalPrice)}
-                  </div>
-                )}
+      {contactRows.length > 0 && (
+        <motion.div variants={itemVariants} className="mb-7">
+          <SectionLabel>{t(language, 'contactLabel')}</SectionLabel>
+          <div className="overflow-hidden" style={GLASS}>
+            {contactRows.map((r, i) => (
+              <div key={r.key} className="flex items-center gap-3.5 px-5 py-4" style={{ borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.07)', color: 'var(--brand-glow)' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    {r.icon}
+                  </svg>
+                </span>
                 <span
-                  style={{
-                    color: 'var(--t-primary)',
-                    fontFamily: 'var(--font-clash)',
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-                    letterSpacing: '-0.01em',
-                  }}
+                  className={`min-w-0 flex-1 truncate text-[16px] ${r.key === 'name' ? 'font-bold first-cap' : 'font-medium'}`}
+                  style={{ fontFamily: FONT, color: r.key === 'name' ? 'var(--t-primary)' : 'var(--t-soft)' }}
                 >
-                  {formatBookingPrice(finalPrice)}
+                  {r.value}
                 </span>
               </div>
-            </div>
-          </>
-        )}
-      </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
-      {/* Error */}
       <AnimatePresence>
         {error && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-5 px-4 py-3 rounded-xl flex items-center gap-3"
-            style={{ backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
-          >
-            <span style={{ color: '#FCA5A5', flexShrink: 0, fontSize: '1rem' }}>!</span>
-            <p className="text-sm" style={{ color: '#FCA5A5', fontFamily: 'var(--font-inter)' }}>
-              {error}
-            </p>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-5 overflow-hidden">
+            <ErrorNote>{error}</ErrorNote>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Confirm CTA */}
-      <motion.button
-        variants={itemVariants}
-        initial="hidden"
-        animate="visible"
-        onClick={handleConfirm}
-        disabled={isSubmitting}
-        className="w-full py-4 rounded-2xl text-white font-semibold relative overflow-hidden"
-        style={{
-          backgroundColor: theme.primarySolid,
-          fontFamily: 'var(--font-inter)',
-          fontSize: '0.975rem',
-          cursor: isSubmitting ? 'not-allowed' : 'pointer',
-          opacity: isSubmitting ? 0.8 : 1,
-          boxShadow: `0 8px 28px ${theme.primaryColor}40`,
-        }}
-        whileHover={!isSubmitting ? { scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}50` } : {}}
-        whileTap={!isSubmitting ? { scale: 0.98 } : {}}
-      >
-        {!isSubmitting && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-              backgroundSize: '200% 100%',
-            }}
-            animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
-            transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2.5 }}
-          />
-        )}
-        {isSubmitting ? (
-          <div className="flex items-center justify-center gap-3">
-            <motion.div
-              className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' as const }}
-            />
-            <span>
-              {redirecting
-                ? t(language, 'redirectingToPayment')
-                : t(language, 'confirmingSending')}
-            </span>
-          </div>
-        ) : (
-          t(language, 'confirmBooking')
-        )}
-      </motion.button>
+      <motion.div variants={itemVariants} className="booking-sticky-cta" style={stickyCtaStyle(MODERN_BG, 16)}>
+        <ModernButton
+          onClick={handleConfirm}
+          loading={busy}
+          loadingText={redirecting ? t(language, 'redirectingToPayment') : t(language, 'confirmingSending')}
+          disabled={services.length === 0}
+        >
+          {t(language, 'confirmBooking')}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12l5 5L20 7" />
+          </svg>
+        </ModernButton>
+      </motion.div>
 
-      <p
-        className="text-center mt-3 text-xs"
-        style={{ color: 'var(--t-faint)', fontFamily: 'var(--font-inter)' }}
-      >
-        {t(language, 'confirmationSentEmail')}
-      </p>
-      <CancellationPolicy />
-    </div>
+      <motion.div variants={itemVariants} className="mt-3 text-center text-[13px] leading-5" style={{ fontFamily: FONT, color: 'var(--t-faint)' }}>
+        <p>
+          {customerDetails?.email
+            ? t(language, 'willSendTo').replace('{email}', customerDetails.email)
+            : t(language, 'confirmationSentEmail')}
+        </p>
+        <CancellationPolicy className="!mt-1 !text-[13px]" />
+      </motion.div>
+    </motion.div>
   );
 }

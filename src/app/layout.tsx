@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Libre_Baskerville, JetBrains_Mono, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import HtmlLang from "@/components/shared/HtmlLang";
@@ -35,6 +35,15 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://booking.jedroplus.com'),
   title: "Rezervacija termina",
   description: "Spletno naročanje na termin prek Jedro+.",
+};
+
+// Phones: no zoom when tapping a field or a button (iOS zooms into inputs
+// under 16px and on double tap). Pinch zoom still works on iOS.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
