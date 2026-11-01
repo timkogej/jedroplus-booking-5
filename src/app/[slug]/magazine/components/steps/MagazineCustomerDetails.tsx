@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
+import { sl, enUS } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { CustomerDetails as CustomerDetailsType } from '@/types';
 import { useSecureBooking } from '@/hooks/useSecureBooking';
@@ -69,7 +69,7 @@ function MagField({
   return (
     <div className="relative">
       <label
-        className="block magazine-caps text-[9px] tracking-[0.2em] mb-2 transition-colors duration-200"
+        className="block magazine-caps text-[11px] tracking-[0.2em] mb-2 transition-colors duration-200"
         style={{ color: isFocused ? theme.primarySolid : '#6B6B6B' }}
       >
         {label}
@@ -96,7 +96,7 @@ function MagField({
           onChange={onChange}
           onFocus={() => onFocus(name)}
           onBlur={onBlur}
-          className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none transition-colors duration-200 text-[#1A1A1A] placeholder:text-black/40"
+          className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none transition-colors duration-200 text-[#1A1A1A] placeholder:text-black/50"
           style={{ fontFamily: 'var(--font-source-serif), Georgia, serif' }}
         />
       </div>
@@ -295,7 +295,7 @@ export default function MagazineCustomerDetails() {
 
           {/* Gender selection */}
           <motion.div variants={itemVariants} className="mt-8">
-            <p className="magazine-caps text-[9px] tracking-[0.2em] text-[#6B6B6B] mb-4">
+            <p className="magazine-caps text-[11px] tracking-[0.2em] text-[#6B6B6B] mb-4">
               {t(language, 'salutation')}{' '}
               <span className="text-[#757575] ml-1">({t(language, 'optional')})</span>
             </p>
@@ -338,7 +338,7 @@ export default function MagazineCustomerDetails() {
               &ldquo;
             </span>
             <label
-              className="block magazine-caps text-[9px] tracking-[0.2em] mb-3 transition-colors duration-200"
+              className="block magazine-caps text-[11px] tracking-[0.2em] mb-3 transition-colors duration-200"
               style={{ color: focused === 'notes' ? theme.primarySolid : '#6B6B6B' }}
             >
               {t(language, 'notes')}{' '}
@@ -363,7 +363,7 @@ export default function MagazineCustomerDetails() {
                 onBlur={() => setFocused(null)}
                 rows={3}
                 placeholder={t(language, 'notesPlaceholder')}
-                className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none resize-none text-[#1A1A1A] placeholder:text-black/40"
+                className="w-full bg-transparent border-0 pb-2.5 pt-0 px-0 text-[15px] outline-none resize-none text-[#1A1A1A] placeholder:text-black/50"
                 style={{ fontFamily: 'var(--font-source-serif), Georgia, serif' }}
               />
             </div>
@@ -376,7 +376,10 @@ export default function MagazineCustomerDetails() {
             <div
               className="relative w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
               onClick={() =>
-                setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }))
+                {
+                  setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }));
+                  setErrors((p) => ({ ...p, privacyConsent: undefined }));
+                }
               }
             >
               <div
@@ -409,7 +412,10 @@ export default function MagazineCustomerDetails() {
               <label
                 className="text-[#6B6B6B] text-[12px] leading-relaxed cursor-pointer"
                 onClick={() =>
-                  setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }))
+                  {
+                  setFormData((p) => ({ ...p, privacyConsent: !p.privacyConsent }));
+                  setErrors((p) => ({ ...p, privacyConsent: undefined }));
+                }
                 }
               >
                 {t(language, 'privacyLabel')}{' '}
@@ -504,26 +510,15 @@ export default function MagazineCustomerDetails() {
             <motion.button
               type="submit"
               disabled={isSubmitting}
-              className="group relative px-8 py-3 overflow-hidden transition-all duration-300"
+              className="relative w-full md:w-auto px-12 py-4 text-white transition-opacity"
               style={{
-                border: `1px solid ${theme.primarySolid}`,
+                backgroundColor: theme.primarySolid,
                 opacity: isSubmitting ? 0.6 : 1,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
               }}
-              whileHover={isSubmitting ? {} : { scale: 1.02 }}
-              whileTap={isSubmitting ? {} : { scale: 0.98 }}
+              whileTap={isSubmitting ? {} : { scale: 0.99 }}
             >
-              <motion.div
-                className="absolute inset-0"
-                style={{ backgroundColor: theme.primarySolid }}
-                initial={{ x: '-100%' }}
-                whileHover={{ x: '0%' }}
-                transition={{ duration: 0.3 }}
-              />
-              <span
-                className="relative z-10 magazine-caps text-[10px] tracking-[0.2em]"
-                style={{ color: theme.primarySolid }}
-              >
+              <span className="magazine-caps text-[11px] tracking-[0.2em]" style={{ color: '#fff' }}>
                 {isSubmitting ? t(language, 'sending') : t(language, 'continueToConfirm')}
               </span>
             </motion.button>
@@ -532,7 +527,7 @@ export default function MagazineCustomerDetails() {
 
         {/* Summary sidebar */}
         <motion.div variants={itemVariants} className="lg:w-64 xl:w-72">
-          <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#6B6B6B] mb-4">
+          <p className="magazine-caps text-[11px] tracking-[0.22em] text-[#6B6B6B] mb-4">
             {t(language, 'yourBooking')}
           </p>
           <div className="h-[1px] bg-black/10 mb-5" />
@@ -540,7 +535,7 @@ export default function MagazineCustomerDetails() {
           <div className="space-y-4">
             {showEmployee && (selectedEmployee || anyPerson) && (
               <div>
-                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                   {t(language, 'specialist')}
                 </p>
                 <p className="magazine-serif text-[15px] text-[#1A1A1A]">
@@ -552,13 +547,13 @@ export default function MagazineCustomerDetails() {
             {selectedService && (
               <>
                 <div>
-                  <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                  <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                     {t(language, 'service')}
                   </p>
                   <p className="magazine-serif text-[15px] text-[#1A1A1A]">
                     {selectedService.naziv}
                   </p>
-                  <p className="magazine-caps text-[8px] tracking-[0.16em] text-[#6B6B6B] mt-0.5">
+                  <p className="magazine-caps text-[10px] tracking-[0.16em] text-[#6B6B6B] mt-0.5">
                     {formatDuration(selectedService.trajanjeMin)}
                   </p>
                 </div>
@@ -567,18 +562,18 @@ export default function MagazineCustomerDetails() {
 
             {selectedDate && (
               <div>
-                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                   {t(language, 'date')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A]">
-                  {format(selectedDate, 'd. MMMM yyyy', { locale: sl })}
+                  {format(selectedDate, 'd. MMMM yyyy', { locale: language === 'en' ? enUS : sl })}
                 </p>
               </div>
             )}
 
             {selectedTime && (
               <div>
-                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                   {t(language, 'time')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A] tabular-nums">
@@ -589,7 +584,7 @@ export default function MagazineCustomerDetails() {
 
             {selectedAddOn && (
               <div>
-                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+                <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                   {t(language, 'addon')}
                 </p>
                 <p className="magazine-body text-[15px] text-[#1A1A1A]">
@@ -603,11 +598,11 @@ export default function MagazineCustomerDetails() {
             <>
               <div className="h-[1px] bg-black/10 my-5" />
               <div className="flex justify-between items-baseline">
-                <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+                <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                   {t(language, 'total')}
                 </p>
                 <p
-                  className="magazine-serif text-[1.5rem] font-light tabular-nums"
+                  className="magazine-serif text-[1.5rem] font-light mag-lining"
                   style={{ color: theme.primarySolid }}
                 >
                   {pricing.hasDiscount && (

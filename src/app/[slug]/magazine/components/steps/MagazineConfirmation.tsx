@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Photo from '@/components/shared/Photo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
-import { sl } from 'date-fns/locale';
+import { sl, enUS } from 'date-fns/locale';
 import { useBookingStore } from '@/store/bookingStore';
 import { bookingErrorMessage, isSlotConflict, returnToTimeStep, startCheckout, submitCurrentBooking } from '@/lib/booking/submit';
 import { useSlotRecheck } from '@/lib/booking/useSlotRecheck';
@@ -157,7 +157,7 @@ function SuccessView() {
         <div className="space-y-4">
           {showEmployee && (selectedEmployee || anyPerson) && (
             <div className="flex justify-between items-center">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'specialist')}
               </p>
               <p className="magazine-body flex items-center gap-2 text-[14px] text-[#1A1A1A]">
@@ -170,7 +170,7 @@ function SuccessView() {
           )}
           {bookingConfirmation?.storitev && (
             <div className="flex justify-between items-baseline">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'service')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A]">
@@ -180,7 +180,7 @@ function SuccessView() {
           )}
           {bookingConfirmation?.datum && (
             <div className="flex justify-between items-baseline">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'date')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A]">
@@ -190,7 +190,7 @@ function SuccessView() {
           )}
           {bookingConfirmation?.cas && (
             <div className="flex justify-between items-baseline">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'time')}
               </p>
               <p className="magazine-body text-[14px] text-[#1A1A1A] tabular-nums">
@@ -200,7 +200,7 @@ function SuccessView() {
           )}
           {selectedService && (
             <div className="flex justify-between items-baseline">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B]">
                 {t(language, 'price')}
               </p>
               <p
@@ -227,7 +227,7 @@ function SuccessView() {
       >
         <motion.button
           onClick={handleAddToCalendar}
-          className="flex items-center gap-2 px-6 py-3 text-white magazine-caps text-[9px] tracking-[0.18em] transition-opacity"
+          className="flex items-center gap-2 px-6 py-3 text-white magazine-caps text-[11px] tracking-[0.18em] transition-opacity"
           style={{
             background: theme.primarySolid,
           }}
@@ -239,7 +239,7 @@ function SuccessView() {
 
         <motion.button
           onClick={handleShare}
-          className="flex items-center gap-2 px-6 py-3 magazine-caps text-[9px] tracking-[0.18em] border transition-all duration-300"
+          className="flex items-center gap-2 px-6 py-3 magazine-caps text-[11px] tracking-[0.18em] border transition-all duration-300"
           style={{ borderColor: theme.primarySolid, color: theme.primarySolid }}
           whileHover={{ backgroundColor: `${theme.primaryColor}08` }}
           whileTap={{ scale: 0.98 }}
@@ -249,7 +249,7 @@ function SuccessView() {
 
         <button
           onClick={startNewBooking}
-          className="px-4 py-3 magazine-caps text-[9px] tracking-[0.18em] text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors duration-200"
+          className="px-4 py-3 magazine-caps text-[11px] tracking-[0.18em] text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors duration-200"
         >
           {t(language, 'newBooking')}
         </button>
@@ -305,7 +305,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
 
       if (response.success) {
         const serviceName = result.serviceName;
-        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: sl });
+        const datumDisplay = format(selectedDate, 'd. MMMM yyyy', { locale: language === 'en' ? enUS : sl });
 
         if (response.requiresPayment === true) {
           setRedirecting(true);
@@ -396,14 +396,14 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               }
             />
             <div className="flex-1 min-w-0">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'specialist')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
                 {selectedEmployee ? selectedEmployee.label : t(language, 'anyoneLabel')}
               </p>
               {selectedEmployee?.subtitle && (
-                <p className="magazine-caps text-[8px] tracking-[0.14em] text-[#6B6B6B] mt-0.5">
+                <p className="magazine-caps text-[10px] tracking-[0.14em] text-[#6B6B6B] mt-0.5">
                   {selectedEmployee.subtitle}
                 </p>
               )}
@@ -427,13 +427,13 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'service')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A] mb-0.5">
                 {selectedService.naziv}
               </p>
-              <p className="magazine-caps text-[8px] tracking-[0.14em] text-[#6B6B6B]">
+              <p className="magazine-caps text-[10px] tracking-[0.14em] text-[#6B6B6B]">
                 {formatDuration(selectedService.trajanjeMin)} · {formatBookingPrice(pricing.primaryFinalPrice)}
               </p>
               {selectedService.opis && (
@@ -454,11 +454,11 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               {format(selectedDate, 'd')}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'dateAndTime')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
-                {format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: sl })}
+                {format(selectedDate, 'EEEE, d. MMMM yyyy', { locale: language === 'en' ? enUS : sl })}
               </p>
               <p
                 className="magazine-body text-[13px] mt-0.5 tabular-nums"
@@ -482,7 +482,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="magazine-caps text-[8px] tracking-[0.18em] text-[#6B6B6B] mb-1">
+              <p className="magazine-caps text-[10px] tracking-[0.18em] text-[#6B6B6B] mb-1">
                 {t(language, 'yourData')}
               </p>
               <p className="magazine-serif text-[15px] text-[#1A1A1A]">
@@ -502,7 +502,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         {/* Total */}
         {selectedService && (
           <div className="flex justify-between items-baseline py-5">
-            <p className="magazine-caps text-[8px] tracking-[0.2em] text-[#6B6B6B]">
+            <p className="magazine-caps text-[10px] tracking-[0.2em] text-[#6B6B6B]">
               {t(language, 'total')}
             </p>
             <div className="text-right">
@@ -522,7 +522,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         )}
         {selectedAddOn && (
           <div className="flex justify-between items-baseline pb-2">
-            <p className="magazine-caps text-[8px] tracking-[0.2em] text-[#6B6B6B]">
+            <p className="magazine-caps text-[10px] tracking-[0.2em] text-[#6B6B6B]">
               {t(language, 'addon')}
             </p>
             <p className="magazine-body text-[13px] text-[#1A1A1A]">
@@ -546,16 +546,6 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         whileHover={{ opacity: isSubmitting ? 1 : 0.92, scale: isSubmitting ? 1 : 1.01 }}
         whileTap={{ scale: isSubmitting ? 1 : 0.99 }}
       >
-        {/* Shine animation */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
-          }}
-          initial={{ x: '-100%' }}
-          whileHover={{ x: '100%' }}
-          transition={{ duration: 0.55, ease: 'easeInOut' }}
-        />
 
         {isSubmitting ? (
           <div className="flex items-center justify-center gap-3">
@@ -577,7 +567,7 @@ export default function MagazineConfirmation({ companySlug }: Props) {
         )}
       </motion.button>
 
-      <p className="magazine-caps text-[9px] tracking-[0.18em] text-[#757575] mt-4">
+      <p className="magazine-caps text-[11px] tracking-[0.18em] text-[#757575] mt-4">
         {t(language, 'emailNote')}
       </p>
       <CancellationPolicy className="!text-left text-[#757575]" />
