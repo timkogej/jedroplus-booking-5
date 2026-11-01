@@ -200,3 +200,9 @@
 .mag-scarcity-pulse {
   animation: mag-pulse 1.8s ease-in-out infinite;
 }
+
+/* Prices and durations read better with lining figures than Playfair's old-style ones. */
+.mag-lining {
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: 'lnum', 'tnum';
+}

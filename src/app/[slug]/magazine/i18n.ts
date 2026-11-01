@@ -22,6 +22,7 @@ export const translations = {
     stepConfirm: 'Potrditev',
     chapter: 'Poglavje',
     // Service selection
+    priceOnRequest: 'Po dogovoru',
     servicesTitle: 'Storitve',
     servicesSubtitle: 'Izberite storitev',
     // Employee selection
@@ -143,6 +144,7 @@ export const translations = {
     stepDetails: 'Details',
     stepConfirm: 'Confirm',
     chapter: 'Chapter',
+    priceOnRequest: 'On request',
     servicesTitle: 'Services',
     servicesSubtitle: 'Choose a service',
     specialistsTitle: 'Our Specialists',
