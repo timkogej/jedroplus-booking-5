@@ -14,6 +14,7 @@ import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
 import RequestReview from '@/components/shared/request/RequestReview';
 import { useRequestStore } from '@/lib/booking/request';
 import { magazineLook } from '@/components/shared/request/looks';
+import LocationFlow from '@/components/shared/location/LocationFlow';
 
 interface MagazineLayoutProps {
   companySlug: string;
@@ -256,7 +257,7 @@ export default function MagazineLayout({ companySlug }: MagazineLayoutProps) {
                 animate="animate"
                 exit="exit"
               >
-                {renderStep()}
+                <LocationFlow design="magazine">{renderStep()}</LocationFlow>
               </motion.div>
             </AnimatePresence>
           </div>

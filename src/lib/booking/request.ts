@@ -155,6 +155,7 @@ export function buildRequestBody(companySlug: string): Record<string, unknown> {
   return {
     action: 'request-create',
     companySlug,
+    ...(booking.selectedLocationId ? { lokacijaId: booking.selectedLocationId } : {}),
     ime: details.firstName,
     priimek: details.lastName,
     email: details.email,

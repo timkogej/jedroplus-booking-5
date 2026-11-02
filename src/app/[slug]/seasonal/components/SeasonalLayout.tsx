@@ -17,6 +17,7 @@ import RequestReview from '@/components/shared/request/RequestReview';
 import { REQUEST_TEXT, isRequestMode, useRequestStore } from '@/lib/booking/request';
 import { t } from '../i18n';
 import { seasonalLook } from '@/components/shared/request/looks';
+import LocationFlow from '@/components/shared/location/LocationFlow';
 
 // ── Time-of-day background tint (always light) ────────────────────────────────
 function getTimeOfDayTint(): { bgFrom: string; bgTo: string } {
@@ -414,7 +415,7 @@ export default function SeasonalLayout({ companySlug }: Props) {
                     animate="animate"
                     exit="exit"
                   >
-                    {renderStep()}
+                    <LocationFlow design="seasonal">{renderStep()}</LocationFlow>
                   </motion.div>
                 </AnimatePresence>
               </div>

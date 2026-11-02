@@ -12,9 +12,11 @@ import {
   SupportedLanguage,
   StripePaymentInfo,
   InitResponse,
+  Location,
 } from '@/types';
 import { DEFAULT_THEME } from '@/lib/api';
 import { withReadableColors } from '@/lib/color';
+import { catalogForLocation, locationStorageKey, type Catalog } from '@/lib/booking/locations';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,6 +43,14 @@ interface BookingState {
   servicesByCategory: Record<string, Service[]>;
   /** service text ID → array of employee text IDs that can perform it */
   employeesByServiceId: Record<string, (string | number)[]>;
+
+  // ── Locations ────────────────────────────────────────────────────────────────
+  /** Active locations; empty with one location (then nothing changes). */
+  locations: Location[];
+  /** Chosen location; null until picked. Always null with one location. */
+  selectedLocationId: string | null;
+  /** The catalog as init returned it, before the location filter. */
+  rawCatalog: Catalog | null;
 
   // ── Resources ────────────────────────────────────────────────────────────────
   /** Physical resources (rooms, equipment) from "Resursi" table */
@@ -120,6 +130,10 @@ interface BookingState {
    * Variant page components that still use individual setters continue to work.
    */
   setInitData: (data: InitResponse) => void;
+  /** Pick a location: narrows services, people and resources to it. */
+  selectLocation: (locationId: string) => void;
+  /** Back to the location picker. */
+  clearLocation: () => void;
 
   // ── Actions — individual setters (kept for variant page backward compat) ─────
   setTheme: (theme: Theme) => void;
@@ -178,7 +192,7 @@ interface BookingState {
 // Initial state
 // ─────────────────────────────────────────────────────────────────────────────
 const initialState: Omit<BookingState,
-  | 'setInitData' | 'setTheme' | 'setCompany' | 'setEmployeesUI'
+  | 'setInitData' | 'selectLocation' | 'clearLocation' | 'setTheme' | 'setCompany' | 'setEmployeesUI'
   | 'setCategories' | 'setServices' | 'setServicesByCategory'
   | 'setEmployeesByServiceId' | 'selectEmployee' | 'selectCategory'
   | 'selectService' | 'selectCategoryAndService' | 'selectDate'
@@ -195,6 +209,9 @@ const initialState: Omit<BookingState,
   services: [],
   servicesByCategory: {},
   employeesByServiceId: {},
+  locations: [],
+  selectedLocationId: null,
+  rawCatalog: null,
   resursi: [],
   storitveResursiMap: {},
   selectedService: null,
@@ -322,6 +339,25 @@ export const useBookingStore = create<BookingState>((set, get) => {
     setInitData: (data) => {
       const { company, theme, employees_ui, serviceCategories, services,
         servicesByCategory, employeesByServiceId, resursi, storitveResursiMap } = data;
+      const locations = data.locations ?? [];
+      const rawCatalog: Catalog = {
+        employeesUI: employees_ui ?? [],
+        categories: serviceCategories ?? [],
+        services: services ?? [],
+        servicesByCategory: servicesByCategory ?? {},
+        employeesByServiceId: employeesByServiceId ?? {},
+        resursi: resursi ?? [],
+        storitveResursiMap: storitveResursiMap ?? {},
+      };
+      // A location chosen on an earlier visit is kept while it still exists.
+      let savedLocation: string | null = null;
+      if (locations.length > 1 && typeof window !== 'undefined') {
+        try {
+          const id = localStorage.getItem(locationStorageKey(company.slug));
+          if (id && locations.some((l) => l.id === id)) savedLocation = id;
+        } catch { /* private mode: just ask again */ }
+      }
+      const visible = savedLocation ? catalogForLocation(rawCatalog, locations, savedLocation) : rawCatalog;
 
       // Prefer a persisted language choice over the company default
       const savedLang =
@@ -333,13 +369,10 @@ export const useBookingStore = create<BookingState>((set, get) => {
       set({
         company,
         theme: theme ? withReadableColors({ ...DEFAULT_THEME, ...theme }) : DEFAULT_THEME,
-        employeesUI: employees_ui ?? [],
-        categories: serviceCategories ?? [],
-        services: services ?? [],
-        servicesByCategory: servicesByCategory ?? {},
-        employeesByServiceId: employeesByServiceId ?? {},
-        resursi: resursi ?? [],
-        storitveResursiMap: storitveResursiMap ?? {},
+        ...visible,
+        locations,
+        selectedLocationId: savedLocation,
+        rawCatalog,
         multipleServicesAllowed: company.multiple_services_online ?? false,
         // In request mode the salon assigns the person, so no employee step
         // (the request step offers an optional preference instead).
@@ -349,6 +382,58 @@ export const useBookingStore = create<BookingState>((set, get) => {
         stripePaymentMode: company.stripe_payment_mode ?? 'full',
         stripeDepositPercent: company.stripe_deposit_percent ?? 30,
         language: lang,
+      });
+    },
+
+    selectLocation: (locationId) => {
+      const { rawCatalog, locations, company } = get();
+      if (!rawCatalog || !locations.some((l) => l.id === locationId)) return;
+      if (typeof window !== 'undefined' && company) {
+        try { localStorage.setItem(locationStorageKey(company.slug), locationId); } catch { /* not remembered */ }
+      }
+      set({
+        ...catalogForLocation(rawCatalog, locations, locationId),
+        selectedLocationId: locationId,
+        // everything chosen so far belonged to the old location
+        currentStep: 1 as BookingStep,
+        selectedCategory: null,
+        selectedService: null,
+        selectedServices: [],
+        selectedEmployeeId: null,
+        anyPerson: false,
+        eligibleEmployeeIds: [],
+        noEmployeeForCombination: false,
+        requiredResursiIds: [],
+        totalDurationMin: 0,
+        selectedDate: null,
+        selectedTime: null,
+        slotsMap: {},
+        slotNotice: null,
+      });
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    },
+
+    clearLocation: () => {
+      const { company } = get();
+      if (typeof window !== 'undefined' && company) {
+        try { localStorage.removeItem(locationStorageKey(company.slug)); } catch { /* ignore */ }
+      }
+      set({
+        selectedLocationId: null,
+        currentStep: 1 as BookingStep,
+        selectedCategory: null,
+        selectedService: null,
+        selectedServices: [],
+        selectedEmployeeId: null,
+        anyPerson: false,
+        eligibleEmployeeIds: [],
+        noEmployeeForCombination: false,
+        requiredResursiIds: [],
+        totalDurationMin: 0,
+        selectedDate: null,
+        selectedTime: null,
+        slotsMap: {},
+        slotNotice: null,
       });
     },
 
@@ -528,6 +613,9 @@ export const useBookingStore = create<BookingState>((set, get) => {
         employeesByServiceId: s.employeesByServiceId,
         resursi: s.resursi,
         storitveResursiMap: s.storitveResursiMap,
+        locations: s.locations,
+        selectedLocationId: s.selectedLocationId,
+        rawCatalog: s.rawCatalog,
         multipleServicesAllowed: s.multipleServicesAllowed,
         prikazZaposlenih: s.prikazZaposlenih,
         maxDniRezervacija: s.maxDniRezervacija,

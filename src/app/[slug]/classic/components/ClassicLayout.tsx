@@ -22,6 +22,7 @@ import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
 import RequestReview from '@/components/shared/request/RequestReview';
 import { useRequestStore } from '@/lib/booking/request';
 import { classicLook } from '@/components/shared/request/looks';
+import LocationFlow from '@/components/shared/location/LocationFlow';
 
 interface Props {
   companySlug: string;
@@ -404,7 +405,7 @@ export default function ClassicLayout({ companySlug }: Props) {
                 animate="animate"
                 exit="exit"
               >
-                {renderStep()}
+                <LocationFlow design="classic">{renderStep()}</LocationFlow>
               </motion.div>
             </AnimatePresence>
           </div>
