@@ -3,21 +3,9 @@
 import { motion } from 'framer-motion';
 import { useBookingStore } from '@/store/bookingStore';
 import { REQUEST_TEXT, useIsRequestMode, useRequestStore } from '@/lib/booking/request';
-import type { RequestLook } from './look';
-import { casinoLook, classicLook, elegantLook, magazineLook, modernLook, seasonalLook } from './looks';
+import { lookFor, type DesignName } from './looks';
 
-export type DesignName = 'classic' | 'modern' | 'elegant' | 'seasonal' | 'casino' | 'magazine';
-
-function lookFor(design: DesignName, theme: Parameters<typeof classicLook>[0]): RequestLook {
-  switch (design) {
-    case 'modern': return modernLook(theme);
-    case 'elegant': return elegantLook(theme);
-    case 'seasonal': return seasonalLook(theme);
-    case 'casino': return casinoLook(theme);
-    case 'magazine': return magazineLook(theme);
-    default: return classicLook(theme);
-  }
-}
+export type { DesignName };
 
 /**
  * Top of the service list in request mode: for clients who don't know which

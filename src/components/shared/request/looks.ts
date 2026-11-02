@@ -124,3 +124,17 @@ export function magazineLook(theme: Theme): RequestLook {
     ctaBleed: 24,
   };
 }
+
+export type DesignName = 'classic' | 'modern' | 'elegant' | 'seasonal' | 'casino' | 'magazine';
+
+/** The look of the shared screens in the given design. */
+export function lookFor(design: DesignName, theme: Theme): RequestLook {
+  switch (design) {
+    case 'modern': return modernLook(theme);
+    case 'elegant': return elegantLook(theme);
+    case 'seasonal': return seasonalLook(theme);
+    case 'casino': return casinoLook(theme);
+    case 'magazine': return magazineLook(theme);
+    default: return classicLook(theme);
+  }
+}

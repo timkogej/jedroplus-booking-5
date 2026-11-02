@@ -129,6 +129,8 @@ export async function fetchTimeSlotsRange(params: {
   endDate: string;
   /** Optional resurs row IDs — used for resource capacity checks in n8n */
   resursiIds?: number[];
+  /** Chosen location; only set when the company has several. */
+  lokacijaId?: string | null;
 }): Promise<RangeSlotsResponse> {
   const body: Record<string, unknown> = {
     action: 'slots',
@@ -144,6 +146,7 @@ export async function fetchTimeSlotsRange(params: {
   if (params.resursiIds && params.resursiIds.length > 0) {
     body.resursiIds = params.resursiIds;
   }
+  if (params.lokacijaId) body.lokacijaId = params.lokacijaId;
 
   const response = await fetch(API_BASE_URL, {
     method: 'POST',

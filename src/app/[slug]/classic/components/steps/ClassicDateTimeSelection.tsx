@@ -170,6 +170,7 @@ export default function ClassicDateTimeSelection({ companySlug }: Props) {
       startDate,
       endDate,
       resursiIds: requiredResursiIds.length > 0 ? requiredResursiIds : undefined,
+      lokacijaId: useBookingStore.getState().selectedLocationId,
     })
       .then((res) => setSlotsMap(res.slots))
       .catch(() => setSlotsMap({}))

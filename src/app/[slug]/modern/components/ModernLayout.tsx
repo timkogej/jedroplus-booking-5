@@ -15,6 +15,7 @@ import RequestWhenStep from '@/components/shared/request/RequestWhenStep';
 import RequestReview from '@/components/shared/request/RequestReview';
 import { useRequestStore } from '@/lib/booking/request';
 import { modernLook } from '@/components/shared/request/looks';
+import LocationFlow from '@/components/shared/location/LocationFlow';
 
 const pageVariants: Variants = {
   initial: { opacity: 0, y: 18, scale: 0.985 },
@@ -142,7 +143,7 @@ export default function ModernLayout({ companySlug }: Props) {
                 animate="animate"
                 exit="exit"
               >
-                {renderStep()}
+                <LocationFlow design="modern">{renderStep()}</LocationFlow>
               </motion.div>
             </AnimatePresence>
           </div>

@@ -162,6 +162,7 @@ export function buildCreateBody(companySlug: string): Record<string, unknown> {
   const body: Record<string, unknown> = {
     action: 'create',
     companySlug,
+    ...(state.selectedLocationId ? { lokacijaId: state.selectedLocationId } : {}),
     date: format(selectedDate, 'yyyy-MM-dd'),
     time: selectedTime,
     serviceIds: services.map((s) => s.id),

@@ -38,6 +38,8 @@ export interface EmployeeUI {
   initials: string;
   /** Photo ("Osebe".slika_url), square; null → initials. */
   slika_url?: string | null;
+  /** Location ids this person works at (several locations only); null = all. */
+  lokacije?: string[] | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,6 +63,8 @@ export interface Service {
   cena: number;
   /** Photo ("Storitve".slika_url), 4:3; null → the design's own look. */
   slika_url?: string | null;
+  /** Location ids offering this service (several locations only); null = all. */
+  lokacije?: string[] | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,6 +201,19 @@ export interface Resurs {
   kolicina: number;
   /** Max concurrent bookings per unit (usually 1) */
   kapaciteta: number;
+  /** Location the resource stands at (several locations only); null = main. */
+  lokacija_id?: string | null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Location — one place of a company; init only lists them when there are 2+
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Location {
+  id: string;
+  naziv: string;
+  naslov: string | null;
+  telefon: string | null;
+  je_glavna: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +221,8 @@ export interface Resurs {
 // ─────────────────────────────────────────────────────────────────────────────
 export interface InitResponse {
   company: Company;
+  /** Active locations; empty when the company has only one. */
+  locations?: Location[];
   employees: Employee[];
   employees_ui: EmployeeUI[];
   services: Service[];
