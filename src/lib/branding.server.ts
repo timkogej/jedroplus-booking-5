@@ -19,6 +19,28 @@ export interface Branding {
   rescheduleDays: number | null;
   /** ISO country code from Jedro+ ("country_code"), e.g. SI. */
   country: string | null;
+  /** Design picked as the main one in Jedro+ ("main_booking_link"), e.g. magazine. */
+  mainDesign: string | null;
+}
+
+/** Designs a main link may point at; anything else falls back to classic. */
+const DESIGN_KEYS = ['classic', 'modern', 'elegant', 'magazine', 'seasonal', 'casino'];
+
+/**
+ * The design is the last path segment of the main link. The slug in that link
+ * is ignored on purpose: some companies have a main link that was copied from
+ * another company, and the visitor already stands on the right slug.
+ */
+export function designFromMainLink(link: unknown): string | null {
+  if (typeof link !== 'string' || !link.trim()) return null;
+  let path = link.trim();
+  try {
+    path = new URL(path).pathname;
+  } catch {
+    /* not a full URL — treat it as a path */
+  }
+  const last = path.split('/').filter(Boolean).pop()?.toLowerCase() ?? '';
+  return DESIGN_KEYS.includes(last) ? last : null;
 }
 
 const EMPTY: Branding = {
@@ -29,6 +51,7 @@ const EMPTY: Branding = {
   cancelDays: null,
   rescheduleDays: null,
   country: null,
+  mainDesign: null,
 };
 
 export async function getBranding(slug: string): Promise<Branding> {
@@ -106,7 +129,19 @@ export async function getBranding(slug: string): Promise<Branding> {
       /* country is optional */
     }
 
-    return { name, logoUrl, address, phone, cancelDays, rescheduleDays, country };
+    let mainDesign: string | null = null;
+    try {
+      const mainRes = await fetch(`${table}?select=main_booking_link&${byCompany(companyId)}`, {
+        headers,
+        next: { revalidate: 60 },
+      });
+      const rows = (await mainRes.json()) as { main_booking_link?: string | null }[];
+      mainDesign = designFromMainLink(Array.isArray(rows) ? rows[0]?.main_booking_link : null);
+    } catch {
+      /* without a main design the visitor gets classic */
+    }
+
+    return { name, logoUrl, address, phone, cancelDays, rescheduleDays, country, mainDesign };
   } catch {
     return EMPTY;
   }

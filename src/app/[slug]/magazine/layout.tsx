@@ -10,10 +10,11 @@ export default async function MagazineRootLayout({
   params: { slug: string };
 }) {
   // Seasonal / magazine / casino are Jedro Pro designs. On lower plans we send
-  // the visitor to the company's standard booking page instead of showing a
-  // design they are not paying for.
+  // the visitor to the classic design instead of showing a design they are not
+  // paying for. Not to /{slug}: that redirects to the main design, which can be
+  // this very one, and the two redirects would loop.
   if (!(await proDesignsAllowed(params.slug))) {
-    redirect(`/${params.slug}`);
+    redirect(`/${params.slug}/classic`);
   }
 
   return (
