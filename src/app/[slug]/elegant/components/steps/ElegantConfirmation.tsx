@@ -15,6 +15,7 @@ import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import ElegantTicket from '../ElegantTicket';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { elegantLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -205,6 +206,8 @@ function SuccessView() {
       >
         <ElegantTicket sealed dateText={bookingConfirmation?.datum} timeText={bookingConfirmation?.cas} />
       </motion.div>
+
+      <LocationNote design="elegant" />
 
       {customerDetails?.email && (
         <motion.p

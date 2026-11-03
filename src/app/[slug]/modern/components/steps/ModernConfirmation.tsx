@@ -19,6 +19,7 @@ import { EASE, MODERN_BG, SPRING } from '../brand';
 import { ErrorNote, FONT, GLASS, SectionLabel, Title, dateLocale, itemVariants, listVariants } from '../ui';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { modernLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -197,6 +198,8 @@ function SuccessView() {
       >
         <ModernTicket status={t(language, 'statusConfirmed')} dateText={bookingConfirmation?.datum} timeText={bookingConfirmation?.cas} />
       </motion.div>
+
+      <LocationNote design="modern" />
 
       {customerDetails?.email && (
         <motion.p

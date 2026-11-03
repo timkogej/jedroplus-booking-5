@@ -21,6 +21,7 @@ import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { magazineLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -219,6 +220,8 @@ function SuccessView() {
         </div>
         <div className="h-[1px] bg-black/10 mt-6" />
       </motion.div>
+
+      <LocationNote design="magazine" />
 
       {/* Action buttons */}
       <motion.div

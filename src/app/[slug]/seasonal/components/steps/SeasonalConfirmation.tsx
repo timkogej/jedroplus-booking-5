@@ -21,6 +21,7 @@ import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { seasonalLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -158,6 +159,8 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           )}
         </motion.div>
       </motion.div>
+
+      <LocationNote design="seasonal" />
 
       {/* Confirmation email card */}
       {customerDetails?.email && (
