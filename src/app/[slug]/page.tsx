@@ -1,11 +1,17 @@
 import { redirect } from 'next/navigation';
+import { getBranding } from '@/lib/branding.server';
+import { proDesignsAllowed } from '@/lib/plan.server';
+
+const PRO_DESIGNS = ['seasonal', 'magazine', 'casino'];
 
 /**
- * /{slug} without a design used to show an old booking page that was not in
- * the design catalog and did not get any of the fixes. Old shared links now
- * land on the classic design instead (query string, e.g. ?lang=en, kept).
+ * /{slug} without a design lands on the design the company picked as its main
+ * one in Jedro+ (main_booking_link), or on classic when none is picked. That
+ * lets a company hand out one short link. A Pro design the plan no longer
+ * allows redirects to classic in its own layout. The query string (e.g.
+ * ?lang=en) is kept.
  */
-export default function BookingSlugPage({
+export default async function BookingSlugPage({
   params,
   searchParams,
 }: {
@@ -18,5 +24,7 @@ export default function BookingSlugPage({
     else if (value !== undefined) query.set(key, value);
   }
   const qs = query.toString();
-  redirect(`/${encodeURIComponent(params.slug)}/classic${qs ? `?${qs}` : ''}`);
+  let { mainDesign } = await getBranding(params.slug);
+  if (mainDesign && PRO_DESIGNS.includes(mainDesign) && !(await proDesignsAllowed(params.slug))) mainDesign = null;
+  redirect(`/${encodeURIComponent(params.slug)}/${mainDesign ?? 'classic'}${qs ? `?${qs}` : ''}`);
 }
