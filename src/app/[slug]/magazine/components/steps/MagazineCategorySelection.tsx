@@ -79,7 +79,7 @@ export default function MagazineCategorySelection() {
 
                   {/* Page-number style index */}
                   <span
-                    className="magazine-caps text-[9px] tracking-[0.2em] flex-shrink-0 tabular-nums"
+                    className="magazine-caps text-[11px] tracking-[0.2em] flex-shrink-0 tabular-nums"
                     style={{ color: isSelected ? theme.primarySolid : '#6B6B6B' }}
                   >
                     {paddedIndex}

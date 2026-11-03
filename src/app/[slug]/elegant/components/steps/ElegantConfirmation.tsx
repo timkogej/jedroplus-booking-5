@@ -13,6 +13,9 @@ import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import ElegantTicket from '../ElegantTicket';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { elegantLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -204,6 +207,8 @@ function SuccessView() {
         <ElegantTicket sealed dateText={bookingConfirmation?.datum} timeText={bookingConfirmation?.cas} />
       </motion.div>
 
+      <LocationNote design="elegant" />
+
       {customerDetails?.email && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -373,6 +378,8 @@ export default function ElegantConfirmation({ companySlug }: Props) {
           </div>
         </motion.div>
       )}
+
+      <QuestionnaireSummary look={elegantLook(theme)} className="mb-6" />
 
       <AnimatePresence>
         {error && (

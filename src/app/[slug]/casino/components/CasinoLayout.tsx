@@ -23,6 +23,7 @@ import RequestReview from '@/components/shared/request/RequestReview';
 import { useRequestStore } from '@/lib/booking/request';
 import { casinoLook } from '@/components/shared/request/looks';
 import { CREAM, CX_BG, EASE, FAINT, FONT_HEAD, FONT_LABEL, SPRING, casinoVars, mix, Chip } from './ui';
+import LocationFlow from '@/components/shared/location/LocationFlow';
 
 interface CasinoLayoutProps {
   companySlug: string;
@@ -374,7 +375,9 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
   // show the chosen service, so the casino title and summary step aside there.
   const company = useBookingStore((s) => s.company);
   const isRequest = company?.booking_mode === 'request';
-  const requestOwnsHeader = isRequest && (currentStep === 4 || currentStep === 6);
+  // While the location is still to be picked, the location screen has its own heading.
+  const pickingLocation = useBookingStore((st) => st.locations.length > 1 && !st.selectedLocationId);
+  const requestOwnsHeader = pickingLocation || (isRequest && (currentStep === 4 || currentStep === 6));
   // The review shows everything itself, the details step has its own summary.
   const showSummaryCard = !isSuccess && currentStep !== 5 && currentStep < 6 && !isRequest;
   const selectedServices = pickedServices.length > 0 ? pickedServices : selectedService ? [selectedService] : [];
@@ -487,7 +490,7 @@ export default function CasinoLayout({ companySlug }: CasinoLayoutProps) {
               </div>
             )}
 
-            {renderStep()}
+            <LocationFlow design="casino">{renderStep()}</LocationFlow>
           </motion.div>
         </AnimatePresence>
         </div>

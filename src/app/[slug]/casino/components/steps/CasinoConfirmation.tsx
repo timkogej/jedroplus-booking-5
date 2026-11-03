@@ -14,6 +14,9 @@ import { startNewBooking } from '@/lib/booking/newBooking';
 import { stickyCtaStyle } from '@/lib/booking/stickyCta';
 import CasinoTicket from '../CasinoTicket';
 import { CREAM, CX_BG, EASE, ErrorNote, FAINT, FONT_BODY, FONT_HEAD, MUTED, Spinner, atWord, dateLocale, mix, spokenDate } from '../ui';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { casinoLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -235,6 +238,8 @@ function SuccessView() {
         <CasinoTicket mode="done" refNum={bookingConfirmation?.terminId} />
       </motion.div>
 
+      <LocationNote design="casino" />
+
       {customerDetails?.email && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -291,6 +296,7 @@ export default function CasinoConfirmation({ companySlug }: Props) {
     goToStep,
     language,
   } = useBookingStore();
+  const theme = useBookingStore((s) => s.theme);
 
   const [error, setError] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
@@ -379,6 +385,8 @@ export default function CasinoConfirmation({ companySlug }: Props) {
           <CasinoTicket mode="review" onEdit={(step) => goToStep(step)} />
         </motion.div>
       </div>
+
+      <QuestionnaireSummary look={casinoLook(theme)} className="mb-5" />
 
       <AnimatePresence>
         {error && (

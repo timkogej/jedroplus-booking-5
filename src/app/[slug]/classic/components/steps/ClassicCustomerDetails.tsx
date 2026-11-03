@@ -34,6 +34,9 @@ import {
   shortDatePattern,
   useClassicColors,
 } from '../ui';
+import QuestionnaireFields from '@/components/shared/questionnaire/QuestionnaireFields';
+import { checkRequiredQuestions } from '@/lib/booking/questionnaire';
+import { classicLook } from '@/components/shared/request/looks';
 
 interface FormErrors {
   firstName?: string;
@@ -275,7 +278,7 @@ export default function ClassicCustomerDetails() {
   };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
+    if (!validate() || checkRequiredQuestions()) return;
     const fd = {
       ime: sanitize(firstName.trim()),
       priimek: sanitize(lastName.trim()),
@@ -451,6 +454,8 @@ export default function ClassicCustomerDetails() {
         autoComplete="off"
         style={{ position: 'absolute', left: '-9999px', width: 1, height: 1 }}
       />
+
+      <QuestionnaireFields look={classicLook(theme)} />
 
       {/* Consents */}
       <motion.div variants={itemVariants}>

@@ -19,6 +19,9 @@ import { addBookingToCalendar } from '@/lib/booking/calendar';
 import CancellationPolicy from '@/components/shared/CancellationPolicy';
 import { shareBooking } from '@/lib/booking/share';
 import { startNewBooking } from '@/lib/booking/newBooking';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { seasonalLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -130,7 +133,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.28, duration: 0.38 }}
-          className="text-2xl font-bold mb-2 text-gray-900"
+          className="text-2xl font-normal mb-2 text-gray-900"
           style={{ fontFamily: 'var(--font-stardom, serif)' }}
         >
           {t.confirmed}
@@ -157,6 +160,8 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
         </motion.div>
       </motion.div>
 
+      <LocationNote design="seasonal" />
+
       {/* Confirmation email card */}
       {customerDetails?.email && (
         <motion.div
@@ -170,7 +175,7 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           }}
         >
           {/* Accent top line */}
-          <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
+          <div className="h-0.5" style={{ backgroundColor: theme.primarySolid }} />
           <div className="px-5 py-4 flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
@@ -227,13 +232,6 @@ function SuccessView({ seasonalTheme }: { seasonalTheme: SeasonalTheme }) {
           whileHover={{ scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}48` }}
           whileTap={{ scale: 0.98 }}
         >
-          {/* Shimmer */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)', backgroundSize: '200% 100%' }}
-            animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
-            transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 2.5 }}
-          />
           {t.newBooking}
         </motion.button>
       </motion.div>
@@ -366,7 +364,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
     <div>
       <motion.div variants={itemVariants} initial="hidden" animate="visible" className="mb-6">
         <h2
-          className="text-2xl font-bold mb-1 text-gray-900"
+          className="text-2xl font-normal mb-1 text-gray-900"
           style={{ fontFamily: 'var(--font-stardom, serif)' }}
         >
           {t.title}
@@ -385,7 +383,7 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
         style={{ background: '#FAFAFA', border: '1px solid rgba(0,0,0,0.07)' }}
       >
         {/* Accent top bar */}
-        <div className="h-0.5" style={{ background: `linear-gradient(to right, ${theme.primarySolid}, ${theme.secondaryColor ?? theme.primaryColor}80)` }} />
+        <div className="h-0.5" style={{ backgroundColor: theme.primarySolid }} />
 
         <div className="px-5 py-2">
           {rows.map((row, i) => (
@@ -435,6 +433,8 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
       </motion.div>
 
       {/* Error */}
+      <QuestionnaireSummary look={seasonalLook(theme)} className="mb-5" />
+
       <AnimatePresence>
         {error && (
           <motion.div
@@ -471,14 +471,6 @@ export default function SeasonalConfirmation({ companySlug, seasonalTheme }: Pro
         whileHover={!isSubmitting ? { scale: 1.02, boxShadow: `0 12px 36px ${theme.primaryColor}48` } : {}}
         whileTap={!isSubmitting ? { scale: 0.98 } : {}}
       >
-        {!isSubmitting && (
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent)', backgroundSize: '200% 100%' }}
-            animate={{ backgroundPosition: ['-100% 0', '200% 0'] }}
-            transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 2.5 }}
-          />
-        )}
         {isSubmitting ? (
           <div className="flex items-center justify-center gap-3">
             <motion.div

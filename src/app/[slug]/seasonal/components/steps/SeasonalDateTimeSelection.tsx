@@ -141,6 +141,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
       startDate,
       endDate,
       resursiIds: requiredResursiIds.length > 0 ? requiredResursiIds : undefined,
+      lokacijaId: useBookingStore.getState().selectedLocationId,
     })
       .then((res) => setSlotsMap(res.slots))
       .catch(() => setSlotsMap({}))
@@ -277,7 +278,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
         className="mb-6"
       >
         <h2
-          className="text-2xl font-bold mb-1"
+          className="text-2xl font-normal mb-1"
           style={{ color: '#111827', fontFamily: 'var(--font-stardom, serif)' }}
         >
           {label.title}
@@ -538,7 +539,7 @@ export default function SeasonalDateTimeSelection({ companySlug }: Props) {
                               style={{
                                 background: isSelected ? 'rgba(255,255,255,0.25)' : theme.primarySolid,
                                 color: '#ffffff',
-                                fontFamily: 'var(--font-quicksand), var(--font-inter)',
+                                fontFamily: 'var(--font-inter), var(--font-inter)',
                               }}
                             >
                               {hhLabel}

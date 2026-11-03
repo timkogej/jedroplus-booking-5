@@ -178,6 +178,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
       startDate,
       endDate,
       resursiIds: requiredResursiIds.length > 0 ? requiredResursiIds : undefined,
+      lokacijaId: useBookingStore.getState().selectedLocationId,
     })
       .then((res) => setSlotsMap(res.slots))
       .catch(() => setSlotsMap({}))
@@ -389,7 +390,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
           <p className="magazine-body text-[#6B6B6B] text-sm italic">
             {t(language, 'noSlots')}
           </p>
-          <p className="magazine-caps text-[9px] tracking-[0.18em] text-black/30 mt-2">
+          <p className="magazine-caps text-[11px] tracking-[0.18em] text-[#6B6B6B] mt-2">
             {t(language, 'noSlotsHint')}
           </p>
         </div>
@@ -399,7 +400,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-0 max-h-72 overflow-y-auto magazine-scrollbar"
+        className="space-y-0 lg:max-h-72 lg:overflow-y-auto magazine-scrollbar"
       >
         {timeSlots.map((time, i) => {
           const isTimeSelected = selectedTime === time;
@@ -423,7 +424,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
                 </span>
                 {hhLabel && (
                   <span
-                    className="magazine-caps text-[8px] tracking-[0.12em] px-1.5 py-0.5 border leading-none"
+                    className="magazine-caps text-[10px] tracking-[0.12em] px-1.5 py-0.5 border leading-none"
                     style={{
                       color: theme.primarySolid,
                       borderColor: `${theme.primaryColor}40`,
@@ -607,7 +608,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
         {/* Mobile time slots section */}
         <div className="mt-6">
           <div className="border-b border-black/10 pb-3 mb-4 flex items-baseline justify-between">
-            <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#6B6B6B]">
+            <p className="magazine-caps text-[11px] tracking-[0.22em] text-[#6B6B6B]">
               {t(language, 'availableSlots')}
             </p>
             {selectedDate && (
@@ -662,7 +663,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
             {weekDays.map((d) => (
               <div
                 key={d}
-                className="text-center magazine-caps text-[9px] tracking-[0.15em] text-[#6B6B6B] py-1"
+                className="text-center magazine-caps text-[11px] tracking-[0.15em] text-[#6B6B6B] py-1"
               >
                 {d}
               </div>
@@ -777,7 +778,7 @@ export default function MagazineDateTimeSelection({ companySlug }: Props) {
         {/* Time slots */}
         <div>
           <div className="mb-6 border-b border-black/10 pb-4">
-            <p className="magazine-caps text-[9px] tracking-[0.22em] text-[#6B6B6B] mb-1">
+            <p className="magazine-caps text-[11px] tracking-[0.22em] text-[#6B6B6B] mb-1">
               {t(language, 'availableSlots')}
             </p>
             {selectedDate ? (

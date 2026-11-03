@@ -51,7 +51,9 @@ function wallTimeToDate(y: number, m: number, d: number, hh: number, mm: number,
 
 /** The booked appointment as a calendar event, or null when incomplete. */
 export function getBookingEvent(): BookingEvent | null {
-  const { selectedDate, selectedTime, company, language, totalDurationMin } = useBookingStore.getState();
+  const { selectedDate, selectedTime, company, language, totalDurationMin, locations, selectedLocationId } = useBookingStore.getState();
+  // With several locations the event belongs to the chosen one (its address and phone).
+  const place = locations.length > 1 ? locations.find((l) => l.id === selectedLocationId) ?? null : null;
   const { selectedAddOn } = usePromotionsStore.getState();
   const services = getSelectedServices();
   if (!selectedDate || !selectedTime || services.length === 0) return null;
@@ -74,14 +76,14 @@ export function getBookingEvent(): BookingEvent | null {
 
   const serviceNames = [...services.map((s) => s.naziv), ...(selectedAddOn?.naziv ? [selectedAddOn.naziv] : [])].join(' + ');
   const salon = company?.naziv?.trim();
-  const title = salon ? `${serviceNames} – ${salon}` : serviceNames;
+  const title = salon ? `${serviceNames} – ${place ? (place.naziv.includes(salon) ? place.naziv : `${salon} ${place.naziv}`) : salon}` : serviceNames;
   const en = language === 'en';
   const lines = [
     `${en ? 'Booking' : 'Rezervacija'}: ${serviceNames}`,
-    ...(company?.telefon ? [`${en ? 'Phone' : 'Telefon'}: ${company.telefon}`] : []),
+    ...((place?.telefon ?? company?.telefon) ? [`${en ? 'Phone' : 'Telefon'}: ${place?.telefon ?? company?.telefon}`] : []),
   ];
 
-  return { start, end, title, details: lines.join('\n'), location: company?.naslov ?? null };
+  return { start, end, title, details: lines.join('\n'), location: place?.naslov ?? company?.naslov ?? null };
 }
 
 /** 20261028T080000Z */

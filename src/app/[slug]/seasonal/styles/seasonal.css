@@ -1,5 +1,13 @@
-/* ── Stardom — high-fashion serif for headings ──────────── */
-@import url('https://api.fontshare.com/v2/css?f[]=stardom@400&display=swap');
+/* ── Stardom — high-fashion serif for headings ────────────
+   Served from /public/fonts like every other font (Fontshare Free Font
+   License, web use allowed); includes č š ž ć đ. */
+@font-face {
+  font-family: 'Stardom';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/stardom/stardom-400-latin.woff2') format('woff2');
+}
 
 /* CSS custom property so JS components can reference it */
 :root {

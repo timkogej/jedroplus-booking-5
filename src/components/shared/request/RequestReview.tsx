@@ -14,6 +14,7 @@ import {
 } from '@/lib/booking/request';
 import RequestSent from './RequestSent';
 import type { RequestLook } from './look';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 
 /** Request mode, in place of the booking review: check and send. */
 export default function RequestReview({ look, companySlug }: { look: RequestLook; companySlug?: string }) {
@@ -96,6 +97,8 @@ export default function RequestReview({ look, companySlug }: { look: RequestLook
           ))}
         </dl>
       </div>
+
+      <QuestionnaireSummary look={look} className="mb-5" />
 
       <div
         className="mb-5 flex gap-3 px-4 py-3.5 text-[14px] leading-6"

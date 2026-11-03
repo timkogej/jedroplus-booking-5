@@ -17,6 +17,7 @@ import { buildCancelUrl, buildSuccessUrl, redirectToCheckout } from '@/lib/check
 import { useBookingStore } from '@/store/bookingStore';
 import { usePromotionsStore } from '@/store/promotionsStore';
 import type { BookingConfirmation, Service } from '@/types';
+import { questionnaireAnswersPayload } from '@/lib/booking/questionnaire';
 
 export type BookingVariant = 'classic' | 'modern' | 'elegant' | 'magazine' | 'casino' | 'seasonal';
 
@@ -161,6 +162,7 @@ export function buildCreateBody(companySlug: string): Record<string, unknown> {
   const body: Record<string, unknown> = {
     action: 'create',
     companySlug,
+    ...(state.selectedLocationId ? { lokacijaId: state.selectedLocationId } : {}),
     date: format(selectedDate, 'yyyy-MM-dd'),
     time: selectedTime,
     serviceIds: services.map((s) => s.id),
@@ -173,6 +175,7 @@ export function buildCreateBody(companySlug: string): Record<string, unknown> {
     email: customerDetails.email,
     phone: customerDetails.phone,
     gender: customerDetails.gender ?? '',
+    vprasalnikOdgovori: questionnaireAnswersPayload(),
     notes: customerDetails.notes ?? '',
     privacy_consent: customerDetails.privacyConsent ?? false,
     marketing_consent: customerDetails.gdprSendMarketing ?? false,

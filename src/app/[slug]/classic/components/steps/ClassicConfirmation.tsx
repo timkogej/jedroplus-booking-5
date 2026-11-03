@@ -30,6 +30,9 @@ import {
   listVariants,
   useClassicColors,
 } from '../ui';
+import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
+import { classicLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -221,6 +224,8 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
         />
       </motion.div>
 
+      <LocationNote design="classic" />
+
       {customerDetails?.email && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -393,6 +398,8 @@ export default function ClassicConfirmation({ companySlug }: Props) {
       )}
 
       {/* Error */}
+      <QuestionnaireSummary look={classicLook(theme)} className="mb-5" />
+
       <AnimatePresence>
         {error && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-5 overflow-hidden">
