@@ -86,7 +86,9 @@ export default function LocationFlow({ design, children }: { design: DesignName;
     );
   }
 
-  const showLine = currentStep === 1 || currentStep === 2;
+  // Steps 1–2 let the client change it; later steps only remind where the booking is.
+  const canChange = currentStep === 1 || currentStep === 2;
+  const showLine = true;
   return (
     <>
       {showLine && (
@@ -99,14 +101,14 @@ export default function LocationFlow({ design, children }: { design: DesignName;
             <span style={{ color: look.surfaceMuted }}>{T.label}: </span>
             <span className="font-semibold">{selected.naziv}</span>
           </span>
-          <button
+          {canChange && <button
             type="button"
             onClick={clearLocation}
             className="flex-shrink-0 px-2 py-1 text-[15px] font-semibold underline-offset-2 hover:underline"
             style={{ color: look.accentText, fontFamily: look.fontBody, minHeight: 32 }}
           >
             {T.change}
-          </button>
+          </button>}
         </div>
       )}
       {children}

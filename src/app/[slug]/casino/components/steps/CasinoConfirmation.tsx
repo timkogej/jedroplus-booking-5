@@ -16,6 +16,7 @@ import CasinoTicket from '../CasinoTicket';
 import { CREAM, CX_BG, EASE, ErrorNote, FAINT, FONT_BODY, FONT_HEAD, MUTED, Spinner, atWord, dateLocale, mix, spokenDate } from '../ui';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { casinoLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -236,6 +237,8 @@ function SuccessView() {
       >
         <CasinoTicket mode="done" refNum={bookingConfirmation?.terminId} />
       </motion.div>
+
+      <LocationNote design="casino" />
 
       {customerDetails?.email && (
         <motion.p

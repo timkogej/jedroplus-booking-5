@@ -32,6 +32,7 @@ import {
 } from '../ui';
 import QuestionnaireSummary from '@/components/shared/questionnaire/QuestionnaireSummary';
 import { classicLook } from '@/components/shared/request/looks';
+import LocationNote from '@/components/shared/location/LocationNote';
 
 interface Props {
   companySlug?: string;
@@ -222,6 +223,8 @@ function SuccessView({ primaryColor }: { primaryColor: string }) {
           timeText={bookingConfirmation?.cas}
         />
       </motion.div>
+
+      <LocationNote design="classic" />
 
       {customerDetails?.email && (
         <motion.p
